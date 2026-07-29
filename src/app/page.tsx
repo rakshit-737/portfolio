@@ -15,11 +15,34 @@ import {
   links,
   moreProjects,
   researchSpotlight,
+  site,
   skills,
 } from "@/content";
 import { withBase } from "@/lib/base";
 
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: hero.name,
+  jobTitle: "Software & Security Engineer",
+  url: site.url,
+  email: `mailto:${links.email}`,
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Chennai",
+    addressCountry: "IN",
+  },
+  alumniOf: {
+    "@type": "CollegeOrUniversity",
+    name: "VIT Chennai",
+  },
+  sameAs: [links.github.url, links.linkedin.url],
+};
+
 export default function Home() {
+  // Baked in at build time — the static export is the "record".
+  const generatedOn = new Date().toISOString().slice(0, 10);
+
   return (
     <>
       <a
@@ -28,6 +51,10 @@ export default function Home() {
       >
         Skip to content
       </a>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
       <Nav />
 
       <main>
@@ -278,7 +305,8 @@ export default function Home() {
               { label: "© 2026 rakshit rameshbabu" },
               { label: "chennai, india" },
               { label: "built with next.js · statically exported" },
-              { label: "source", href: links.github.url },
+              { label: `record generated: ${generatedOn}` },
+              { label: "source", href: "https://github.com/rakshit-737/portfolio" },
             ]}
           />
         </div>
