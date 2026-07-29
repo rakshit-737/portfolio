@@ -40,10 +40,10 @@ export default function TypedLine({
   }, [started, count, done]);
 
   return (
-    <p
-      className="min-h-10 font-mono text-sm text-muted sm:min-h-5"
-      aria-label={`${prefix} ${text}`}
-    >
+    <p className="min-h-10 font-mono text-sm text-muted sm:min-h-5">
+      <span className="sr-only">
+        {prefix} {text}
+      </span>
       <span aria-hidden="true">
         <span className="text-amber">{prefix}</span>{" "}
         <span className={started && !done ? "caret" : undefined}>

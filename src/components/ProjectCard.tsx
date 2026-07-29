@@ -37,13 +37,15 @@ export default function ProjectCard({ project }: { project: FeaturedProject }) {
         {project.headlineNumbers && (
           <dl className="mt-6 grid grid-cols-1 divide-y divide-hairline border border-hairline sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {project.headlineNumbers.map((n) => (
-              <div key={n.label} className="px-4 py-3">
-                <dd className="font-mono text-lg font-semibold text-amber">
-                  {n.value}
-                </dd>
+              // flex-col-reverse keeps the value visually above its label
+              // while the DOM stays valid (dt before dd).
+              <div key={n.label} className="flex flex-col-reverse px-4 py-3">
                 <dt className="mt-0.5 font-mono text-xs text-muted">
                   {n.label}
                 </dt>
+                <dd className="font-mono text-lg font-semibold text-amber">
+                  {n.value}
+                </dd>
               </div>
             ))}
           </dl>
@@ -73,9 +75,8 @@ export default function ProjectCard({ project }: { project: FeaturedProject }) {
             </a>
           ) : (
             <span
-              aria-disabled="true"
               title="Repository link coming soon"
-              className="inline-flex cursor-not-allowed items-center gap-1.5 border border-hairline px-3.5 py-2 font-mono text-xs text-muted opacity-70"
+              className="inline-flex cursor-not-allowed items-center gap-1.5 border border-hairline px-3.5 py-2 font-mono text-xs italic text-muted"
             >
               Repository — coming soon
             </span>

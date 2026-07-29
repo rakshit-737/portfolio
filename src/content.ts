@@ -24,7 +24,6 @@ export interface FeaturedProject {
   timeframe: string;
   oneLiner: string;
   bullets: string[];
-  quote?: string;
   headlineNumbers?: HeadlineNumber[];
   tech: string[];
   repoUrl: string | null; // null → disabled "coming soon" button
@@ -37,6 +36,9 @@ export interface MoreProject {
   timeframe: string;
   description: string;
   tech: string[];
+  repoUrl?: string;
+  /** Compact provenance line — every project card carries one. */
+  evidence: EvidenceSegment[];
 }
 
 export const site = {
@@ -52,7 +54,10 @@ export const hero = {
   role: "Software & Security Engineer — B.Tech (Cyber Security) @ VIT Chennai",
   location: "Chennai, India",
   /** Typed once on page load. */
-  provenance: "verified: builds end-to-end · tested in CI · reproducible",
+  provenance: {
+    prefix: "verified:",
+    text: "builds end-to-end · tested in CI · reproducible",
+  },
 } as const;
 
 export const links = {
@@ -101,12 +106,15 @@ export const featuredProjects: FeaturedProject[] = [
       "TypeScript",
       "Docker",
     ],
-    repoUrl: null, // WARDEN_REPO_URL — supplied later; disabled button until then
+    repoUrl: "https://github.com/rakshit-737/warden-supply-chain-firewall",
     evidence: [
       { label: "2026-07" },
       { label: "active", tone: "pass" },
       { label: "python · fastapi · react" },
-      { label: "repo: coming soon", disabled: true },
+      {
+        label: "repo",
+        href: "https://github.com/rakshit-737/warden-supply-chain-firewall",
+      },
       { label: "40 tests · CI", tone: "pass" },
     ],
   },
@@ -121,8 +129,6 @@ export const featuredProjects: FeaturedProject[] = [
       "Core finding: the learned scheduler is structurally degenerate — its queue ordering collapses to a sort by requested job size. Verified across 45,432 real dispatch instants with zero counterexamples; equivalence established with paired TOST (p = 2.6×10⁻¹⁶) rather than difference tests.",
       "Validated on real supercomputer traces (LANL CM-5, SDSC SP2) via second-exact event replay: the simulated ML gain does not replicate. Fully reproducible (seeded pipeline, Docker, CI); LaTeX manuscript in progress.",
     ],
-    quote:
-      "A wait-time feature set can only produce a meaningful ranking if it contains a per-job attribute that is not a function of size given cluster state — and the honest baseline for an ML scheduler is the ML-free control its feature set implies, not FIFO.",
     headlineNumbers: [
       { value: "0", label: "counterexamples" },
       { value: "45,432", label: "dispatch instants" },
@@ -189,17 +195,36 @@ export const researchSpotlight = {
   context:
     "From the Proactive Feasibility Scheduler study — a proven negative result, verified across 45,432 real dispatch instants. LaTeX manuscript in progress.",
   quote:
-    "A wait-time feature set can only produce a meaningful ranking if it contains a per-job attribute that is not a function of size given cluster state — and the honest baseline for an ML scheduler is the ML-free control its feature set implies, not FIFO.",
+    "a wait-time feature set can only produce a meaningful ranking if it contains a per-job attribute that is not a function of size given cluster state — and the honest baseline for an ML scheduler is the ML-free control its feature set implies, not FIFO.",
   repoUrl: "https://github.com/rakshit-737/proactive-feasibility-scheduler",
 } as const;
 
 export const moreProjects: MoreProject[] = [
+  {
+    name: "Taintwall — AI Agent Tool-Boundary Firewall",
+    timeframe: "Jul 2026",
+    description:
+      "In-process provenance and policy firewall for AI agent tool boundaries, defending against indirect prompt injection; four defense layers (Unicode/markup normalization, content-signal classifier, intent-gated policy, argument-level provenance) plus an attack harness and labelled corpus — measured 43% → 0% exfiltration with benign utility intact.",
+    tech: ["Python"],
+    repoUrl: "https://github.com/rakshit-737/taintwall",
+    evidence: [
+      { label: "2026-07" },
+      { label: "phase 2", tone: "pass" },
+      { label: "python" },
+      { label: "repo", href: "https://github.com/rakshit-737/taintwall" },
+    ],
+  },
   {
     name: "SentinelCore — OS-Level Malware Analysis Framework",
     timeframe: "Aug 2025",
     description:
       "Kernel-level malware analysis with real-time syscall monitoring (strace/eBPF); container-free isolation via Linux namespaces and cgroups; multi-engine detection pipeline (entropy analysis, ClamAV, VirusTotal API, AI-assisted log analysis).",
     tech: ["Python", "C", "Linux", "eBPF"],
+    evidence: [
+      { label: "2025-08" },
+      { label: "completed" },
+      { label: "python · c · eBPF" },
+    ],
   },
   {
     name: "Web Application Security Suite",
@@ -207,6 +232,11 @@ export const moreProjects: MoreProject[] = [
     description:
       "Security testing and monitoring platform: OWASP Top 10 vulnerability scanner (SQLi, XSS, CSRF), request monitoring with anomaly detection and rate limiting, JWT-based Zero Trust auth, attack simulation for testing.",
     tech: ["Python", "JavaScript"],
+    evidence: [
+      { label: "2025-12" },
+      { label: "completed" },
+      { label: "python · javascript" },
+    ],
   },
 ];
 
@@ -214,7 +244,8 @@ export interface Achievement {
   title: string;
   detail: string;
   date: string;
-  certificateUrl: string | null; // null → visibly disabled placeholder
+  /** URL when live; null → visibly disabled "coming soon"; omit → no certificate. */
+  certificateUrl?: string | null;
 }
 
 export const achievements: Achievement[] = [
@@ -228,7 +259,6 @@ export const achievements: Achievement[] = [
     title: "Top 100 Teams — FarAway Zuup Hackathon",
     detail: "Among ~11,000 participants.",
     date: "Jun 2026",
-    certificateUrl: null,
   },
 ];
 

@@ -81,9 +81,6 @@ record. Tokens (defined in `src/app/globals.css`):
 
 ## Still to fill in
 
-- `WARDEN_REPO_URL` — set `repoUrl` on the Warden entry in
-  [`src/content.ts`](src/content.ts) (currently a disabled "coming soon"
-  button).
 - `CERTIFICATE_URL` — set `certificateUrl` on the Cyber Secure 360 achievement
   in [`src/content.ts`](src/content.ts).
 - `public/resume.pdf` — drop the résumé file in; the download buttons already

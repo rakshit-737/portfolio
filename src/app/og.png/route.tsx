@@ -1,13 +1,14 @@
 import { ImageResponse } from "next/og";
-import { hero, site } from "@/content";
+import { hero } from "@/content";
 
 export const dynamic = "force-static";
-export const alt = site.title;
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
 
-// Rendered at build time (static export) on the site's token palette.
-export default function OpenGraphImage() {
+/**
+ * Open Graph image, emitted at build time as a real .png path so static
+ * hosts (GitHub Pages) serve it with an image/png content type — the
+ * extensionless opengraph-image file convention breaks scrapers there.
+ */
+export async function GET() {
   return new ImageResponse(
     (
       <div
@@ -60,10 +61,10 @@ export default function OpenGraphImage() {
             color: "#7FB4D9",
           }}
         >
-          verified: builds end-to-end · tested in CI · reproducible
+          {hero.provenance.prefix} {hero.provenance.text}
         </div>
       </div>
     ),
-    { ...size },
+    { width: 1200, height: 630 },
   );
 }

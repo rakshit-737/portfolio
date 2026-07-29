@@ -17,12 +17,9 @@ export default function EvidenceStrip({
   return (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-muted">
       {segments.map((seg, i) => (
+        // Trailing separator stays with its segment so a wrapped line never
+        // starts with a dangling "·".
         <span key={seg.label} className="flex items-center gap-x-2">
-          {i > 0 && (
-            <span aria-hidden="true" className="select-none">
-              ·
-            </span>
-          )}
           {seg.href ? (
             <a
               href={seg.href}
@@ -33,12 +30,17 @@ export default function EvidenceStrip({
               {seg.label}
             </a>
           ) : seg.disabled ? (
-            <span className="italic opacity-70" title="Link coming soon">
+            <span className="italic" title="Link coming soon">
               {seg.label}
             </span>
           ) : (
             <span className={seg.tone ? toneClass[seg.tone] : undefined}>
               {seg.label}
+            </span>
+          )}
+          {i < segments.length - 1 && (
+            <span aria-hidden="true" className="select-none">
+              ·
             </span>
           )}
         </span>

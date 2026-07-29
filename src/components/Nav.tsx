@@ -8,17 +8,22 @@ import { withBase } from "@/lib/base";
 export default function Nav() {
   const [active, setActive] = useState<string>("");
   const [open, setOpen] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const sections = navSections
-      .map((s) => document.getElementById(s.id))
+    // Sections observed but not listed in the nav highlight a parent entry.
+    const spyAlias: Record<string, string> = { "more-projects": "projects" };
+    const ids = [...navSections.map((s) => s.id), ...Object.keys(spyAlias)];
+    const sections = ids
+      .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
 
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) setActive(entry.target.id);
+          if (entry.isIntersecting) {
+            setActive(spyAlias[entry.target.id] ?? entry.target.id);
+          }
         }
       },
       // A narrow horizontal band ~1/3 down the viewport decides the
@@ -32,7 +37,10 @@ export default function Nav() {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        menuButtonRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -40,7 +48,7 @@ export default function Nav() {
 
   const linkClass = (id: string) =>
     `font-mono text-xs transition-colors hover:text-ink ${
-      active === id ? "text-amber" : "text-muted"
+      active === id ? "text-steel" : "text-muted"
     }`;
 
   return (
@@ -81,7 +89,8 @@ export default function Nav() {
         {/* Mobile menu button */}
         <button
           type="button"
-          className="text-ink md:hidden"
+          ref={menuButtonRef}
+          className="-m-2 p-2 text-ink md:hidden"
           aria-expanded={open}
           aria-controls="mobile-menu"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -95,8 +104,9 @@ export default function Nav() {
       {open && (
         <div
           id="mobile-menu"
-          ref={panelRef}
-          className="border-t border-hairline bg-bg md:hidden"
+          // Overlay (not in flow) so opening the menu never shifts the page;
+          // capped height keeps every item reachable on short viewports.
+          className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-y border-hairline bg-bg md:hidden"
         >
           <div className="mx-auto flex max-w-5xl flex-col gap-1 px-6 py-4">
             {navSections.map((s) => (

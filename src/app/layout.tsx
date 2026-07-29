@@ -29,15 +29,24 @@ export const metadata: Metadata = {
   openGraph: {
     title: site.title,
     description: site.description,
-    url: "/",
+    // Absolute URLs: metadataBase resolution drops sub-paths (GitHub Pages
+    // basePath), so the full origin+path from site.url is used directly.
+    url: site.url,
     siteName: "Rakshit Rameshbabu",
     type: "website",
     locale: "en_US",
+    images: [
+      { url: `${site.url}/og.png`, width: 1200, height: 630, alt: site.title },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: site.title,
     description: site.description,
+    images: [`${site.url}/og.png`],
+  },
+  icons: {
+    apple: `${site.url}/apple-icon.png`,
   },
   robots: { index: true, follow: true },
 };

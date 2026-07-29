@@ -35,7 +35,7 @@ export default function CopyEmailButton({ email }: { email: string }) {
     >
       {copied ? (
         <>
-          <Check size={13} aria-hidden="true" className="text-pass" />
+          <Check size={13} aria-hidden="true" className="text-steel" />
           Copied
         </>
       ) : (

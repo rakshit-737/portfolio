@@ -23,7 +23,7 @@ export default function Home() {
   return (
     <>
       <a
-        href="#about"
+        href="#top"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-100 focus:bg-surface focus:px-3 focus:py-2 focus:font-mono focus:text-sm focus:text-ink"
       >
         Skip to content
@@ -73,7 +73,7 @@ export default function Home() {
         </Section>
 
         <Section id="research" eyebrow="research" title="Research Spotlight">
-          <figure className="border-l-2 border-amber pl-6 sm:pl-8">
+          <figure className="border-l-2 border-hairline pl-6 sm:pl-8">
             <blockquote className="max-w-3xl font-display text-xl font-medium leading-snug tracking-tight text-ink sm:text-2xl">
               &ldquo;{researchSpotlight.quote}&rdquo;
             </blockquote>
@@ -97,8 +97,12 @@ export default function Home() {
             {moreProjects.map((project) => (
               <article
                 key={project.name}
-                className="flex flex-col border border-hairline bg-surface px-5 py-5 sm:px-6"
+                className="flex flex-col border border-hairline bg-surface"
               >
+                <div className="border-b border-hairline px-5 py-2.5 sm:px-6">
+                  <EvidenceStrip segments={project.evidence} />
+                </div>
+                <div className="flex grow flex-col px-5 py-5 sm:px-6">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                   <h3 className="font-display text-base font-bold tracking-tight text-ink">
                     {project.name}
@@ -123,6 +127,7 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
+                </div>
               </article>
             ))}
           </div>
@@ -150,7 +155,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-4 pl-8 sm:pl-0">
                   <span className="font-mono text-xs text-muted">{a.date}</span>
-                  {a.certificateUrl ? (
+                  {a.certificateUrl && (
                     <a
                       href={a.certificateUrl}
                       target="_blank"
@@ -159,11 +164,11 @@ export default function Home() {
                     >
                       Certificate
                     </a>
-                  ) : (
+                  )}
+                  {a.certificateUrl === null && (
                     <span
-                      aria-disabled="true"
                       title="Certificate link coming soon"
-                      className="cursor-not-allowed font-mono text-xs italic text-muted opacity-70"
+                      className="cursor-not-allowed font-mono text-xs italic text-muted"
                     >
                       certificate — coming soon
                     </span>

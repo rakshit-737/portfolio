@@ -33,8 +33,8 @@ export default function Hero() {
           style={{ "--reveal-delay": "0.45s" } as React.CSSProperties}
         >
           <TypedLine
-            prefix="verified:"
-            text="builds end-to-end · tested in CI · reproducible"
+            prefix={hero.provenance.prefix}
+            text={hero.provenance.text}
           />
         </div>
 
