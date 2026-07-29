@@ -72,7 +72,7 @@ export const links = {
 
 export const about = {
   paragraphs: [
-    "B.Tech Computer Science (Cyber Security) student at VIT Chennai, CGPA 9.08. I build full-stack products and backend systems and take them end-to-end — from written requirements and architecture to CI-tested, reproducible deployments.",
+    "B.Tech Computer Science (Cyber Security) student at VIT Chennai, CGPA 9.07. I build full-stack products and backend systems and take them end-to-end — from written requirements and architecture to CI-tested, reproducible deployments.",
     "My work sits at the intersection of software engineering, security, and applied ML: a supply-chain firewall for PyPI packages, a published-grade evaluation study of ML job scheduling, and a cross-platform wellness app. I work AI-native — LLM coding tools are part of my daily loop for prototyping, debugging, test generation, and review.",
   ],
   interests: [
@@ -345,7 +345,7 @@ export const education: EducationEntry[] = [
     degree: "B.Tech CSE (Cyber Security)",
     institution: "VIT Chennai",
     period: "2024–Present",
-    score: "CGPA 9.08/10",
+    score: "CGPA 9.07/10",
   },
   {
     degree: "Class XII (PCM-CS)",
