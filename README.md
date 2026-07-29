@@ -83,7 +83,5 @@ record. Tokens (defined in `src/app/globals.css`):
 
 - `CERTIFICATE_URL` — set `certificateUrl` on the Cyber Secure 360 achievement
   in [`src/content.ts`](src/content.ts).
-- `public/resume.pdf` — drop the résumé file in; the download buttons already
-  point at it.
 - Optional headshot — not currently used by the design; if wanted, add to
   `public/` and extend the About section.
