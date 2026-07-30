@@ -46,13 +46,11 @@ export function TubesBackground({
       if (!canvasRef.current) return;
 
       try {
-        // We use the specific build from the CDN as it contains the exact
-        // effect requested. webpackIgnore keeps the bundler from trying to
-        // resolve the remote URL; the browser performs the dynamic import.
+        // Locally-installed, lockfile-pinned build of the tubes cursor effect
+        // (npm threejs-components@0.0.19) — no remote code loading.
         const module = await import(
-          /* webpackIgnore: true */
-          // @ts-expect-error -- remote ESM module, no local types
-          "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js"
+          // @ts-expect-error -- package ships no type declarations
+          "threejs-components/build/cursors/tubes1.min.js"
         );
         const TubesCursor = module.default;
 
