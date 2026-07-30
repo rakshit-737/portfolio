@@ -78,15 +78,6 @@ record. Tokens (defined in `src/app/globals.css`):
   its headline-numbers strip on the card); the separate **Research Spotlight**
   section carries the constructive-takeaway pull quote, so the two sections
   don't duplicate each other.
-- The hero is `CyberMatrixHero` (`src/components/ui/cyber-matrix-hero.tsx`),
-  an interactive green-on-black matrix character grid with glitch-on-click —
-  requested explicitly on 2026-07-30, overriding the original brief's bans on
-  matrix rain/glitch/green-on-black. The previous quiet hero is preserved at
-  `src/components/Hero.tsx` if you want to revert. `TubesBackground`
-  (`src/components/ui/neon-flow.tsx`) is mounted site-wide in
-  `src/app/layout.tsx` as a fixed canvas layer behind all routes (home + 404);
-  any click randomizes its colors. Also user-requested (2026-07-30), overriding
-  the brief's quiet-background direction.
 
 ## Still to fill in
 

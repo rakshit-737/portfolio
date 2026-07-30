@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Mono, Public_Sans } from "next/font/google";
 import { site } from "@/content";
-import TubesBackground from "@/components/ui/neon-flow";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -62,15 +61,7 @@ export default function RootLayout({
       lang="en"
       className={`${archivo.variable} ${publicSans.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-bg text-ink">
-        {/* Site-wide animated background: fixed viewport canvas behind all
-            routes (home + 404 both render inside this layout). */}
-        <TubesBackground
-          globalClickInteraction
-          className="fixed inset-0 z-0 h-screen w-screen min-h-0 bg-transparent"
-        />
-        <div className="relative z-10">{children}</div>
-      </body>
+      <body className="min-h-full bg-bg text-ink">{children}</body>
     </html>
   );
 }

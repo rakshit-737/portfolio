@@ -2,8 +2,8 @@ import { ArrowUpRight, Award, Download, Mail } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/icons";
 import CopyEmailButton from "@/components/CopyEmailButton";
 import EvidenceStrip from "@/components/EvidenceStrip";
+import Hero from "@/components/Hero";
 import Nav from "@/components/Nav";
-import CyberMatrixHero from "@/components/ui/cyber-matrix-hero";
 import ProjectCard from "@/components/ProjectCard";
 import Section from "@/components/Section";
 import {
@@ -58,14 +58,7 @@ export default function Home() {
       <Nav />
 
       <main>
-        <section id="top" aria-label="Introduction">
-          <CyberMatrixHero
-            badge={hero.role}
-            title={hero.name}
-            description={`${hero.location} — ${hero.provenance.prefix} ${hero.provenance.text}`}
-            cta={{ label: "View projects", href: "#projects" }}
-          />
-        </section>
+        <Hero />
 
         <Section id="about" eyebrow="about" title="About">
           <div className="grid gap-10 md:grid-cols-[2fr_1fr]">
