@@ -1,5 +1,6 @@
 import { ArrowUpRight, Award, Download, Mail } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/icons";
+import BenchmarkChart from "@/components/BenchmarkChart";
 import CommandPalette from "@/components/CommandPalette";
 import CopyEmailButton from "@/components/CopyEmailButton";
 import EvidenceStrip from "@/components/EvidenceStrip";
@@ -140,6 +141,7 @@ export default async function Home() {
               {researchSpotlight.context}
             </figcaption>
           </figure>
+          <BenchmarkChart />
           <a
             href={researchSpotlight.repoUrl}
             target="_blank"

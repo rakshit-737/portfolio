@@ -199,6 +199,33 @@ export const researchSpotlight = {
   repoUrl: "https://github.com/rakshit-737/proactive-feasibility-scheduler",
 } as const;
 
+/**
+ * Real per-policy results from the scheduler study's trace replay
+ * (RESULTS.md → 05_results/trace_schedulers, SDSC SP2 trace). The two
+ * highlighted rows are the finding: the ML scheduler and the ML-free
+ * size-sort control land on the same number.
+ */
+export const benchmarkChart = {
+  title: "Mean wait by policy — SDSC SP2 trace, second-exact replay",
+  unit: "simulated time units, lower is better",
+  source: "05_results/trace_schedulers",
+  note: "Proactive (XGBoost) ties its own ML-free control, Smallest-first — the degeneracy, visualized.",
+  policies: [
+    { name: "SRPT (oracle, preemptive)", wait: 60.1 },
+    { name: "SJF (oracle)", wait: 110.8 },
+    { name: "SJF (real user estimates)", wait: 115.8 },
+    { name: "Proactive + estimate feature", wait: 125.0 },
+    { name: "HRRN (real estimates)", wait: 126.3 },
+    { name: "Smallest-first (no ML)", wait: 145.0, highlight: true },
+    { name: "Proactive (XGBoost)", wait: 145.0, highlight: true },
+    { name: "FCFS + first-fit", wait: 174.6 },
+    { name: "EASY backfill (oracle)", wait: 183.7 },
+    { name: "EASY backfill (real estimates)", wait: 195.1 },
+    { name: "Conservative backfill", wait: 207.5 },
+    { name: "Strict FIFO", wait: 755.1 },
+  ],
+} as const;
+
 export const moreProjects: MoreProject[] = [
   {
     name: "Taintwall — AI Agent Tool-Boundary Firewall",
