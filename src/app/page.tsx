@@ -1,10 +1,13 @@
 import { ArrowUpRight, Award, Download, Mail } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/icons";
+import CommandPalette from "@/components/CommandPalette";
 import CopyEmailButton from "@/components/CopyEmailButton";
 import EvidenceStrip from "@/components/EvidenceStrip";
+import GlowCard from "@/components/GlowCard";
 import Hero from "@/components/Hero";
 import Nav from "@/components/Nav";
 import ProjectCard from "@/components/ProjectCard";
+import Reveal from "@/components/Reveal";
 import Section from "@/components/Section";
 import {
   about,
@@ -19,6 +22,7 @@ import {
   skills,
 } from "@/content";
 import { withBase } from "@/lib/base";
+import { fetchRepoLive, liveSegments } from "@/lib/github";
 
 const personJsonLd = {
   "@context": "https://schema.org",
@@ -39,9 +43,20 @@ const personJsonLd = {
   sameAs: [links.github.url, links.linkedin.url],
 };
 
-export default function Home() {
+export default async function Home() {
   // Baked in at build time — the static export is the "record".
   const generatedOn = new Date().toISOString().slice(0, 10);
+
+  // Live provenance fetched at build time; null (offline, rate-limited)
+  // simply renders the static strips unchanged.
+  const [featuredLive, moreLive] = await Promise.all([
+    Promise.all(
+      featuredProjects.map((p) => (p.repoUrl ? fetchRepoLive(p.repoUrl) : null)),
+    ),
+    Promise.all(
+      moreProjects.map((p) => (p.repoUrl ? fetchRepoLive(p.repoUrl) : null)),
+    ),
+  ]);
 
   return (
     <>
@@ -56,11 +71,12 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
       />
       <Nav />
+      <CommandPalette />
 
       <main>
         <Hero />
 
-        <Section id="about" eyebrow="about" title="About">
+        <Section id="about" index={1} eyebrow="about" title="About">
           <div className="grid gap-10 md:grid-cols-[2fr_1fr]">
             <div className="space-y-4 text-base leading-relaxed text-muted">
               {about.paragraphs.map((p) => (
@@ -91,15 +107,31 @@ export default function Home() {
           </div>
         </Section>
 
-        <Section id="projects" eyebrow="projects" title="Featured Projects">
+        <Section
+          id="projects"
+          index={2}
+          eyebrow="projects"
+          title="Featured Projects"
+          revealChildren={false}
+        >
           <div className="space-y-8">
-            {featuredProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+            {featuredProjects.map((project, i) => (
+              <Reveal key={project.id} delayMs={i * 80}>
+                <ProjectCard
+                  project={project}
+                  liveEvidence={liveSegments(featuredLive[i])}
+                />
+              </Reveal>
             ))}
           </div>
         </Section>
 
-        <Section id="research" eyebrow="research" title="Research Spotlight">
+        <Section
+          id="research"
+          index={3}
+          eyebrow="research"
+          title="Research Spotlight"
+        >
           <figure className="border-l-2 border-hairline pl-6 sm:pl-8">
             <blockquote className="max-w-3xl font-display text-xl font-medium leading-snug tracking-tight text-ink sm:text-2xl">
               &ldquo;{researchSpotlight.quote}&rdquo;
@@ -119,15 +151,24 @@ export default function Home() {
           </a>
         </Section>
 
-        <Section id="more-projects" eyebrow="archive" title="More Projects">
+        <Section
+          id="more-projects"
+          index={4}
+          eyebrow="archive"
+          title="More Projects"
+          revealChildren={false}
+        >
           <div className="grid gap-6 md:grid-cols-2">
-            {moreProjects.map((project) => (
-              <article
-                key={project.name}
-                className="flex flex-col border border-hairline bg-surface"
-              >
+            {moreProjects.map((project, i) => (
+              <Reveal key={project.name} delayMs={i * 80} className="flex">
+              <GlowCard className="flex w-full flex-col border border-hairline bg-surface">
                 <div className="border-b border-hairline px-5 py-2.5 sm:px-6">
-                  <EvidenceStrip segments={project.evidence} />
+                  <EvidenceStrip
+                    segments={[
+                      ...project.evidence,
+                      ...liveSegments(moreLive[i]),
+                    ]}
+                  />
                 </div>
                 <div className="flex grow flex-col px-5 py-5 sm:px-6">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -155,12 +196,18 @@ export default function Home() {
                   ))}
                 </ul>
                 </div>
-              </article>
+              </GlowCard>
+              </Reveal>
             ))}
           </div>
         </Section>
 
-        <Section id="achievements" eyebrow="achievements" title="Achievements">
+        <Section
+          id="achievements"
+          index={5}
+          eyebrow="achievements"
+          title="Achievements"
+        >
           <ul className="space-y-4">
             {achievements.map((a) => (
               <li
@@ -206,7 +253,7 @@ export default function Home() {
           </ul>
         </Section>
 
-        <Section id="skills" eyebrow="skills" title="Skills">
+        <Section id="skills" index={6} eyebrow="skills" title="Skills">
           <dl className="space-y-6">
             {skills.map(({ group, items }) => (
               <div
@@ -233,7 +280,12 @@ export default function Home() {
           </dl>
         </Section>
 
-        <Section id="education" eyebrow="education" title="Education">
+        <Section
+          id="education"
+          index={7}
+          eyebrow="education"
+          title="Education"
+        >
           <ul className="divide-y divide-hairline border-y border-hairline">
             {education.map((e) => (
               <li
@@ -253,7 +305,7 @@ export default function Home() {
           </ul>
         </Section>
 
-        <Section id="contact" eyebrow="contact" title="Contact">
+        <Section id="contact" index={8} eyebrow="contact" title="Contact">
           <p className="max-w-2xl text-base leading-relaxed text-muted">
             Based in {hero.location}. The fastest way to reach me is email —
             copy it below, or find me on GitHub and LinkedIn.

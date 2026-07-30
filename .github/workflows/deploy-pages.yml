@@ -44,7 +44,11 @@ jobs:
             echo "NEXT_PUBLIC_SITE_URL=https://$OWNER.github.io/$REPO" >> "$GITHUB_ENV"
           fi
 
+      # Token raises the GitHub API rate limit for the build-time
+      # live-evidence fetch (stars / head commit / CI status).
       - run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

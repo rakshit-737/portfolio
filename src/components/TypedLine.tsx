@@ -46,7 +46,11 @@ export default function TypedLine({
       </span>
       <span aria-hidden="true">
         <span className="text-amber">{prefix}</span>{" "}
-        <span className={started && !done ? "caret" : undefined}>
+        <span
+          className={
+            started ? (done ? "caret caret-blink" : "caret") : undefined
+          }
+        >
           {text.slice(0, count)}
         </span>
       </span>

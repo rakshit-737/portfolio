@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Download, Menu, X } from "lucide-react";
+import { Download, Menu, Search, X } from "lucide-react";
 import { navSections } from "@/content";
+import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
 import { withBase } from "@/lib/base";
 
 export default function Nav() {
   const [active, setActive] = useState<string>("");
   const [open, setOpen] = useState(false);
+  const [bar, setBar] = useState({ left: 0, width: 0 });
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 
   useEffect(() => {
     // Sections observed but not listed in the nav highlight a parent entry.
@@ -34,6 +37,21 @@ export default function Nav() {
     return () => observer.disconnect();
   }, []);
 
+  // Sliding active indicator: track the active link's box.
+  useEffect(() => {
+    const update = () => {
+      const el = active ? linkRefs.current[active] : null;
+      if (!el) {
+        setBar((b) => ({ ...b, width: 0 }));
+        return;
+      }
+      setBar({ left: el.offsetLeft, width: el.offsetWidth });
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [active]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -51,11 +69,15 @@ export default function Nav() {
       active === id ? "text-steel" : "text-muted"
     }`;
 
+  const openPalette = () => {
+    window.dispatchEvent(new Event(OPEN_PALETTE_EVENT));
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-hairline bg-bg/90 backdrop-blur">
       <nav
         aria-label="Main"
-        className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6"
+        className="relative mx-auto flex h-14 max-w-5xl items-center justify-between px-6"
       >
         <a
           href="#top"
@@ -69,6 +91,9 @@ export default function Nav() {
           {navSections.map((s) => (
             <a
               key={s.id}
+              ref={(el) => {
+                linkRefs.current[s.id] = el;
+              }}
               href={`#${s.id}`}
               aria-current={active === s.id ? "true" : undefined}
               className={linkClass(s.id)}
@@ -76,6 +101,26 @@ export default function Nav() {
               {s.label}
             </a>
           ))}
+          {/* Sliding indicator: sits on the header's bottom border, glides
+              to the scroll-spy's active link. Positioned against the nav. */}
+          <span
+            aria-hidden="true"
+            className="absolute bottom-0 hidden h-px bg-steel transition-all duration-300 md:block"
+            style={{
+              left: bar.left,
+              width: bar.width,
+              opacity: bar.width ? 1 : 0,
+            }}
+          />
+          <button
+            type="button"
+            onClick={openPalette}
+            aria-label="Open evidence index (Ctrl+K)"
+            className="flex items-center gap-1.5 border border-hairline px-2.5 py-1.5 font-mono text-xs text-muted transition-colors hover:border-steel/60 hover:text-steel"
+          >
+            <Search size={12} aria-hidden="true" />
+            <kbd className="text-[10px]">ctrl K</kbd>
+          </button>
           <a
             href={withBase("/resume.pdf")}
             download

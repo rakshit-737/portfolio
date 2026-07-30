@@ -1,13 +1,21 @@
 import { ArrowUpRight } from "lucide-react";
-import type { FeaturedProject } from "@/content";
+import type { EvidenceSegment, FeaturedProject } from "@/content";
 import EvidenceStrip from "./EvidenceStrip";
+import GlowCard from "./GlowCard";
 
-export default function ProjectCard({ project }: { project: FeaturedProject }) {
+export default function ProjectCard({
+  project,
+  liveEvidence = [],
+}: {
+  project: FeaturedProject;
+  /** Build-time GitHub segments appended to the static strip. */
+  liveEvidence?: EvidenceSegment[];
+}) {
   return (
-    <article className="border border-hairline bg-surface">
+    <GlowCard className="border border-hairline bg-surface">
       {/* Signature: provenance-style evidence strip as the card header */}
       <div className="border-b border-hairline px-5 py-3 sm:px-6">
-        <EvidenceStrip segments={project.evidence} />
+        <EvidenceStrip segments={[...project.evidence, ...liveEvidence]} />
       </div>
 
       <div className="px-5 py-6 sm:px-6 sm:py-7">
@@ -83,6 +91,6 @@ export default function ProjectCard({ project }: { project: FeaturedProject }) {
           )}
         </div>
       </div>
-    </article>
+    </GlowCard>
   );
 }

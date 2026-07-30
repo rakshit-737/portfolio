@@ -1,8 +1,9 @@
 import type { EvidenceSegment } from "@/content";
 
+// Toned segments read as chips when the parent card (`group`) is hovered.
 const toneClass: Record<string, string> = {
-  pass: "text-pass",
-  fail: "text-fail",
+  pass: "text-pass rounded-xs px-1 -mx-1 transition-colors group-hover:bg-pass/10",
+  fail: "text-fail rounded-xs px-1 -mx-1 transition-colors group-hover:bg-fail/10",
 };
 
 /**
