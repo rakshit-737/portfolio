@@ -83,7 +83,10 @@ record. Tokens (defined in `src/app/globals.css`):
   requested explicitly on 2026-07-30, overriding the original brief's bans on
   matrix rain/glitch/green-on-black. The previous quiet hero is preserved at
   `src/components/Hero.tsx` if you want to revert. `TubesBackground`
-  (`src/components/ui/neon-flow.tsx`) is available but not mounted.
+  (`src/components/ui/neon-flow.tsx`) is mounted site-wide in
+  `src/app/layout.tsx` as a fixed canvas layer behind all routes (home + 404);
+  any click randomizes its colors. Also user-requested (2026-07-30), overriding
+  the brief's quiet-background direction.
 
 ## Still to fill in
 

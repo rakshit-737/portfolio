@@ -27,12 +27,19 @@ interface TubesBackgroundProps {
   children?: React.ReactNode;
   className?: string;
   enableClickInteraction?: boolean;
+  /**
+   * Listen for clicks on the whole window instead of only this element —
+   * for use as a fixed site-wide background layer, where page content sits
+   * above the canvas and swallows direct clicks.
+   */
+  globalClickInteraction?: boolean;
 }
 
 export function TubesBackground({
   children,
   className,
   enableClickInteraction = true,
+  globalClickInteraction = false,
 }: TubesBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [, setIsLoaded] = useState(false);
@@ -92,8 +99,8 @@ export function TubesBackground({
     };
   }, []);
 
-  const handleClick = () => {
-    if (!enableClickInteraction || !tubesRef.current) return;
+  const randomize = () => {
+    if (!tubesRef.current) return;
 
     const colors = randomColors(3);
     const lightsColors = randomColors(4);
@@ -101,6 +108,24 @@ export function TubesBackground({
     tubesRef.current.tubes.setColors(colors);
     tubesRef.current.tubes.setLightsColors(lightsColors);
   };
+
+  const handleClick = () => {
+    if (!enableClickInteraction) return;
+    randomize();
+  };
+
+  useEffect(() => {
+    if (!globalClickInteraction) return;
+
+    const onWindowClick = () => {
+      if (!tubesRef.current) return;
+      tubesRef.current.tubes.setColors(randomColors(3));
+      tubesRef.current.tubes.setLightsColors(randomColors(4));
+    };
+
+    window.addEventListener("click", onWindowClick);
+    return () => window.removeEventListener("click", onWindowClick);
+  }, [globalClickInteraction]);
 
   return (
     <div
