@@ -31,7 +31,14 @@ export default function DiagramFlow({
   const height = BOX_H + PAD * 2;
 
   return (
-    <div className="overflow-x-auto">
+    // Focusable region: the diagram can scroll horizontally on narrow
+    // viewports, so keyboard users must be able to reach it.
+    <div
+      className="overflow-x-auto"
+      role="region"
+      aria-label={title}
+      tabIndex={0}
+    >
       <svg
         viewBox={`0 0 ${width} ${height}`}
         role="img"

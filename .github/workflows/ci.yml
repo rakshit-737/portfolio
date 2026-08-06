@@ -1,0 +1,50 @@
+name: CI quality gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      # Token raises the GitHub API rate limit for the build-time
+      # live-evidence fetch (stars / head commit / CI status).
+      - name: Build static export
+        run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Performance budget (gzipped JS)
+        run: node scripts/check-budget.mjs
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Smoke tests + axe scan (against ./out)
+        run: npx playwright test
+
+      - name: Lighthouse gate
+        run: |
+          npx serve out -l 4573 &
+          sleep 3
+          node scripts/check-lighthouse.mjs http://localhost:4573/
