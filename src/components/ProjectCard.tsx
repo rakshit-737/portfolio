@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { caseStudies } from "@/content";
 import type { EvidenceSegment, FeaturedProject } from "@/content";
+import { withBase } from "@/lib/base";
 import EvidenceStrip from "./EvidenceStrip";
 import GlowCard from "./GlowCard";
 import Metric from "./Metric";
@@ -77,13 +77,15 @@ export default function ProjectCard({
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           {caseStudies[project.id] && (
-            <Link
-              href={`/projects/${project.id}/`}
+            // Plain anchor: the static export has no RSC payloads for
+            // client-side navigation, so MPA navigation is the record.
+            <a
+              href={withBase(`/projects/${project.id}/`)}
               className="inline-flex items-center gap-1.5 bg-steel px-3.5 py-2 font-mono text-xs font-medium text-bg transition-opacity hover:opacity-90"
             >
               Read the case file
               <ArrowRight size={13} aria-hidden="true" />
-            </Link>
+            </a>
           )}
           {project.repoUrl ? (
             <a

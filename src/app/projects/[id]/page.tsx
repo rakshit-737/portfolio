@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import DiagramFlow from "@/components/DiagramFlow";
 import EvidenceStrip from "@/components/EvidenceStrip";
 import Metric from "@/components/Metric";
 import { caseStudies, featuredProjects, site } from "@/content";
+import { withBase } from "@/lib/base";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
 
 export const dynamicParams = false;
@@ -114,13 +114,13 @@ export default async function CaseStudyPage({
           aria-label="Case file"
           className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6"
         >
-          <Link
-            href="/"
+          <a
+            href={withBase("/")}
             className="flex items-center gap-2 font-mono text-xs text-muted transition-colors hover:text-steel"
           >
             <ArrowLeft size={13} aria-hidden="true" />
             back to the index
-          </Link>
+          </a>
           <span className="font-display text-sm font-bold tracking-tight text-ink">
             Rakshit Rameshbabu
           </span>
@@ -271,12 +271,12 @@ export default async function CaseStudyPage({
                 { label: "part of the record" },
               ]}
             />
-            <Link
-              href="/"
+            <a
+              href={withBase("/")}
               className="font-mono text-xs text-steel underline decoration-steel/40 underline-offset-4 transition-colors hover:decoration-steel"
             >
               back to the index
-            </Link>
+            </a>
           </div>
         </div>
       </footer>

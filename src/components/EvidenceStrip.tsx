@@ -7,9 +7,12 @@ const toneClass: Record<string, string> = {
 };
 
 // Linked chips keep their verdict color; untoned links read steel.
+// Padding grows the tap target to ≥24px without shifting layout.
+const linkBase =
+  "inline-block py-[5px] -my-[5px] underline underline-offset-4 transition-colors";
 const linkClass: Record<string, string> = {
-  pass: "text-pass underline decoration-pass/40 underline-offset-4 transition-colors hover:decoration-pass",
-  fail: "text-fail underline decoration-fail/40 underline-offset-4 transition-colors hover:decoration-fail",
+  pass: `${linkBase} text-pass decoration-pass/40 hover:decoration-pass`,
+  fail: `${linkBase} text-fail decoration-fail/40 hover:decoration-fail`,
 };
 
 /**
@@ -22,7 +25,7 @@ export default function EvidenceStrip({
   segments: readonly EvidenceSegment[];
 }) {
   return (
-    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-muted">
+    <p className="flex flex-wrap items-center gap-x-2 gap-y-2 font-mono text-xs text-muted">
       {segments.map((seg, i) => (
         // Trailing separator stays with its segment so a wrapped line never
         // starts with a dangling "·".
@@ -34,7 +37,7 @@ export default function EvidenceStrip({
               rel="noopener noreferrer"
               className={
                 (seg.tone && linkClass[seg.tone]) ||
-                "text-steel underline decoration-steel/40 underline-offset-4 transition-colors hover:decoration-steel"
+                `${linkBase} text-steel decoration-steel/40 hover:decoration-steel`
               }
             >
               {seg.label}

@@ -79,6 +79,40 @@ test("internal links on the index resolve", async ({ page, request }) => {
   }
 });
 
+test("no failed requests on the index (prefetch, assets)", async ({
+  page,
+}) => {
+  const failures: string[] = [];
+  page.on("response", (r) => {
+    if (r.status() >= 400) failures.push(`${r.status()} ${r.url()}`);
+  });
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.evaluate(async () => {
+    for (let y = 0; y <= document.body.scrollHeight; y += 450) {
+      window.scrollTo(0, y);
+      await new Promise((res) => setTimeout(res, 60));
+    }
+  });
+  await page.waitForTimeout(800);
+  expect(failures).toEqual([]);
+});
+
+test("card links navigate to the case file", async ({ page }) => {
+  await page.goto("/");
+  // Cards below the fold are visibility:hidden until revealed on scroll.
+  await page.evaluate(() =>
+    document.getElementById("projects")?.scrollIntoView(),
+  );
+  await page
+    .getByRole("link", { name: "Read the case file" })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/projects\/warden\/$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: /Warden/ }),
+  ).toBeVisible();
+});
+
 for (const path of ["/", "/projects/warden/", "/projects/scheduler/"]) {
   test(`axe: no violations on ${path}`, async ({ page }) => {
     await page.goto(path);
