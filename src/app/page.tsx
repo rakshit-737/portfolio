@@ -6,6 +6,7 @@ import CopyEmailButton from "@/components/CopyEmailButton";
 import EvidenceStrip from "@/components/EvidenceStrip";
 import GlowCard from "@/components/GlowCard";
 import Hero from "@/components/Hero";
+import Metric from "@/components/Metric";
 import Nav from "@/components/Nav";
 import ProjectCard from "@/components/ProjectCard";
 import Reveal from "@/components/Reveal";
@@ -13,6 +14,7 @@ import Section from "@/components/Section";
 import {
   about,
   achievements,
+  archive,
   education,
   featuredProjects,
   hero,
@@ -130,7 +132,7 @@ export default async function Home() {
         <Section
           id="research"
           index={3}
-          eyebrow="research"
+          eyebrow={researchSpotlight.eyebrow}
           title="Research Spotlight"
         >
           <figure className="border-l-2 border-hairline pl-6 sm:pl-8">
@@ -182,7 +184,7 @@ export default async function Home() {
                   </p>
                 </div>
                 <p className="mt-3 grow text-sm leading-relaxed text-muted">
-                  {project.description}
+                  <Metric text={project.description} />
                 </p>
                 <ul
                   className="mt-4 flex flex-wrap gap-2"
@@ -201,6 +203,31 @@ export default async function Home() {
               </GlowCard>
               </Reveal>
             ))}
+            {/* Balance the 2×2 grid; points at the full GitHub archive. */}
+            <Reveal delayMs={moreProjects.length * 80} className="flex">
+              <GlowCard className="flex w-full flex-col border border-hairline bg-surface">
+                <div className="border-b border-hairline px-5 py-2.5 sm:px-6">
+                  <EvidenceStrip segments={[...archive.evidence]} />
+                </div>
+                <div className="flex grow flex-col px-5 py-5 sm:px-6">
+                  <h3 className="font-display text-base font-bold tracking-tight text-ink">
+                    {archive.title}
+                  </h3>
+                  <p className="mt-3 grow text-sm leading-relaxed text-muted">
+                    {archive.description}
+                  </p>
+                  <a
+                    href={archive.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex w-fit items-center gap-1.5 border border-steel/40 px-3.5 py-2 font-mono text-xs text-steel transition-colors hover:border-steel hover:bg-steel/10"
+                  >
+                    Browse all repositories
+                    <ArrowUpRight size={13} aria-hidden="true" />
+                  </a>
+                </div>
+              </GlowCard>
+            </Reveal>
           </div>
         </Section>
 
@@ -229,26 +256,18 @@ export default async function Home() {
                     <p className="mt-0.5 text-sm text-muted">{a.detail}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 pl-8 sm:pl-0">
-                  <span className="font-mono text-xs text-muted">{a.date}</span>
-                  {a.certificateUrl && (
-                    <a
-                      href={a.certificateUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-mono text-xs text-steel underline decoration-steel/40 underline-offset-4 hover:decoration-steel"
-                    >
-                      Certificate
-                    </a>
-                  )}
-                  {a.certificateUrl === null && (
-                    <span
-                      title="Certificate link coming soon"
-                      className="cursor-not-allowed font-mono text-xs italic text-muted"
-                    >
-                      certificate — coming soon
-                    </span>
-                  )}
+                <div className="pl-8 sm:pl-0">
+                  <EvidenceStrip
+                    segments={[
+                      { label: a.date },
+                      ...(a.certificateUrl
+                        ? [{ label: "certificate", href: a.certificateUrl }]
+                        : []),
+                      ...(a.certificateUrl === null
+                        ? [{ label: "certificate — coming soon", disabled: true }]
+                        : []),
+                    ]}
+                  />
                 </div>
               </li>
             ))}
@@ -323,7 +342,7 @@ export default async function Home() {
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <a
-              href={withBase("/resume.pdf")}
+              href={withBase(links.resume)}
               download
               className="inline-flex items-center gap-2 bg-steel px-4 py-2 font-mono text-sm font-medium text-bg transition-opacity hover:opacity-90"
             >
@@ -356,7 +375,7 @@ export default async function Home() {
         <div className="mx-auto max-w-5xl px-6 py-8">
           <EvidenceStrip
             segments={[
-              { label: "© 2026 rakshit rameshbabu" },
+              { label: `© ${generatedOn.slice(0, 4)} rakshit rameshbabu` },
               { label: "chennai, india" },
               { label: "built with next.js · statically exported" },
               { label: `record generated: ${generatedOn}` },

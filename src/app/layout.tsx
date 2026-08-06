@@ -48,6 +48,7 @@ export const metadata: Metadata = {
   icons: {
     apple: `${site.url}/apple-icon.png`,
   },
+  alternates: { canonical: site.url },
   robots: { index: true, follow: true },
 };
 

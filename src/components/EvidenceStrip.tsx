@@ -6,6 +6,12 @@ const toneClass: Record<string, string> = {
   fail: "text-fail rounded-xs px-1 -mx-1 transition-colors group-hover:bg-fail/10",
 };
 
+// Linked chips keep their verdict color; untoned links read steel.
+const linkClass: Record<string, string> = {
+  pass: "text-pass underline decoration-pass/40 underline-offset-4 transition-colors hover:decoration-pass",
+  fail: "text-fail underline decoration-fail/40 underline-offset-4 transition-colors hover:decoration-fail",
+};
+
 /**
  * The site's signature element: a mono metadata line styled like package
  * provenance — date · status · stack · repo · tests/CI.
@@ -26,7 +32,10 @@ export default function EvidenceStrip({
               href={seg.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-steel underline decoration-steel/40 underline-offset-4 transition-colors hover:decoration-steel"
+              className={
+                (seg.tone && linkClass[seg.tone]) ||
+                "text-steel underline decoration-steel/40 underline-offset-4 transition-colors hover:decoration-steel"
+              }
             >
               {seg.label}
             </a>

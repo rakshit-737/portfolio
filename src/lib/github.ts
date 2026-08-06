@@ -12,9 +12,22 @@ export interface RepoLive {
   sha: string;
   commitDate: string;
   ci: "passing" | "failing" | null;
+  /** Repo URL — lets live segments deep-link (commit, actions). */
+  repoUrl: string;
 }
 
-async function gh(path: string): Promise<Record<string, unknown> & unknown[]> {
+interface GhRepo {
+  stargazers_count?: number;
+}
+interface GhCommit {
+  sha?: string;
+  commit?: { committer?: { date?: string } };
+}
+interface GhRuns {
+  workflow_runs?: { conclusion?: string | null }[];
+}
+
+async function gh<T>(path: string): Promise<T> {
   const res = await fetch(`https://api.github.com${path}`, {
     headers: {
       accept: "application/vnd.github+json",
@@ -35,18 +48,17 @@ export async function fetchRepoLive(repoUrl: string): Promise<RepoLive | null> {
 
   try {
     const [meta, commits, runs] = await Promise.all([
-      gh(`/repos/${owner}/${repo}`),
-      gh(`/repos/${owner}/${repo}/commits?per_page=1`),
-      gh(`/repos/${owner}/${repo}/actions/runs?per_page=1&status=completed`).catch(
-        () => null,
-      ),
+      gh<GhRepo>(`/repos/${owner}/${repo}`),
+      gh<GhCommit[]>(`/repos/${owner}/${repo}/commits?per_page=1`),
+      gh<GhRuns>(
+        `/repos/${owner}/${repo}/actions/runs?per_page=1&status=completed`,
+      ).catch(() => null),
     ]);
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const commit = (commits as any)?.[0];
-    const conclusion = (runs as any)?.workflow_runs?.[0]?.conclusion ?? null;
+    const commit = commits?.[0];
+    const conclusion = runs?.workflow_runs?.[0]?.conclusion ?? null;
     return {
-      stars: (meta as any)?.stargazers_count ?? 0,
+      stars: meta?.stargazers_count ?? 0,
       sha: commit?.sha?.slice(0, 7) ?? "",
       commitDate: commit?.commit?.committer?.date?.slice(0, 10) ?? "",
       ci:
@@ -55,29 +67,36 @@ export async function fetchRepoLive(repoUrl: string): Promise<RepoLive | null> {
           : conclusion
             ? "failing"
             : null,
+      repoUrl: `https://github.com/${owner}/${repo}`,
     };
-    /* eslint-enable @typescript-eslint/no-explicit-any */
   } catch {
     return null;
   }
 }
 
-/** Extra evidence-strip segments rendered after the static ones. */
+/** Extra evidence-strip segments rendered after the static ones. Each
+ *  chip deep-links to its proof: commit page, Actions runs. */
 export function liveSegments(live: RepoLive | null): EvidenceSegment[] {
   if (!live) return [];
   const segments: EvidenceSegment[] = [];
-  if (live.stars > 0) segments.push({ label: `★ ${live.stars}` });
+  if (live.stars > 0)
+    segments.push({
+      label: `★ ${live.stars}`,
+      href: `${live.repoUrl}/stargazers`,
+    });
   if (live.sha) {
     segments.push({
       label: live.commitDate
         ? `head ${live.sha} · ${live.commitDate}`
         : `head ${live.sha}`,
+      href: `${live.repoUrl}/commit/${live.sha}`,
     });
   }
   if (live.ci) {
     segments.push({
       label: `ci: ${live.ci}`,
       tone: live.ci === "passing" ? "pass" : "fail",
+      href: `${live.repoUrl}/actions`,
     });
   }
   return segments;

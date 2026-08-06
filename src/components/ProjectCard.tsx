@@ -2,6 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import type { EvidenceSegment, FeaturedProject } from "@/content";
 import EvidenceStrip from "./EvidenceStrip";
 import GlowCard from "./GlowCard";
+import Metric from "./Metric";
 
 export default function ProjectCard({
   project,
@@ -37,7 +38,9 @@ export default function ProjectCard({
               <span aria-hidden="true" className="select-none font-mono">
                 —
               </span>
-              <span>{bullet}</span>
+              <span>
+                <Metric text={bullet} />
+              </span>
             </li>
           ))}
         </ul>

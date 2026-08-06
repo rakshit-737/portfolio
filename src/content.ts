@@ -3,7 +3,8 @@
  * Edit copy here — components only render what this file exports.
  */
 
-export type ChipTone = "pass" | "fail" | "neutral";
+/** Pass/fail only — reserved for verifiable outcomes (tests, CI). */
+export type ChipTone = "pass" | "fail";
 
 export interface EvidenceSegment {
   label: string;
@@ -23,6 +24,7 @@ export interface FeaturedProject {
   name: string;
   timeframe: string;
   oneLiner: string;
+  /** `**text**` marks the bullet's single strongest metric — rendered amber. */
   bullets: string[];
   headlineNumbers?: HeadlineNumber[];
   tech: string[];
@@ -45,8 +47,12 @@ export const site = {
   title: "Rakshit Rameshbabu — Software & Security Engineer",
   description:
     "Software & Security Engineer — B.Tech (Cyber Security) @ VIT Chennai. Full-stack products, backend systems, security research, and applied ML, taken end-to-end from requirements to CI-tested deployments.",
-  /** Override with NEXT_PUBLIC_SITE_URL at build time (see README). */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://rakshit-737.github.io",
+  /** Override with NEXT_PUBLIC_SITE_URL at build time (see README).
+   *  Fallback is the real GitHub Pages project URL — absolute OG/sitemap
+   *  URLs stay valid even when the env var is missing. */
+  url:
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://rakshit-737.github.io/portfolio",
 } as const;
 
 export const hero = {
@@ -59,6 +65,17 @@ export const hero = {
     text: "builds end-to-end · tested in CI · reproducible",
   },
 } as const;
+
+/**
+ * Mono stat strip under the hero CTAs — proof above the fold.
+ * Every number is sourced from elsewhere in this file (education,
+ * Warden evidence, scheduler study).
+ */
+export const heroStats: HeadlineNumber[] = [
+  { value: "9.07", label: "CGPA / 10" },
+  { value: "40", label: "tests in CI — Warden" },
+  { value: "45,432", label: "dispatch instants verified" },
+];
 
 export const links = {
   github: { label: "GitHub", url: "https://github.com/rakshit-737" },
@@ -91,9 +108,9 @@ export const featuredProjects: FeaturedProject[] = [
     oneLiner:
       "Behavioral firewall for open-source dependencies; fuses rule-based and ML signals into a 0–100 risk verdict.",
     bullets: [
-      "Statically analyzes PyPI packages (no code execution), fusing six independent analyzers — metadata/provenance, AST behavior, install-time execution, typosquatting, obfuscation, IOC matching — into explainable, per-signal risk evidence.",
-      "Calibrated ML model (RandomForest + IsolationForest) fused with a tiered rule engine into a 0–100 score; allow/warn/block policy enforced via a REST API, a CLI/CI gate, and a React dashboard.",
-      "Hardened against attacker-authored input (anti-zip-bomb, anti-path-traversal extraction); JWT auth with refresh rotation, argon2id hashing, RBAC, rate limiting, append-only audit trail; 40 automated tests in CI.",
+      "Statically analyzes PyPI packages (no code execution), fusing **six independent analyzers** — metadata/provenance, AST behavior, install-time execution, typosquatting, obfuscation, IOC matching — into explainable, per-signal risk evidence.",
+      "Calibrated ML model (RandomForest + IsolationForest) fused with a tiered rule engine into a **0–100 score**; allow/warn/block policy enforced via a REST API, a CLI/CI gate, and a React dashboard.",
+      "Hardened against attacker-authored input (anti-zip-bomb, anti-path-traversal extraction); JWT auth with refresh rotation, argon2id hashing, RBAC, rate limiting, append-only audit trail; **40 automated tests in CI**.",
     ],
     tech: [
       "Python 3.12",
@@ -107,9 +124,14 @@ export const featuredProjects: FeaturedProject[] = [
       "Docker",
     ],
     repoUrl: "https://github.com/rakshit-737/warden-supply-chain-firewall",
+    headlineNumbers: [
+      { value: "6", label: "independent analyzers" },
+      { value: "0–100", label: "risk verdict" },
+      { value: "40", label: "tests in CI" },
+    ],
     evidence: [
       { label: "2026-07" },
-      { label: "active", tone: "pass" },
+      { label: "active" },
       { label: "python · fastapi · react" },
       {
         label: "repo",
@@ -125,8 +147,8 @@ export const featuredProjects: FeaturedProject[] = [
     oneLiner:
       "An evaluation study of ML-based GPU-cluster job scheduling — and a proven negative result.",
     bullets: [
-      "End-to-end research pipeline: discrete-event cluster simulator, XGBoost wait-time regressor, 14-policy benchmark (FCFS, SJF, EASY/conservative backfill, SRPT, HRRN, ML) with Holm-adjusted significance testing.",
-      "Core finding: the learned scheduler is structurally degenerate — its queue ordering collapses to a sort by requested job size. Verified across 45,432 real dispatch instants with zero counterexamples; equivalence established with paired TOST (p = 2.6×10⁻¹⁶) rather than difference tests.",
+      "End-to-end research pipeline: discrete-event cluster simulator, XGBoost wait-time regressor, **14-policy benchmark** (FCFS, SJF, EASY/conservative backfill, SRPT, HRRN, ML) with Holm-adjusted significance testing.",
+      "Core finding: the learned scheduler is structurally degenerate — its queue ordering collapses to a sort by requested job size. Verified across **45,432 real dispatch instants with zero counterexamples**; equivalence established with paired TOST (p = 2.6×10⁻¹⁶) rather than difference tests.",
       "Validated on real supercomputer traces (LANL CM-5, SDSC SP2) via second-exact event replay: the simulated ML gain does not replicate. Fully reproducible (seeded pipeline, Docker, CI); LaTeX manuscript in progress.",
     ],
     headlineNumbers: [
@@ -146,7 +168,7 @@ export const featuredProjects: FeaturedProject[] = [
     repoUrl: "https://github.com/rakshit-737/proactive-feasibility-scheduler",
     evidence: [
       { label: "2026–present" },
-      { label: "research", tone: "pass" },
+      { label: "research" },
       { label: "python · xgboost" },
       {
         label: "repo",
@@ -163,7 +185,7 @@ export const featuredProjects: FeaturedProject[] = [
       "Cross-platform app unifying plant care, fitness, and nutrition in one daily dashboard with streaks, reminders, and cloud sync.",
     bullets: [
       "TypeScript monorepo: React Native (Expo) mobile app, React + Vite web app, Node.js/Express REST API on PostgreSQL; node-cron reminder engine; 11-table JWT auth service with a custom migration runner; GitHub Actions CI.",
-      "Full SDLC before implementation: 36 requirements documents (228 functional requirements, 111 NFRs, 119 user stories, 89 use cases), system architecture, database schema, API specification.",
+      "Full SDLC before implementation: 36 requirements documents (**228 functional requirements**, 111 NFRs, 119 user stories, 89 use cases), system architecture, database schema, API specification.",
       "Unit-tested scientific domain layer (Mifflin-St Jeor/TDEE energy models, workout energy/1RM/volume, species- and season-aware watering intervals); offline-light sync via an append-only event log with client-generated UUID idempotency keys.",
     ],
     tech: [
@@ -176,9 +198,14 @@ export const featuredProjects: FeaturedProject[] = [
       "GitHub Actions",
     ],
     repoUrl: "https://github.com/rakshit-737/PlantPal-Plus",
+    headlineNumbers: [
+      { value: "228", label: "functional requirements" },
+      { value: "119", label: "user stories" },
+      { value: "89", label: "use cases" },
+    ],
     evidence: [
       { label: "2026–present" },
-      { label: "in active development", tone: "pass" },
+      { label: "in active development" },
       { label: "typescript · expo · express" },
       { label: "repo", href: "https://github.com/rakshit-737/PlantPal-Plus" },
       { label: "unit-tested · CI", tone: "pass" },
@@ -205,7 +232,20 @@ export const researchSpotlight = {
  * highlighted rows are the finding: the ML scheduler and the ML-free
  * size-sort control land on the same number.
  */
-export const benchmarkChart = {
+export interface BenchmarkPolicy {
+  name: string;
+  wait: number;
+  /** The finding rows: ML result == ML-free control. */
+  highlight?: boolean;
+}
+
+export const benchmarkChart: {
+  title: string;
+  unit: string;
+  source: string;
+  note: string;
+  policies: BenchmarkPolicy[];
+} = {
   title: "Mean wait by policy — SDSC SP2 trace, second-exact replay",
   unit: "simulated time units, lower is better",
   source: "05_results/trace_schedulers",
@@ -231,12 +271,12 @@ export const moreProjects: MoreProject[] = [
     name: "Taintwall — AI Agent Tool-Boundary Firewall",
     timeframe: "Jul 2026",
     description:
-      "In-process provenance and policy firewall for AI agent tool boundaries, defending against indirect prompt injection; four defense layers (Unicode/markup normalization, content-signal classifier, intent-gated policy, argument-level provenance) plus an attack harness and labelled corpus — measured 43% → 0% exfiltration with benign utility intact.",
+      "In-process provenance and policy firewall for AI agent tool boundaries, defending against indirect prompt injection; four defense layers (Unicode/markup normalization, content-signal classifier, intent-gated policy, argument-level provenance) plus an attack harness and labelled corpus — measured **43% → 0% exfiltration** with benign utility intact.",
     tech: ["Python"],
     repoUrl: "https://github.com/rakshit-737/taintwall",
     evidence: [
       { label: "2026-07" },
-      { label: "phase 2", tone: "pass" },
+      { label: "phase 2" },
       { label: "python" },
       { label: "repo", href: "https://github.com/rakshit-737/taintwall" },
     ],
@@ -266,6 +306,17 @@ export const moreProjects: MoreProject[] = [
     ],
   },
 ];
+
+/** Fourth cell of the More Projects grid — balances the 2×2 layout. */
+export const archive = {
+  title: "Full archive",
+  description: "More repositories — everything public lives on GitHub.",
+  url: "https://github.com/rakshit-737?tab=repositories",
+  evidence: [
+    { label: "archive" },
+    { label: "github.com/rakshit-737", href: "https://github.com/rakshit-737" },
+  ] satisfies EvidenceSegment[],
+} as const;
 
 export interface Achievement {
   title: string;

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Download, Menu, Search, X } from "lucide-react";
-import { navSections } from "@/content";
+import { links, navSections } from "@/content";
 import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
 import { withBase } from "@/lib/base";
 
@@ -10,6 +10,7 @@ export default function Nav() {
   const [active, setActive] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [bar, setBar] = useState({ left: 0, width: 0 });
+  const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 
@@ -37,7 +38,8 @@ export default function Nav() {
     return () => observer.disconnect();
   }, []);
 
-  // Sliding active indicator: track the active link's box.
+  // Sliding active indicator: track the active link's box. Re-measure
+  // after webfonts swap in — glyph widths change under display:swap.
   useEffect(() => {
     const update = () => {
       const el = active ? linkRefs.current[active] : null;
@@ -48,10 +50,13 @@ export default function Nav() {
       setBar({ left: el.offsetLeft, width: el.offsetWidth });
     };
     update();
+    document.fonts?.ready.then(update);
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, [active]);
 
+  // Open menu: Escape closes (focus returns to the button); a tap or
+  // focus landing outside the header also closes it.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -60,8 +65,25 @@ export default function Nav() {
         menuButtonRef.current?.focus();
       }
     };
+    const closeIfOutside = (target: EventTarget | null) => {
+      if (
+        target instanceof Node &&
+        headerRef.current &&
+        !headerRef.current.contains(target)
+      ) {
+        setOpen(false);
+      }
+    };
+    const onPointerDown = (e: PointerEvent) => closeIfOutside(e.target);
+    const onFocusIn = (e: FocusEvent) => closeIfOutside(e.target);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("focusin", onFocusIn);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("focusin", onFocusIn);
+    };
   }, [open]);
 
   const linkClass = (id: string) =>
@@ -74,7 +96,10 @@ export default function Nav() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-hairline bg-bg/90 backdrop-blur">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-50 border-b border-hairline bg-bg/90 backdrop-blur"
+    >
       <nav
         aria-label="Main"
         className="relative mx-auto flex h-14 max-w-5xl items-center justify-between px-6"
@@ -95,7 +120,7 @@ export default function Nav() {
                 linkRefs.current[s.id] = el;
               }}
               href={`#${s.id}`}
-              aria-current={active === s.id ? "true" : undefined}
+              aria-current={active === s.id ? "location" : undefined}
               className={linkClass(s.id)}
             >
               {s.label}
@@ -122,7 +147,7 @@ export default function Nav() {
             <kbd className="text-[10px]">ctrl K</kbd>
           </button>
           <a
-            href={withBase("/resume.pdf")}
+            href={withBase(links.resume)}
             download
             className="flex items-center gap-1.5 border border-steel/40 px-3 py-1.5 font-mono text-xs text-steel transition-colors hover:border-steel hover:bg-steel/10"
           >
@@ -131,51 +156,64 @@ export default function Nav() {
           </a>
         </div>
 
-        {/* Mobile menu button */}
-        <button
-          type="button"
-          ref={menuButtonRef}
-          className="-m-2 p-2 text-ink md:hidden"
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-          aria-label={open ? "Close menu" : "Open menu"}
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </nav>
+        {/* Mobile: evidence index + menu buttons */}
+        <div className="flex items-center gap-1 md:hidden">
+          <button
+            type="button"
+            onClick={openPalette}
+            aria-label="Open evidence index"
+            className="p-2 text-muted transition-colors hover:text-steel"
+          >
+            <Search size={18} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            ref={menuButtonRef}
+            className="-mr-2 p-2 text-ink"
+            aria-expanded={open}
+            aria-controls={open ? "mobile-menu" : undefined}
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
 
-      {/* Mobile panel */}
-      {open && (
-        <div
-          id="mobile-menu"
-          // Overlay (not in flow) so opening the menu never shifts the page;
-          // capped height keeps every item reachable on short viewports.
-          className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-y border-hairline bg-bg md:hidden"
-        >
-          <div className="mx-auto flex max-w-5xl flex-col gap-1 px-6 py-4">
-            {navSections.map((s) => (
+        {/* Mobile panel — inside the nav landmark. */}
+        {open && (
+          <div
+            id="mobile-menu"
+            // Overlay (not in flow) so opening the menu never shifts the page;
+            // capped height keeps every item reachable on short viewports.
+            className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-y border-hairline bg-bg md:hidden"
+          >
+            <div className="mx-auto flex max-w-5xl flex-col gap-1 px-6 py-4">
+              {navSections.map((s) => (
+                <a
+                  key={s.id}
+                  href={`#${s.id}`}
+                  aria-current={active === s.id ? "location" : undefined}
+                  className={`border-l-2 py-2 pl-3 ${
+                    active === s.id ? "border-steel" : "border-transparent"
+                  } ${linkClass(s.id)}`}
+                  onClick={() => setOpen(false)}
+                >
+                  {s.label}
+                </a>
+              ))}
               <a
-                key={s.id}
-                href={`#${s.id}`}
-                className={`py-2 ${linkClass(s.id)}`}
+                href={withBase(links.resume)}
+                download
+                className="mt-2 flex w-fit items-center gap-1.5 border border-steel/40 px-3 py-1.5 font-mono text-xs text-steel"
                 onClick={() => setOpen(false)}
               >
-                {s.label}
+                <Download size={13} aria-hidden="true" />
+                Download résumé
               </a>
-            ))}
-            <a
-              href={withBase("/resume.pdf")}
-              download
-              className="mt-2 flex w-fit items-center gap-1.5 border border-steel/40 px-3 py-1.5 font-mono text-xs text-steel"
-              onClick={() => setOpen(false)}
-            >
-              <Download size={13} aria-hidden="true" />
-              Download résumé
-            </a>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </nav>
     </header>
   );
 }

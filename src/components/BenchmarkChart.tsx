@@ -3,8 +3,10 @@ import { benchmarkChart } from "@/content";
 /**
  * Horizontal bar list of the scheduler study's per-policy trace results.
  * Server-rendered HTML — no JS. Single-series magnitude chart; the two
- * amber rows are the finding (ML result == ML-free control). Every row
- * shows name + value as real text, so the chart is its own table view.
+ * amber rows are the finding (ML result == ML-free control). Bars grow on
+ * first reveal (CSS keyed off the ancestor Reveal's data-reveal state;
+ * reduced motion renders instantly). A visually-hidden table carries the
+ * data for screen readers; the visual list is aria-hidden.
  */
 export default function BenchmarkChart() {
   const max = Math.max(...benchmarkChart.policies.map((p) => p.wait));
@@ -18,26 +20,55 @@ export default function BenchmarkChart() {
         </p>
       </figcaption>
 
-      <ul className="mt-4 space-y-1.5">
-        {benchmarkChart.policies.map((p) => {
-          const highlight = "highlight" in p && p.highlight;
+      {/* Screen-reader data table — the chart itself is presentation. */}
+      <table className="sr-only">
+        <caption>{benchmarkChart.title}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Policy</th>
+            <th scope="col">Mean wait ({benchmarkChart.unit})</th>
+          </tr>
+        </thead>
+        <tbody>
+          {benchmarkChart.policies.map((p) => (
+            <tr key={p.name}>
+              <th scope="row">
+                {p.name}
+                {p.highlight ? " (tie — the finding)" : ""}
+              </th>
+              <td>{p.wait.toFixed(1)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <ul aria-hidden="true" className="mt-4 space-y-1.5">
+        {benchmarkChart.policies.map((p, i) => {
+          const highlight = p.highlight;
           return (
             <li
               key={p.name}
-              className="grid grid-cols-[minmax(0,14rem)_1fr_auto] items-center gap-x-3"
+              className={`-mx-2 grid grid-cols-[minmax(0,8.5rem)_1fr_auto] items-center gap-x-3 px-2 py-px sm:grid-cols-[minmax(0,14rem)_1fr_auto] ${
+                highlight ? "bg-amber/5" : ""
+              }`}
               title={`${p.name}: ${p.wait}`}
             >
               <span
                 className={`truncate font-mono text-[11px] ${
-                  highlight ? "text-ink" : "text-muted"
+                  highlight ? "font-medium text-ink" : "text-muted"
                 }`}
               >
                 {p.name}
               </span>
               <span
-                aria-hidden="true"
-                className={`h-2.5 ${highlight ? "bg-amber" : "bg-[#507087]"}`}
-                style={{ width: `${(p.wait / max) * 100}%`, minWidth: "2px" }}
+                className={`bench-bar h-2.5 ${highlight ? "bg-amber" : "bg-bar"}`}
+                style={
+                  {
+                    width: `${(p.wait / max) * 100}%`,
+                    minWidth: "2px",
+                    "--bar-i": i,
+                  } as React.CSSProperties
+                }
               />
               <span
                 className={`font-mono text-[11px] tabular-nums ${
@@ -45,6 +76,11 @@ export default function BenchmarkChart() {
                 }`}
               >
                 {p.wait.toFixed(1)}
+                {highlight && (
+                  <span className="ml-1.5 border border-amber/40 px-1 py-px text-[9px] text-amber">
+                    tie
+                  </span>
+                )}
               </span>
             </li>
           );
