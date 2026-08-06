@@ -1,25 +1,37 @@
 import { ImageResponse } from "next/og";
-import { hero, heroStats } from "@/content";
+import { caseStudies, featuredProjects } from "@/content";
 import { ogFonts } from "@/lib/ogFonts";
 
 export const dynamic = "force-static";
 
-/**
- * Open Graph card styled as an evidence strip: mono provenance line,
- * display name, role, one headline number. Emitted at build time as a
- * real .png path so static hosts (GitHub Pages) serve it with an
- * image/png content type — the extensionless opengraph-image file
- * convention breaks scrapers there.
- */
-export async function GET() {
+export function generateStaticParams() {
+  return featuredProjects
+    .filter((p) => caseStudies[p.id])
+    .map((p) => ({ id: p.id }));
+}
+
+/** Per-case-file OG card: evidence strip, project name, one number. */
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const project = featuredProjects.find((p) => p.id === id);
+  if (!project) return new Response("not found", { status: 404 });
+
   const fonts = await ogFonts();
-  const stat = heroStats[0];
   const mono = fonts.some((f) => f.name === "IBM Plex Mono")
     ? "IBM Plex Mono"
     : "monospace";
   const display = fonts.some((f) => f.name === "Archivo")
     ? "Archivo"
     : "sans-serif";
+  const stat = project.headlineNumbers?.[0];
+  const strip = project.evidence
+    .filter((s) => !s.href)
+    .map((s) => s.label)
+    .slice(0, 3)
+    .join(" · ");
 
   return new ImageResponse(
     (
@@ -35,7 +47,6 @@ export async function GET() {
           color: "#E8EAED",
         }}
       >
-        {/* Evidence strip header */}
         <div
           style={{
             display: "flex",
@@ -48,8 +59,8 @@ export async function GET() {
             paddingBottom: 28,
           }}
         >
-          <span style={{ color: "#E0A83C" }}>{hero.provenance.prefix}</span>
-          <span>{hero.provenance.text}</span>
+          <span style={{ color: "#E0A83C" }}>case file:</span>
+          <span>{strip}</span>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -57,27 +68,27 @@ export async function GET() {
             style={{
               display: "flex",
               fontFamily: display,
-              fontSize: 84,
+              fontSize: 64,
               fontWeight: 700,
-              letterSpacing: -2,
-              lineHeight: 1.05,
+              letterSpacing: -1.5,
+              lineHeight: 1.1,
             }}
           >
-            {hero.name}
+            {project.name}
           </div>
           <div
             style={{
               display: "flex",
-              marginTop: 22,
-              fontSize: 32,
+              marginTop: 20,
+              fontSize: 28,
               color: "#98A2AD",
+              lineHeight: 1.4,
             }}
           >
-            {hero.role}
+            {project.oneLiner}
           </div>
         </div>
 
-        {/* One headline number, verdict amber */}
         <div
           style={{
             display: "flex",
@@ -88,10 +99,22 @@ export async function GET() {
             paddingTop: 28,
           }}
         >
-          <span style={{ fontSize: 44, fontWeight: 600, color: "#E0A83C" }}>
-            {stat.value}
-          </span>
-          <span style={{ fontSize: 24, color: "#98A2AD" }}>{stat.label}</span>
+          {stat ? (
+            <>
+              <span
+                style={{ fontSize: 44, fontWeight: 600, color: "#E0A83C" }}
+              >
+                {stat.value}
+              </span>
+              <span style={{ fontSize: 24, color: "#98A2AD" }}>
+                {stat.label}
+              </span>
+            </>
+          ) : (
+            <span style={{ fontSize: 24, color: "#98A2AD" }}>
+              rakshit rameshbabu · software & security engineer
+            </span>
+          )}
         </div>
       </div>
     ),

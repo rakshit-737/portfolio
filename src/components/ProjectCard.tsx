@@ -1,4 +1,6 @@
-import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { caseStudies } from "@/content";
 import type { EvidenceSegment, FeaturedProject } from "@/content";
 import EvidenceStrip from "./EvidenceStrip";
 import GlowCard from "./GlowCard";
@@ -73,7 +75,16 @@ export default function ProjectCard({
           ))}
         </ul>
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          {caseStudies[project.id] && (
+            <Link
+              href={`/projects/${project.id}/`}
+              className="inline-flex items-center gap-1.5 bg-steel px-3.5 py-2 font-mono text-xs font-medium text-bg transition-opacity hover:opacity-90"
+            >
+              Read the case file
+              <ArrowRight size={13} aria-hidden="true" />
+            </Link>
+          )}
           {project.repoUrl ? (
             <a
               href={project.repoUrl}

@@ -33,6 +33,7 @@ const personJsonLd = {
   name: hero.name,
   jobTitle: "Software & Security Engineer",
   url: site.url,
+  image: `${site.url}/og.png`,
   email: `mailto:${links.email}`,
   address: {
     "@type": "PostalAddress",
@@ -43,7 +44,16 @@ const personJsonLd = {
     "@type": "CollegeOrUniversity",
     name: "VIT Chennai",
   },
+  knowsAbout: skills.flatMap((s) => s.items),
   sameAs: [links.github.url, links.linkedin.url],
+};
+
+const webSiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: site.title,
+  url: `${site.url}/`,
+  author: { "@type": "Person", name: hero.name },
 };
 
 export default async function Home() {
@@ -51,14 +61,16 @@ export default async function Home() {
   const generatedOn = new Date().toISOString().slice(0, 10);
 
   // Live provenance fetched at build time; null (offline, rate-limited)
-  // simply renders the static strips unchanged.
-  const [featuredLive, moreLive] = await Promise.all([
+  // simply renders the static strips unchanged. The portfolio repo itself
+  // is fetched too — the record carries its own verification.
+  const [featuredLive, moreLive, siteLive] = await Promise.all([
     Promise.all(
       featuredProjects.map((p) => (p.repoUrl ? fetchRepoLive(p.repoUrl) : null)),
     ),
     Promise.all(
       moreProjects.map((p) => (p.repoUrl ? fetchRepoLive(p.repoUrl) : null)),
     ),
+    fetchRepoLive("https://github.com/rakshit-737/portfolio"),
   ]);
 
   return (
@@ -72,6 +84,10 @@ export default async function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }}
       />
       <Nav />
       <CommandPalette />
@@ -380,6 +396,13 @@ export default async function Home() {
               { label: "built with next.js · statically exported" },
               { label: `record generated: ${generatedOn}` },
               { label: "source", href: "https://github.com/rakshit-737/portfolio" },
+              ...(siteLive
+                ? liveSegments(siteLive).map((s) =>
+                    s.label.startsWith("ci:")
+                      ? { ...s, label: `site ${s.label}` }
+                      : s,
+                  )
+                : []),
             ]}
           />
         </div>
