@@ -42,3 +42,9 @@ next-env.d.ts
 
 # editor state
 .opencode/
+.opencode
+.claude/
+
+# playwright artifacts
+/test-results/
+/playwright-report/
