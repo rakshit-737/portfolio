@@ -40,7 +40,7 @@ export default function Hero() {
         </div>
 
         <div
-          className="reveal mt-10 flex flex-wrap items-center gap-3"
+          className="reveal print-hidden mt-10 flex flex-wrap items-center gap-3"
           style={{ "--reveal-delay": "0.6s" } as React.CSSProperties}
         >
           <a

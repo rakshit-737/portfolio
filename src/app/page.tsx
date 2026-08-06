@@ -7,6 +7,7 @@ import EvidenceStrip from "@/components/EvidenceStrip";
 import GlowCard from "@/components/GlowCard";
 import Hero from "@/components/Hero";
 import Metric from "@/components/Metric";
+import MockShell from "@/components/MockShell";
 import Nav from "@/components/Nav";
 import ProjectCard from "@/components/ProjectCard";
 import Reveal from "@/components/Reveal";
@@ -91,6 +92,7 @@ export default async function Home() {
       />
       <Nav />
       <CommandPalette />
+      <MockShell />
 
       <main>
         <Hero />
@@ -356,7 +358,7 @@ export default async function Home() {
             <CopyEmailButton email={links.email} />
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="print-hidden mt-8 flex flex-wrap items-center gap-3">
             <a
               href={withBase(links.resume)}
               download
@@ -396,6 +398,7 @@ export default async function Home() {
               { label: "built with next.js · statically exported" },
               { label: `record generated: ${generatedOn}` },
               { label: "source", href: "https://github.com/rakshit-737/portfolio" },
+              { label: "~ opens the shell" },
               ...(siteLive
                 ? liveSegments(siteLive).map((s) =>
                     s.label.startsWith("ci:")

@@ -193,15 +193,54 @@ html {
   }
 }
 
-/* Print / any non-interactive render: never leave revealed-on-scroll
-   content hidden. */
+/* ---- Print: the record on paper -------------------------------------
+   The palette flips wholesale by redefining the theme tokens; utilities
+   all reference these vars. Interactive chrome is hidden; nothing that
+   was revealed-on-scroll may stay hidden. */
 @media print {
+  :root {
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-ink: #111417;
+    --color-muted: #3f474f;
+    --color-amber: #7a5a10;
+    --color-steel: #17567e;
+    --color-pass: #1e5e3c;
+    --color-fail: #8f2f2f;
+    --color-hairline: #c4c9ce;
+    --color-bar: #5d6b76;
+  }
+  html,
+  body {
+    background: #ffffff;
+  }
   [data-reveal="hidden"] {
     opacity: 1;
     transform: none;
+    visibility: visible;
   }
   .bench-bar {
     transform: none !important;
+    animation: none !important;
+  }
+  /* Interactive chrome has no meaning on paper. */
+  header,
+  .caret::after,
+  .print-hidden {
+    display: none !important;
+  }
+  .glow-card::after {
+    display: none;
+  }
+  .ruled-paper {
+    background-image: none;
+  }
+  article {
+    break-inside: avoid-page;
+  }
+  section[id] > div {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
   }
 }
 
