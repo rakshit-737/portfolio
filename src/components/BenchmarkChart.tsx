@@ -85,7 +85,7 @@ export default function BenchmarkChart() {
               key={p.name}
               className={
                 p.highlight
-                  ? "bg-signal text-field"
+                  ? "bg-signal text-ground"
                   : "border-b border-rule-soft"
               }
             >

@@ -29,7 +29,7 @@ export default function Provenance({
               chip
                 ? `inline-flex items-center gap-1.5 px-1.5 py-0.5 ${
                     s.tone === "pass"
-                      ? "bg-signal text-field"
+                      ? "bg-signal text-ground"
                       : "border border-signal"
                   }`
                 : undefined

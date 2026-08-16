@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Chivo, Chivo_Mono } from "next/font/google";
+import { Chivo, Chivo_Mono, Newsreader } from "next/font/google";
 import { site } from "@/content";
 import "./globals.css";
 
@@ -15,25 +15,36 @@ const chivo = Chivo({
   display: "swap",
 });
 
+// The display voice. Optical-size axis included so the statement lines
+// use Newsreader's display cut rather than its text cut.
+// weight is intentionally omitted: this Next.js version only allows `axes`
+// on a variable font when `weight` is absent (or "variable"). The statement
+// voice is weight 400 regardless — that's set in .statement's CSS, not here.
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  axes: ["opsz"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
 /** The direction contract. Emitted into the built HTML so it can be
  *  audited against the render, not just against intent. */
 const CONTRACT = `
-  THESIS: an engineer's record rendered as a data field — the numbers are the
-  page, at the scale of the thing they measure. Refuses the dark-terminal
-  developer portfolio and its opposite, the airy white résumé page.
-  OWN-WORLD: absolute #000/#fff, no third value and no grey; hierarchy by scale,
-  tracking and density. Hairline bar fields, sine lattices, binary matrices cut
-  from real commit SHAs, bracketed controls with barcode end-caps, and inversion
-  used as a structural beat rather than a filter. Monospace at every size, with a
-  single stated exception: reading passages take the sans sibling, because a case
-  study is read rather than scanned.
+  THESIS: an engineer's record lit by a moving lamp — nothing here is asserted,
+  only what is lit is proven. Refuses the dark-terminal developer portfolio and
+  its opposite, the airy white résumé page.
+  OWN-WORLD: three values — ground #08070A, bone signal #F2EDE3, ember #E8A33D.
+  No grey. Depth comes from public-domain candlelit paintings (Wright of Derby,
+  Rembrandt), each credited like a source. Newsreader carries five display lines;
+  Chivo Mono carries every number, at every size, so a measured quantity always
+  reads as an instrument and never as a headline.
   STORY: this person measures things, publishes what the measurements say —
   including when they say no — and every claim here carries its proof.
-  FIRST VIEWPORT: full-bleed bar field, sine drawn over it, name at display
-  scale on the left, real measurements stacked in rails on both flanks, résumé
-  as the one filled control.
-  FORM: Datamatics Field — user-pinned challenger over assigned grounded
-  candidate 4 (Admiralty Chart); seed fda32a15.
+  FIRST VIEWPORT: Wright of Derby's Air Pump in near-darkness, a lamp finding
+  the statement line, the hero stat rail igniting as the light crosses it.
+  FORM: Lamplight — scroll and cursor drive one radial mask across eight sticky
+  acts; case files stay dense and unhurried.
   FINISH: unreviewed and undocumented is unfinished; this build ends with the
   finish review, the verdict, and DESIGN.md
 `;
@@ -76,9 +87,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${chivoMono.variable} ${chivo.variable} h-full antialiased`}
+      className={`${chivoMono.variable} ${chivo.variable} ${newsreader.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-field text-signal">
+      <body className="min-h-full bg-ground text-signal">
         <div hidden dangerouslySetInnerHTML={{ __html: `<!--${CONTRACT}-->` }} />
         {children}
       </body>

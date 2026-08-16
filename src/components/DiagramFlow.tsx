@@ -54,7 +54,7 @@ export default function DiagramFlow({
             <div
               className={`flex h-full flex-col justify-center border px-3.5 py-3 lg:mx-1 ${
                 step.accent
-                  ? "border-signal bg-signal text-field"
+                  ? "border-signal bg-signal text-ground"
                   : "border-rule"
               }`}
             >

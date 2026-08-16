@@ -74,7 +74,7 @@ export default function Nav() {
     <header
       ref={headerRef}
       data-chrome
-      className="sticky top-0 z-50 border-b border-rule bg-field"
+      className="sticky top-0 z-50 border-b border-rule bg-ground"
     >
       <nav
         aria-label="Main"
@@ -96,8 +96,8 @@ export default function Nav() {
               aria-current={active === s.id ? "location" : undefined}
               className={`label px-2.5 py-1.5 transition-colors ${
                 active === s.id
-                  ? "bg-signal text-field"
-                  : "hover:bg-signal hover:text-field"
+                  ? "bg-signal text-ground"
+                  : "hover:bg-signal hover:text-ground"
               }`}
             >
               {s.label}
@@ -118,7 +118,7 @@ export default function Nav() {
           <a
             href={withBase(links.resume)}
             download
-            className="label border border-signal px-3 py-2 transition-colors hover:bg-signal hover:text-field"
+            className="label border border-signal px-3 py-2 transition-colors hover:bg-signal hover:text-ground"
           >
             Résumé
           </a>
@@ -149,7 +149,7 @@ export default function Nav() {
         {open && (
           <div
             id="mobile-menu"
-            className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-rule bg-field lg:hidden"
+            className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-rule bg-ground lg:hidden"
           >
             <div className="mx-auto flex max-w-[110rem] flex-col px-5 py-3 sm:px-8">
               {navSections.map((s) => (
@@ -158,7 +158,7 @@ export default function Nav() {
                   href={`#${s.id}`}
                   aria-current={active === s.id ? "location" : undefined}
                   className={`label border-b border-rule-soft px-2 py-3.5 last:border-b-0 ${
-                    active === s.id ? "bg-signal text-field" : ""
+                    active === s.id ? "bg-signal text-ground" : ""
                   }`}
                   onClick={() => setOpen(false)}
                 >
@@ -168,7 +168,7 @@ export default function Nav() {
               <a
                 href={withBase(links.resume)}
                 download
-                className="label mt-3 bg-signal px-3 py-3 text-center text-field"
+                className="label mt-3 bg-signal px-3 py-3 text-center text-ground"
                 onClick={() => setOpen(false)}
               >
                 Download résumé

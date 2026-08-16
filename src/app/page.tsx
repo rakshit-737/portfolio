@@ -105,7 +105,7 @@ export default async function Home() {
     <>
       <a
         href="#top"
-        className="label sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-100 focus:bg-signal focus:px-3 focus:py-2 focus:text-field"
+        className="label sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-100 focus:bg-signal focus:px-3 focus:py-2 focus:text-ground"
       >
         Skip to content
       </a>
@@ -180,7 +180,7 @@ export default async function Home() {
                 className="signal-in label mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 normal-case"
                 style={{ "--d": "0.14s" } as React.CSSProperties}
               >
-                <span className="bg-signal px-1.5 py-0.5 text-field">
+                <span className="bg-signal px-1.5 py-0.5 text-ground">
                   {hero.provenance.prefix}
                 </span>
                 {hero.provenance.text}

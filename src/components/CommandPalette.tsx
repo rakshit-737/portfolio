@@ -281,14 +281,14 @@ export default function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-start justify-center bg-field/85 p-4 pt-[12vh]"
+      className="fixed inset-0 z-100 flex items-start justify-center bg-ground/85 p-4 pt-[12vh]"
       onClick={close}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Field index"
-        className="w-full max-w-xl border border-signal bg-field"
+        className="w-full max-w-xl border border-signal bg-ground"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onDialogKeyDown}
       >
@@ -352,7 +352,7 @@ export default function CommandPalette() {
                   onMouseEnter={() => setSelected(i)}
                   onClick={() => run(c)}
                   className={`flex cursor-pointer items-center justify-between gap-4 px-4 py-2.5 font-mono text-sm ${
-                    i === selected ? "bg-signal text-field" : ""
+                    i === selected ? "bg-signal text-ground" : ""
                   }`}
                 >
                   <span className="truncate">
