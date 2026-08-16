@@ -94,3 +94,52 @@ test("with JavaScript disabled the plates are lit and the text is present", asyn
   await expect(page.locator(".statement").first()).toBeVisible();
   await ctx.close();
 });
+
+test("the mask on .plate-lit consumes the lamp's CSS variables on scroll", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+
+  const plateLit = page.locator(".plate-lit").first();
+  const readMask = () =>
+    plateLit.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return s.maskImage || s.webkitMaskImage;
+    });
+
+  const before = await readMask();
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 0.6));
+  await page.waitForTimeout(120);
+  const after = await readMask();
+
+  expect(after).not.toBe(before);
+});
+
+test("plates keep a non-empty accessible name under reduced motion and with no JavaScript", async ({
+  browser,
+}) => {
+  const reducedCtx = await browser.newContext({ reducedMotion: "reduce" });
+  const reducedPage = await reducedCtx.newPage();
+  await reducedPage.goto("/");
+  const reducedAlt = await reducedPage
+    .locator(".plate-lit")
+    .first()
+    .getAttribute("alt");
+  expect(reducedAlt?.trim()).toBeTruthy();
+  await expect(reducedPage.getByRole("img").first()).toHaveAccessibleName(
+    /.+/,
+  );
+  await reducedCtx.close();
+
+  const noJsCtx = await browser.newContext({ javaScriptEnabled: false });
+  const noJsPage = await noJsCtx.newPage();
+  await noJsPage.goto("/");
+  const noJsAlt = await noJsPage
+    .locator(".plate-lit")
+    .first()
+    .getAttribute("alt");
+  expect(noJsAlt?.trim()).toBeTruthy();
+  await expect(noJsPage.getByRole("img").first()).toHaveAccessibleName(/.+/);
+  await noJsCtx.close();
+});

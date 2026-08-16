@@ -1,5 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/icons";
+import Act from "@/components/Act";
 import BarField from "@/components/BarField";
 import BenchmarkChart from "@/components/BenchmarkChart";
 import BitMatrix from "@/components/BitMatrix";
@@ -8,13 +9,15 @@ import CommandPalette from "@/components/CommandPalette";
 import CopyEmailButton from "@/components/CopyEmailButton";
 import Metric from "@/components/Metric";
 import Nav from "@/components/Nav";
+import Plate from "@/components/Plate";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
 import SectionHead from "@/components/SectionHead";
-import SineLattice from "@/components/SineLattice";
+import Statement from "@/components/Statement";
 import {
   about,
   achievements,
+  acts,
   archive,
   contact,
   education,
@@ -27,7 +30,9 @@ import {
   site,
   skills,
 } from "@/content";
+import { plates } from "@/lib/art";
 import { withBase } from "@/lib/base";
+import { withCredit } from "@/lib/credit";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
 
 const SHELL = "mx-auto w-full max-w-[100rem] px-5 sm:px-8 lg:px-12";
@@ -121,118 +126,62 @@ export default async function Home() {
       <CommandPalette />
 
       <main id="top">
-        {/* ── The field ─────────────────────────────────────────────── */}
-        <section
-          aria-label="Introduction"
-          className="relative overflow-hidden border-b border-rule"
+        <Act
+          id="hero"
+          label={acts.hero.label}
+          lamp={plates[acts.hero.plate].lamp}
+          className="flex items-end"
         >
-          {/* Ground: dense bar field, resolving left to right once on load,
-              masked so the display type never fights it for contrast. */}
-          <div
-            aria-hidden="true"
-            className="print-drop pointer-events-none absolute inset-0"
-          >
-            <BarField
-              seed="hero-field"
-              density={1.35}
-              height={100}
-              animate
-              className="field-mask absolute inset-y-0 right-0 h-full w-full opacity-55 sm:opacity-85"
-            />
-            {/* The curve runs at every width. On narrow screens it takes
-                the band above the name rather than crossing it. */}
-            <SineLattice
-              width={1000}
-              height={200}
-              cycles={1.4}
-              nodes={4}
-              animate
-              className="absolute top-[8%] right-0 hidden h-[42%] w-[72%] opacity-90 sm:block"
-            />
-          </div>
+          <Plate id={acts.hero.plate} priority />
 
-          <div
-            className={`${SHELL} relative grid gap-x-10 gap-y-12 pt-16 pb-16 sm:pt-24 sm:pb-20 lg:grid-cols-[10.5rem_minmax(0,1fr)_12rem] lg:pt-28 lg:pb-20`}
-          >
-            <Rail
-              items={heroStats}
-              className="signal-in order-2 lg:order-1 lg:pt-2"
-            />
+          <div className={`${SHELL} scrim relative z-10 pb-20 sm:pb-24`}>
+            <p className="label">{hero.role}</p>
 
-            <div className="order-1 min-w-0 lg:order-2">
-              <h1
-                className="signal-in font-mono leading-[0.88] font-semibold tracking-[-0.03em]"
-                style={{ fontSize: "clamp(2.6rem, 9.2vw, 6rem)" }}
-              >
-                Rakshit
-                <br />
-                Rameshbabu
-              </h1>
+            <h1 id="hero-title" className="statement mt-6">
+              {hero.name}
+            </h1>
 
-              <p
-                className="signal-in mt-7 max-w-xl font-mono text-sm leading-relaxed tracking-tight sm:text-base"
-                style={{ "--d": "0.08s" } as React.CSSProperties}
-              >
-                {hero.role}
-              </p>
+            <p className="label mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 normal-case">
+              <span className="bg-signal px-1.5 py-0.5 text-ground">
+                {hero.provenance.prefix}
+              </span>
+              {hero.provenance.text}
+            </p>
 
-              <p
-                className="signal-in label mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 normal-case"
-                style={{ "--d": "0.14s" } as React.CSSProperties}
-              >
-                <span className="bg-signal px-1.5 py-0.5 text-ground">
-                  {hero.provenance.prefix}
-                </span>
-                {hero.provenance.text}
-              </p>
+            <Rail items={heroStats} className="mt-10" ignite />
 
-              <div
-                className="signal-in print-hidden mt-10 flex flex-wrap items-center gap-3"
-                style={{ "--d": "0.2s" } as React.CSSProperties}
-              >
-                <BracketLink
-                  href={withBase(links.resume)}
-                  weight="filled"
-                  download
-                >
-                  Download résumé
-                </BracketLink>
-                <BracketLink href={`mailto:${links.email}`}>
-                  Email me
-                </BracketLink>
-                <BracketLink href={links.github.url} external>
-                  <GithubIcon size={13} />
-                  GitHub
-                </BracketLink>
-              </div>
+            <div className="print-hidden mt-10 flex flex-wrap items-center gap-3">
+              <BracketLink href={withBase(links.resume)} weight="filled" download>
+                Download résumé
+              </BracketLink>
+              <BracketLink href={`mailto:${links.email}`}>Email me</BracketLink>
+              <BracketLink href={links.github.url} external>
+                <GithubIcon size={13} />
+                GitHub
+              </BracketLink>
             </div>
 
-            <Rail
-              items={buildRail}
-              align="right"
-              className="signal-in order-3 hidden lg:block lg:pt-2"
+            <Provenance
+              className="mt-8"
+              segments={withCredit(acts.hero.plate, buildRail.map((r) => ({
+                label: `${r.label}: ${r.value}`,
+                href: r.href,
+              })))}
             />
           </div>
+        </Act>
 
-          {/* Narrow screens get the curve as its own band at the foot of the
-              hero. Overlaid, it either crosses the name or clips against the
-              section edge; in flow it does neither. */}
-          <div className={`${SHELL} print-drop relative pb-10 sm:hidden`}>
-            <SineLattice
-              width={1000}
-              height={120}
-              cycles={1.3}
-              nodes={3}
-              animate
-              className="h-12 w-full"
-            />
-          </div>
-        </section>
+        <Act
+          id="about"
+          label={acts.about.label}
+          lamp={plates[acts.about.plate].lamp}
+          className="flex items-center"
+        >
+          <Plate id={acts.about.plate} />
 
-        {/* ── About ─────────────────────────────────────────────────── */}
-        <section id="about" aria-labelledby="about-title" className="py-16 sm:py-24">
-          <div className={SHELL}>
-            <SectionHead id="about" title="About" />
+          <div className={`${SHELL} scrim relative z-10 py-24`}>
+            <Statement id="about-title">{acts.about.statement}</Statement>
+
             <div className="mt-10 grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
               <div className="prose-field">
                 {about.paragraphs.map((p) => (
@@ -240,19 +189,14 @@ export default async function Home() {
                 ))}
               </div>
               <div>
-                <h3 className="label border-b border-rule pb-2">
-                  Interests
-                </h3>
+                <h3 className="label border-b border-rule pb-2">Interests</h3>
                 <ul className="mt-4 space-y-2.5">
                   {about.interests.map((interest, i) => (
                     <li
                       key={interest}
                       className="flex items-baseline gap-3 font-mono text-sm"
                     >
-                      <span
-                        aria-hidden="true"
-                        className="label shrink-0"
-                      >
+                      <span aria-hidden="true" className="label shrink-0">
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       {interest}
@@ -261,8 +205,13 @@ export default async function Home() {
                 </ul>
               </div>
             </div>
+
+            <Provenance
+              className="mt-10"
+              segments={withCredit(acts.about.plate, [])}
+            />
           </div>
-        </section>
+        </Act>
 
         {/* ── Featured work ─────────────────────────────────────────── */}
         <section
