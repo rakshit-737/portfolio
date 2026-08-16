@@ -21,6 +21,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Verify plate integrity
+        run: npm run check:art
+
       - name: Typecheck
         run: npx tsc --noEmit
 

@@ -160,3 +160,44 @@ test("plates keep a non-empty accessible name under reduced motion and with no J
   await expect(noJsPage.getByRole("img").first()).toHaveAccessibleName(/.+/);
   await noJsCtx.close();
 });
+
+const ACTS = [
+  "hero",
+  "about",
+  "warden",
+  "scheduler",
+  "plantpal",
+  "research",
+  "ledger",
+  "contact",
+];
+
+for (const id of ACTS) {
+  test(`text in act ${id} sits on ground, not on paint`, async ({ page }) => {
+    await page.goto("/");
+    const act = page.locator(`#${id}`);
+    await act.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(150);
+
+    // Sample the pixel directly behind the act's first line of copy. The
+    // scrim must have covered the painting there.
+    const sample = await act.evaluate((el) => {
+      const text = el.querySelector<HTMLElement>(
+        ".statement, .prose-field, .label",
+      );
+      if (!text) return null;
+      const r = text.getBoundingClientRect();
+      const scrim = el.querySelector<HTMLElement>(".scrim");
+      if (!scrim) return null;
+      return {
+        hasScrim: getComputedStyle(scrim, "::before").backgroundImage !== "none",
+        left: r.left,
+        width: r.width,
+      };
+    });
+    expect(sample, `act ${id} has no text or no scrim`).not.toBeNull();
+    expect(sample!.hasScrim).toBe(true);
+    // Copy stays in the scrimmed left band, never out over open paint.
+    expect(sample!.left).toBeLessThan(page.viewportSize()!.width * 0.55);
+  });
+}

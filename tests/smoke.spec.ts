@@ -113,7 +113,12 @@ test("card links navigate to the case file", async ({ page }) => {
   ).toBeVisible();
 });
 
-for (const path of ["/", "/projects/warden/", "/projects/scheduler/"]) {
+for (const path of [
+  "/",
+  "/projects/warden/",
+  "/projects/scheduler/",
+  "/projects/plantpal/",
+]) {
   test(`axe: no violations on ${path}`, async ({ page }) => {
     await page.goto(path);
     // Let reveals settle so axe sees the final DOM.
