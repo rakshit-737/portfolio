@@ -33,9 +33,18 @@ export interface Plate {
   crop: { x: number; y: number; w: number; h: number };
   lamp: { x: number; y: number };
   alt: string;
-  /** Where the painting sits inside the act box, per axis, as a CSS
-   *  object-position. Chosen so the subject lands clear of the text
-   *  column — right-of-centre on wide screens, upper half on narrow. */
+  /** Where the painting sits inside the act box, as a CSS object-position,
+   *  one value per breakpoint (`wide` above 48rem, `narrow` at or below
+   *  it). On wide screens both axes matter: chosen so the subject lands
+   *  right-of-centre, clear of the text column. On narrow screens the
+   *  render is height-bound — every crop here is landscape (aspect ratio
+   *  ~1.24-1.52) against a far more portrait mobile act box, so
+   *  `object-fit: cover` always scales to the box's height with zero
+   *  vertical slack (confirmed by the `object-fit: cover` math for all
+   *  eight plates). Only `narrow`'s X component has any visible effect;
+   *  its Y component is inert today and is kept for forward-compatibility
+   *  — if a future crop or act geometry ever leaves vertical slack on a
+   *  narrow viewport, the Y value is already there to use. */
   framing: { wide: string; narrow: string };
 }
 

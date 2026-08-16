@@ -328,6 +328,140 @@ for (const id of ACTS) {
 // development.
 const CONTRAST_LUMINANCE_CEILING = 0.12;
 
+// Task 14c fix round (2): the paint order (`.plate-dark` beneath
+// `.plate-lit`) is the entire mechanism behind the lamp's reveal — both
+// layers are `position: absolute; inset: 0` with no `z-index`, so document
+// order IS paint order. This inverted once already (an accessibility fix
+// swapped the two elements' `className`s instead of just their `alt`/
+// `aria-hidden`), and nothing before this test would have caught it: the
+// contrast gate below measures luminance behind the *text*, and a
+// re-invert makes the whole visible field uniformly dim rather than
+// brighter, so it does not cross CONTRAST_LUMINANCE_CEILING either way (see
+// task-14c-report.md's fix-round-2 section for the measured proof). This
+// structural check is the direct, mechanical guard: it fails the instant
+// the DOM order regresses, independent of what shade of dim the images
+// happen to render as.
+test("every plate paints the dark layer beneath the lit one", async ({ page }) => {
+  await page.goto("/");
+  const inverted = await page.evaluate(() =>
+    [...document.querySelectorAll(".plate")]
+      .map((plate, i) => {
+        const imgs = [...plate.querySelectorAll("img")];
+        const dark = imgs.findIndex((n) => n.classList.contains("plate-dark"));
+        const lit = imgs.findIndex((n) => n.classList.contains("plate-lit"));
+        return dark > -1 && lit > -1 && dark > lit ? i : -1;
+      })
+      .filter((i) => i > -1),
+  );
+  // Both layers are position:absolute with no z-index, so document order IS
+  // paint order. Dark must come first or it covers the lamp's reveal entirely
+  // — the exact bug this task's second pass existed to fix.
+  expect(inverted).toEqual([]);
+});
+
+// The behavioural counterpart to the structural check above: proves the
+// reveal is actually *visible*, not just correctly ordered in the DOM, so
+// this survives a refactor that changes how the layering is achieved (e.g.
+// a future z-index-based approach). Uses `warden`'s plate (Wright of
+// Derby's "An Iron Forge") because its subject — a white-hot ingot on the
+// anvil — is the single brightest, most unambiguous light source in the
+// set, giving the biggest possible signal for this measurement.
+//
+// Margin: measured four times back to back against the real build, the
+// lamp-centre patch and the far-corner patch are byte-identical each run —
+// L=0.0891 (centre) vs L=0.0042 (corner), a ~21x ratio. Re-inverting the two
+// `<picture>` blocks (simulating a regression of the bug this test guards)
+// drops that ratio to ~2.8x — the dark layer's own brightness(0.32) floor
+// still varies a little by location in the painting (centre happens to sit
+// on a lighter part of the room than the corner), so a broken build isn't
+// perfectly flat, but it is nowhere near a genuine reveal. The 6x threshold
+// sits well above the broken-build ratio (2.8x) and well below the working
+// one (21x), so it fails the regression with real margin rather than a
+// hairline, without being so tight that ordinary rendering jitter could
+// trip it.
+test("the lamp's reveal pool is measurably brighter than the frame's far edge", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+
+  const act = page.locator("#warden");
+  await act.scrollIntoViewIfNeeded();
+  // Let Lamp.tsx's rAF loop write fresh --lamp-x/--lamp-y/--p for the new
+  // scroll position before sampling.
+  await page.waitForTimeout(250);
+
+  const viewport = page.viewportSize()!;
+  // --lamp-x/--lamp-y are percentages of the act's own box (mask-image
+  // position resolves against the element it's applied to, which fills the
+  // act via inset: 0), so the on-screen point is the act's rect plus that
+  // fraction — not a fraction of the viewport.
+  const geometry = await act.evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    const style = getComputedStyle(el);
+    return {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+      lampX: parseFloat(style.getPropertyValue("--lamp-x")),
+      lampY: parseFloat(style.getPropertyValue("--lamp-y")),
+    };
+  });
+
+  const centerX = geometry.left + (geometry.lampX / 100) * geometry.width;
+  const centerY = geometry.top + (geometry.lampY / 100) * geometry.height;
+
+  // Far edge: the on-screen corner farthest from the lamp's centre.
+  // Restricted to the right-hand corners because the lamp's rest position
+  // is deliberately biased right of the text column on wide screens
+  // (Lamp.tsx: `restX = max(0.52, rawX)`), and the left-hand corners sit
+  // under the scrim's protected band — sampling there would measure the
+  // scrim's own gradient, not the plate.
+  const corners = [
+    { x: viewport.width - 16, y: 16 },
+    { x: viewport.width - 16, y: viewport.height - 16 },
+  ];
+  const farCorner = corners.reduce((best, c) => {
+    const d = (c.x - centerX) ** 2 + (c.y - centerY) ** 2;
+    const bestD = (best.x - centerX) ** 2 + (best.y - centerY) ** 2;
+    return d > bestD ? c : best;
+  });
+
+  const patch = 48;
+  const half = patch / 2;
+  const clamp = (v: number, max: number) => Math.min(Math.max(v, 0), max - patch);
+
+  const litClip = {
+    x: clamp(centerX - half, viewport.width),
+    y: clamp(centerY - half, viewport.height),
+    width: patch,
+    height: patch,
+  };
+  const edgeClip = {
+    x: clamp(farCorner.x - half, viewport.width),
+    y: clamp(farCorner.y - half, viewport.height),
+    width: patch,
+    height: patch,
+  };
+
+  const litBuf = await page.screenshot({ clip: litClip });
+  const edgeBuf = await page.screenshot({ clip: edgeClip });
+
+  const litLum = luminance(
+    (await sharp(litBuf).stats()).channels.map((c) => c.mean),
+  );
+  const edgeLum = luminance(
+    (await sharp(edgeBuf).stats()).channels.map((c) => c.mean),
+  );
+
+  const REVEAL_MARGIN = 6;
+  expect(
+    litLum,
+    `lamp pool (L=${litLum.toFixed(4)}) is not at least ${REVEAL_MARGIN}x brighter than the frame's far edge (L=${edgeLum.toFixed(4)}) — the reveal may not be visible`,
+  ).toBeGreaterThan(edgeLum * REVEAL_MARGIN);
+});
+
 for (const id of ACTS) {
   test(`text in act ${id} clears AA contrast behind its statement`, async ({
     page,
