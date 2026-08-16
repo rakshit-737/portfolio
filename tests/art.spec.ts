@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { PLATE_WIDTHS, creditOf, plates } from "../src/lib/art";
+import lock from "../src/lib/art.lock.json";
 
 test("every plate is public domain and credited", () => {
   const entries = Object.values(plates);
@@ -46,5 +47,26 @@ test("lamp rest positions are inside the frame", () => {
     expect(p.lamp.x).toBeLessThanOrEqual(1);
     expect(p.lamp.y).toBeGreaterThanOrEqual(0);
     expect(p.lamp.y).toBeLessThanOrEqual(1);
+  }
+});
+
+test("the locked variants are exactly the tiers that do not upscale", () => {
+  for (const p of Object.values(plates)) {
+    const cropWidthPx = Math.round(p.native.w * p.crop.w);
+    const expected = PLATE_WIDTHS.filter((w) => w <= cropWidthPx);
+    const emitted = PLATE_WIDTHS.filter((w) => `${p.id}-${w}.avif` in lock);
+    expect(emitted, `${p.id} avif tiers`).toEqual(expected);
+    const emittedWebp = PLATE_WIDTHS.filter((w) => `${p.id}-${w}.webp` in lock);
+    expect(emittedWebp, `${p.id} webp tiers`).toEqual(expected);
+  }
+});
+
+test("no locked variant is wider than its source crop", () => {
+  for (const p of Object.values(plates)) {
+    const cropWidthPx = Math.round(p.native.w * p.crop.w);
+    for (const [name, entry] of Object.entries(lock)) {
+      if (!name.startsWith(`${p.id}-`) || name.endsWith("-lqip.txt")) continue;
+      expect(entry.width, `${name}`).toBeLessThanOrEqual(cropWidthPx);
+    }
   }
 });

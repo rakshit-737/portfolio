@@ -1,0 +1,314 @@
+{
+  "airpump-1280.avif": {
+    "sha256": "49ea9dcc5c1ee301477cd9a1a6c6f4df8fff20664363d19cd88d0a4fb86deb40",
+    "bytes": 55808,
+    "width": 1280,
+    "height": 863
+  },
+  "airpump-1280.webp": {
+    "sha256": "a8c559354e60ab8eb9c94dfff316bf786dfeff06ffe7eda98448fa078335fd80",
+    "bytes": 51462,
+    "width": 1280,
+    "height": 863
+  },
+  "airpump-1920.avif": {
+    "sha256": "4c325ca578b7c5a0276137349a3db560f31c2cf047908b4b086a5b41a8b8b4f5",
+    "bytes": 110666,
+    "width": 1920,
+    "height": 1295
+  },
+  "airpump-1920.webp": {
+    "sha256": "a50c7397ca2b183c96651984002e20a02c66dd36c3088054345541d3655a1025",
+    "bytes": 98296,
+    "width": 1920,
+    "height": 1295
+  },
+  "airpump-2560.avif": {
+    "sha256": "c5860ce2f01169ed724ef73248a5cf73deffbadb73b3491c5f40091ba45273a9",
+    "bytes": 193594,
+    "width": 2560,
+    "height": 1726
+  },
+  "airpump-2560.webp": {
+    "sha256": "2945fb4107608e7303683ea1256531638bd8daf8e95c37d1142b472a442c6dab",
+    "bytes": 158102,
+    "width": 2560,
+    "height": 1726
+  },
+  "airpump-lqip.txt": {
+    "sha256": "d56bcadbb39dc3f3b9501c7a65ff388048df3914ddb841d44888ec931e7377dc",
+    "bytes": 175,
+    "width": 24,
+    "height": 24
+  },
+  "alchemist-1280.avif": {
+    "sha256": "42102fa04c422207aa44b3afedcfed3acbae180246ad4dd669af6a2d07354a30",
+    "bytes": 63100,
+    "width": 1280,
+    "height": 1029
+  },
+  "alchemist-1280.webp": {
+    "sha256": "6dae82b98e46d5c01a7bc09f35e94e0a803d9685e383d45c0a5f887880f90f09",
+    "bytes": 54882,
+    "width": 1280,
+    "height": 1029
+  },
+  "alchemist-1920.avif": {
+    "sha256": "35b0d1c0ffa99a59ed7ed7b4d68ffb56326549e41e4eb4b69281864dee4824cb",
+    "bytes": 148268,
+    "width": 1920,
+    "height": 1544
+  },
+  "alchemist-1920.webp": {
+    "sha256": "0af6c1598e5769d975bb0f7870f66a3258f350adae4e269601aec2d87a3db942",
+    "bytes": 128352,
+    "width": 1920,
+    "height": 1544
+  },
+  "alchemist-2560.avif": {
+    "sha256": "8dde0864680f30e00a137155eef0ee3a8194127f865b192c19b5892aa8b2e50a",
+    "bytes": 277611,
+    "width": 2560,
+    "height": 2058
+  },
+  "alchemist-2560.webp": {
+    "sha256": "1eef9529b6a8dece3386e648eaafa9820ca30d8e21dc9c4695e65e289d5e9750",
+    "bytes": 219470,
+    "width": 2560,
+    "height": 2058
+  },
+  "alchemist-lqip.txt": {
+    "sha256": "3a5f208b394e140b3ba43108e6cfd2e8c67d86510eba3b1f22b87b2545460184",
+    "bytes": 195,
+    "width": 24,
+    "height": 24
+  },
+  "forge-1280.avif": {
+    "sha256": "9d24a1dbd3ada14860ed46af2f3331917f4f4059697c1a299668a0c8a02619be",
+    "bytes": 115072,
+    "width": 1280,
+    "height": 987
+  },
+  "forge-1280.webp": {
+    "sha256": "da72610d0ad4711991ec695567d0356279d97adfb008dcd5bc6dd022edd68d6c",
+    "bytes": 104518,
+    "width": 1280,
+    "height": 987
+  },
+  "forge-1920.avif": {
+    "sha256": "16abdf500f58a06aae755da5feb941ce665829dbdc656e4e5f61d74d0286c9b5",
+    "bytes": 224381,
+    "width": 1920,
+    "height": 1481
+  },
+  "forge-1920.webp": {
+    "sha256": "11dd9a77b112f1c882560811dbdb01601b24006a0c7ebab5f51ef30222935494",
+    "bytes": 189096,
+    "width": 1920,
+    "height": 1481
+  },
+  "forge-2560.avif": {
+    "sha256": "05568b03179d804cf33017a1c3aa85b9a4e1872ea5515260acec0f3bf714090e",
+    "bytes": 338017,
+    "width": 2560,
+    "height": 1974
+  },
+  "forge-2560.webp": {
+    "sha256": "eb1dd60274b1a6e9796b90d82c058b8906076c363f1d88ab75b8310467b40b5a",
+    "bytes": 281460,
+    "width": 2560,
+    "height": 1974
+  },
+  "forge-lqip.txt": {
+    "sha256": "793210e100e1b61ba8870d1cbe00c58fc73831b671f7a23ea6a9dca60b7fd2fb",
+    "bytes": 239,
+    "width": 24,
+    "height": 24
+  },
+  "orrery-1280.avif": {
+    "sha256": "ace679a96f533dd19e174572cffd68106907261c550e08f368568711ee7a1a53",
+    "bytes": 75960,
+    "width": 1280,
+    "height": 844
+  },
+  "orrery-1280.webp": {
+    "sha256": "3f26ca8bb6f090ca143d40a3d38968b0bdc871e5a3d3c7ae89181c9f5e24284c",
+    "bytes": 76094,
+    "width": 1280,
+    "height": 844
+  },
+  "orrery-1920.avif": {
+    "sha256": "07cfdb93006bab2ab0ef33b941ce15ee660732681349f635952ff2d770511d05",
+    "bytes": 166615,
+    "width": 1920,
+    "height": 1267
+  },
+  "orrery-1920.webp": {
+    "sha256": "2aabe128f3ab2b89beb6bf0e59cfd7ff523f9c98a075d76a6beb784c62c9a61f",
+    "bytes": 151162,
+    "width": 1920,
+    "height": 1267
+  },
+  "orrery-2560.avif": {
+    "sha256": "313cde708517b50c8f0ebb8181d06ee112022bedd429873c47300dca5f7fcfea",
+    "bytes": 316268,
+    "width": 2560,
+    "height": 1689
+  },
+  "orrery-2560.webp": {
+    "sha256": "1b56aba8dcfd99fdb92489e302a32c62cbfad737eba1a87ffb807bc30c1c0867",
+    "bytes": 268924,
+    "width": 2560,
+    "height": 1689
+  },
+  "orrery-lqip.txt": {
+    "sha256": "f8e707dc50bc7c912871cda0aeab6186210e419095ce73c42fdf4d6b4746151d",
+    "bytes": 227,
+    "width": 24,
+    "height": 24
+  },
+  "kitten-1280.avif": {
+    "sha256": "5c75b57925f1d941b0bd9564c4efaafbd25c2ae4d0126cb44c4acc9b32f43312",
+    "bytes": 159698,
+    "width": 1280,
+    "height": 980
+  },
+  "kitten-1280.webp": {
+    "sha256": "10ab21aaaa940a4d5a15fef2abfe9497ad752cf85c55707e28d461b35e2feaf1",
+    "bytes": 139062,
+    "width": 1280,
+    "height": 980
+  },
+  "kitten-1920.avif": {
+    "sha256": "97a11d9203ee00b481c7b060e9bd5a822000e788d6afcdb155a72a8184e50015",
+    "bytes": 320022,
+    "width": 1920,
+    "height": 1471
+  },
+  "kitten-1920.webp": {
+    "sha256": "27b5ad9995ac978810a1b98aae9c795b158be3873e7ec842958c9f9a1935bf40",
+    "bytes": 277782,
+    "width": 1920,
+    "height": 1471
+  },
+  "kitten-lqip.txt": {
+    "sha256": "55ae63bb604dc99b3e1b1c1e9bd8c5fbb8805d975f5ab3f5fa3942444f8433bf",
+    "bytes": 255,
+    "width": 24,
+    "height": 24
+  },
+  "anatomy-1280.avif": {
+    "sha256": "98a9fb2b1f8daa738d66c10ee7b7ae2a15729ec94443e869dd7edffc0cd0a1d6",
+    "bytes": 61111,
+    "width": 1280,
+    "height": 916
+  },
+  "anatomy-1280.webp": {
+    "sha256": "ff7101df4483ec0a28cf65e9a1a22a4fa97dc922b2eeb2689947fb8863f6cf6f",
+    "bytes": 49440,
+    "width": 1280,
+    "height": 916
+  },
+  "anatomy-1920.avif": {
+    "sha256": "1cf8a629016dceae07e83f232fe1576ceee91a0b9c142016c14f316294ef96a7",
+    "bytes": 145277,
+    "width": 1920,
+    "height": 1374
+  },
+  "anatomy-1920.webp": {
+    "sha256": "bd7bf2415d4f46ceddb66f91abe0805f139c364a268421b9205a789d59049b39",
+    "bytes": 108418,
+    "width": 1920,
+    "height": 1374
+  },
+  "anatomy-2560.avif": {
+    "sha256": "1853d956ccd982b437c693b4011d4859534a5b0b3cbbb42e3f447fd424ce7a64",
+    "bytes": 326547,
+    "width": 2560,
+    "height": 1832
+  },
+  "anatomy-2560.webp": {
+    "sha256": "cfc0e5bf65f3b43392d90fd4413db29a60f20877a6e13c5db95f8006a32f9e21",
+    "bytes": 245492,
+    "width": 2560,
+    "height": 1832
+  },
+  "anatomy-lqip.txt": {
+    "sha256": "26f7d530d9856692a4f9ee3213b1692e1ac04479cd83add1187976759b0697a2",
+    "bytes": 215,
+    "width": 24,
+    "height": 24
+  },
+  "dovedale-1280.avif": {
+    "sha256": "4ef8c1ce36a96271857d01a0d0ff2f9a69f1c28c7ba94275351750e71306a4bf",
+    "bytes": 124077,
+    "width": 1280,
+    "height": 862
+  },
+  "dovedale-1280.webp": {
+    "sha256": "e4a37708402954881312f139c37c420d2d7350605e43e5eb2a111fcedb442ede",
+    "bytes": 108774,
+    "width": 1280,
+    "height": 862
+  },
+  "dovedale-1920.avif": {
+    "sha256": "b4b4b00600c6bd57609929410b59a1679b5c0c1e44400923adaf937911e0c7ea",
+    "bytes": 263879,
+    "width": 1920,
+    "height": 1294
+  },
+  "dovedale-1920.webp": {
+    "sha256": "09c8d9e83220fed25b505dcc15fb667f5a37abbc5da7c0ed189f8603640ca31a",
+    "bytes": 228854,
+    "width": 1920,
+    "height": 1294
+  },
+  "dovedale-lqip.txt": {
+    "sha256": "a8170e23ca011aa0f3e668de953bcb20d46f24036fa0682bd9a6b739998386f0",
+    "bytes": 191,
+    "width": 24,
+    "height": 24
+  },
+  "academy-1280.avif": {
+    "sha256": "03ae498c457d4d9c2cbf19986671197f3858e396cf6570dee648366757c0d3a9",
+    "bytes": 87317,
+    "width": 1280,
+    "height": 977
+  },
+  "academy-1280.webp": {
+    "sha256": "6cdc2cc6c80e57c1dac1aa60303e5d0b48054db4961ed3cf7e0ac2c4af1fd0da",
+    "bytes": 64058,
+    "width": 1280,
+    "height": 977
+  },
+  "academy-1920.avif": {
+    "sha256": "2e350886170308d2b4aa734c094e5edb69894e430039f9f8e68bd230c99a0d30",
+    "bytes": 233959,
+    "width": 1920,
+    "height": 1466
+  },
+  "academy-1920.webp": {
+    "sha256": "e4f3a381315a2724bdfd4b558e31686ad7aed1b351d43e26fffa73eabc906bea",
+    "bytes": 166182,
+    "width": 1920,
+    "height": 1466
+  },
+  "academy-2560.avif": {
+    "sha256": "27af955332f3476aeab5198f2ebddc0965accd8664f2084d558e24eefe5625e9",
+    "bytes": 420103,
+    "width": 2560,
+    "height": 1955
+  },
+  "academy-2560.webp": {
+    "sha256": "3210afa0335a0270a0f81b5a86b78cafde3bac8aa7cfcd289b1559e186eb244f",
+    "bytes": 299238,
+    "width": 2560,
+    "height": 1955
+  },
+  "academy-lqip.txt": {
+    "sha256": "1381f9f8cc403ed81fb0f485b2cf966e71935fb24078a73be1f0d038b0e34482",
+    "bytes": 167,
+    "width": 24,
+    "height": 24
+  }
+}
