@@ -2434,6 +2434,293 @@ git commit -m "test: contrast, image weight, and plate integrity gates"
 
 ---
 
+### Task 14b: Scroll-scrubbed plate motion
+
+**Added 2026-08-17 at the owner's request** — after seeing acts 1–8 assembled, the
+owner asked for the paintings to move "like a video," matching the reference
+site's scroll-scrubbed image sequences. This task adds that, and must run
+**after Task 14** (so the budget gate exists to measure against) and **before
+Task 15** (so the docs describe what shipped).
+
+**Files:**
+- Modify: `src/lib/art.ts` (per-plate `motion` descriptor), `scripts/fetch-art.mjs` (emit WebM), `scripts/check-art.mjs` + `src/lib/art.lock.json` (cover the new files), `src/components/Plate.tsx`, `src/components/Lamp.tsx`, `src/app/globals.css`, `scripts/check-budget.mjs`
+- Test: `tests/lamplight.spec.ts`
+
+**Interfaces:**
+- Consumes: `plates`, `PLATE_WIDTHS`, the lamp's `--p` act-progress property.
+- Produces: `public/art/<id>-motion.webm`; `Plate` renders a `<video>` layer when one exists; `Lamp` drives `video.currentTime` from `--p`.
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `tests/lamplight.spec.ts`:
+
+```ts
+test("the hero plate scrubs its video with scroll", async ({ page }) => {
+  await page.goto("/");
+  const video = page.locator("#hero video").first();
+  await expect(video).toHaveCount(1);
+  // The video must be inert on its own — scroll is the only clock.
+  expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
+  expect(await video.evaluate((v: HTMLVideoElement) => v.autoplay)).toBe(false);
+
+  const at = () => video.evaluate((v: HTMLVideoElement) => v.currentTime);
+  await page.waitForFunction(
+    () => (document.querySelector("#hero video") as HTMLVideoElement)?.readyState >= 1,
+  );
+  const before = await at();
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 0.7));
+  await page.waitForTimeout(200);
+  expect(await at()).not.toBe(before);
+});
+
+test("reduced motion renders the still plate and no video", async ({ browser }) => {
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.locator("video")).toHaveCount(0);
+  await expect(page.locator(".plate-lit").first()).toBeVisible();
+  await ctx.close();
+});
+
+test("without JavaScript no video is requested", async ({ browser }) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  const requested: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().endsWith(".webm")) requested.push(r.url());
+  });
+  await page.goto("/");
+  await expect(page.locator(".plate-lit").first()).toBeVisible();
+  expect(requested).toEqual([]);
+  await ctx.close();
+});
+```
+
+- [ ] **Step 2: Run them to make sure they fail**
+
+```bash
+npm run build && npx playwright test tests/lamplight.spec.ts -g "scrubs|reduced motion renders the still|without JavaScript no video"
+```
+
+Expected: the scrub test FAILS (no `<video>` in the DOM). The other two PASS
+trivially — they are guards that must keep passing once video lands, not
+drivers. Say so in the report rather than treating their green as progress.
+
+- [ ] **Step 3: Describe the motion per plate**
+
+Each painting wants a different move — the Air Pump pushes toward the glass
+globe, Dovedale drifts across the valley. Add to each entry in `src/lib/art.ts`:
+
+```ts
+  /** How this plate moves when scrubbed. `from`/`to` are crop-relative
+   *  centres (0-1) and scales; the drift runs from one to the other across
+   *  the act's scroll. Chosen per painting, toward what it is about. */
+  motion?: {
+    from: { x: number; y: number; scale: number };
+    to: { x: number; y: number; scale: number };
+  };
+```
+
+Set `motion` for all eight, each drifting toward that painting's subject — for
+`airpump`, toward the globe at its centre; for `anatomy`, toward the forearm
+Dr Tulp is holding open. Keep the scale range modest (`1.0` → `1.12`); a
+painting is not a drone shot.
+
+- [ ] **Step 4: Emit the WebM**
+
+In `scripts/fetch-art.mjs`, after the still variants, render the drift with
+ffmpeg via the already-installed `sharp` crop plus ffmpeg's `zoompan`. Use
+`ffmpeg-static` as a devDependency (justification: build-time only, never
+shipped; it is the only practical way to emit VP9 from Node):
+
+```bash
+npm install --save-dev ffmpeg-static
+```
+
+Emit `<id>-motion.webm` at 1600w, 4 seconds, 25fps, VP9, `-crf 40 -b:v 0`,
+`-an` (no audio track at all), `-g 25` (a keyframe every second, so seeking is
+cheap), `-tile-columns 0 -row-mt 1`. Record each in the lockfile exactly like
+the stills so `check-art.mjs` covers them unchanged.
+
+Log each file's size. **If any single WebM exceeds 250KB, lower the resolution
+to 1280w before lowering quality** — these are slow drifts over a still image
+and should compress hard; a large file means the encode is wrong, not that the
+budget is tight.
+
+- [ ] **Step 5: Render the video layer**
+
+In `src/components/Plate.tsx`, when `plates[id].motion` exists and a lockfile
+entry for `<id>-motion.webm` is present, render a `<video>` **inside the same
+`.plate` wrapper, after both `<picture>` elements**:
+
+```tsx
+      {motionSrc && (
+        <video
+          className="plate-motion"
+          src={motionSrc}
+          preload="metadata"
+          muted
+          playsInline
+          aria-hidden="true"
+          tabIndex={-1}
+          disablePictureInPicture
+        />
+      )}
+```
+
+No `autoplay`, no `loop`, no `controls`. It never plays itself — scroll is its
+only clock. It is decorative and duplicates the still it covers, so it is
+`aria-hidden` and carries no accessible name.
+
+- [ ] **Step 6: Gate it, and scrub it**
+
+In `src/components/Lamp.tsx`, extend the existing rAF loop — do not add a
+second one. Inside the per-act work, after writing `--p`:
+
+```ts
+      const video = act.querySelector<HTMLVideoElement>("video.plate-motion");
+      if (video && video.readyState >= 1 && video.duration) {
+        // Scroll is the clock. Seeking costs nothing when the encode is
+        // keyframe-dense, and we never call play().
+        const t = p * video.duration;
+        if (Math.abs(video.currentTime - t) > 0.02) video.currentTime = t;
+      }
+```
+
+Gate the whole video layer the same way the mask is gated — it must exist only
+when the lamp is on. Since `Lamp` already returns early under
+`prefers-reduced-motion`, add a class to `<html>` alongside `data-lamp="on"`
+and hide `video.plate-motion` by default in CSS:
+
+```css
+.plate-motion {
+  display: none;
+}
+[data-lamp="on"] .plate-motion {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+```
+
+`display: none` on a `<video preload="metadata">` still fetches metadata, so
+also skip rendering the element server-side when it would never be used — the
+no-JS test asserts zero `.webm` requests, and `preload="metadata"` alone would
+fail it. Set `src` from JS on mount instead of in the markup: render the
+element with `data-src` and have `Lamp` promote it to `src` when it turns the
+lamp on. That is what makes the no-JS assertion pass honestly.
+
+Additionally, skip the promotion entirely when any of these hold:
+- `navigator.connection?.saveData` is true
+- the device is coarse-pointer **and** the viewport is under 700px wide
+- `matchMedia("(prefers-reduced-motion: reduce)")` matches (already handled by
+  the early return)
+
+Record in the report which conditions you implemented and how you tested each.
+
+- [ ] **Step 7: Measure, then decide the spread**
+
+```bash
+npm run art && npm run build && npm run budget
+```
+
+Add the WebM set to `scripts/check-budget.mjs`'s image assertion — the ceiling
+becomes total *media*, not just images:
+
+```js
+const MEDIA_BUDGET_KB = 3500; // raised from 3000 when scrubbed motion landed
+```
+
+Report the per-plate WebM sizes and the new total. **If total media exceeds
+3500 kB, keep `motion` on `airpump`, `forge`, `orrery` and `kitten` only** —
+the hero and the three project acts — and delete the `motion` descriptor from
+the other four so no WebM is emitted for them. Say plainly in the report which
+spread shipped and what the numbers were.
+
+- [ ] **Step 8: Smooth the transitions**
+
+**Added 2026-08-17 at the owner's request.** Right now every act cuts hard into
+the next and the scrub is linear, which reads mechanical. Three changes, all
+CSS or single-line JS, all inside the existing rAF loop:
+
+**8a — ease the scrub.** `--p` is currently linear act progress, so the drift
+starts and stops abruptly at the act boundary. In `Lamp.tsx`, keep `--p` linear
+(the mask and other consumers want it raw) and add a second property alongside
+it:
+
+```ts
+        // Eased progress for anything that should start and end gently —
+        // the video scrub and the plate push-in. Raw --p stays linear for
+        // the mask, which wants a constant-speed sweep.
+        const eased = p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2;
+        act.style.setProperty("--pe", eased.toFixed(4));
+```
+
+Drive `video.currentTime` from `eased` rather than `p`, and change the plate
+push-in in `globals.css` from `var(--p, 0)` to `var(--pe, 0)`.
+
+**8b — cross-fade the act boundary.** Each act currently ends flush against the
+next. Give every act a ground-coloured fade at both edges so one painting
+dissolves into the dark before the next resolves out of it. Add to
+`globals.css`, near the `.plate` rules:
+
+```css
+/* Acts meet in the dark. Each plate fades into ground at its own edges,
+   so scrolling between two paintings is a dissolve rather than a cut. */
+.plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--color-ground) 0%,
+    transparent 14%,
+    transparent 86%,
+    var(--color-ground) 100%
+  );
+}
+```
+
+**8c — settle the lamp.** The lamp currently jumps to the pointer. Low-pass it
+so it trails slightly, which reads as a held lantern rather than a cursor.
+In `Lamp.tsx`, keep a smoothed pointer alongside the raw one and lerp each
+frame:
+
+```ts
+      // The lamp has weight. It follows the pointer rather than snapping to
+      // it — a held lantern, not a cursor.
+      smooth.x += (pointer.x - smooth.x) * 0.08;
+      smooth.y += (pointer.y - smooth.y) * 0.08;
+```
+
+Read `smooth` instead of `pointer` when computing the lamp offset. Initialise
+`smooth` to `{x: 0.5, y: 0.5}` so the first frame does not lurch.
+
+All three must respect reduced motion — they already do, since `Lamp` returns
+early and `--pe` falls back to `0` in the CSS defaults. Verify that explicitly
+and say so in the report.
+
+- [ ] **Step 9: Run everything**
+
+```bash
+npm run lint && npm run typecheck && npm run build && npm run budget && npm run check:art && npm test
+```
+
+Expected: all green, axe zero violations, and the three new tests passing.
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add -A
+git commit -m "feat: scroll-scrubbed motion on the plates, eased and dissolving"
+```
+
+---
+
 ### Task 15: Documentation and the finish
 
 **Files:**
