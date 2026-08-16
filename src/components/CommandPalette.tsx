@@ -91,11 +91,10 @@ export default function CommandPalette() {
 
   const commands = useMemo<Command[]>(() => {
     const jump = (id: string) => () => {
-      const reduced = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
       document.getElementById(id)?.scrollIntoView({
-        behavior: reduced ? "auto" : "smooth",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
         block: "start",
       });
       history.replaceState(null, "", `#${id}`);
@@ -113,12 +112,7 @@ export default function CommandPalette() {
         .map((p) => ({ name: p.name.split("—")[0].trim(), url: p.repoUrl! })),
     ];
 
-    // navSections omits the archive section (nav highlights its parent);
-    // the index lists it explicitly so every numbered section is reachable.
-    const sections = [
-      ...navSections.map((s) => ({ id: s.id, label: s.label })),
-      { id: "more-projects", label: "More Projects" },
-    ];
+    const sections = navSections.map((s) => ({ id: s.id, label: s.label }));
 
     return [
       ...sections.map((s) => ({
@@ -281,14 +275,14 @@ export default function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-start justify-center bg-field/85 p-4 pt-[12vh]"
+      className="fixed inset-0 z-100 flex items-start justify-center bg-ground/85 p-4 pt-[12vh]"
       onClick={close}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Field index"
-        className="w-full max-w-xl border border-signal bg-field"
+        className="w-full max-w-xl border border-signal bg-ground"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onDialogKeyDown}
       >
@@ -352,7 +346,7 @@ export default function CommandPalette() {
                   onMouseEnter={() => setSelected(i)}
                   onClick={() => run(c)}
                   className={`flex cursor-pointer items-center justify-between gap-4 px-4 py-2.5 font-mono text-sm ${
-                    i === selected ? "bg-signal text-field" : ""
+                    i === selected ? "bg-signal text-ground" : ""
                   }`}
                 >
                   <span className="truncate">

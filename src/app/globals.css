@@ -1,52 +1,41 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────────
-   DATA FIELD — the world.
+   LAMPLIGHT — the world.
 
-   Two values, no third. #000 and #fff, and the surface can invert
-   wholesale. There is no grey in this palette: hierarchy is carried by
-   SCALE, TRACKING and DENSITY, never by dimming text. The only
-   fractional alpha in the system belongs to rules and bar fields, which
-   are graphics rather than language.
+   Three values. Ground is the dark a candlelit painting sits in; signal
+   is bone white and carries all language; ember is the light itself and
+   touches nothing but a lit number and the lamp's own core.
 
-   Because every utility resolves through these four custom properties,
-   `.invert` re-declares them and an entire region flips — the negative
-   snap, working as a structural device instead of a filter.
+   There is no grey. Depth is supplied by the paintings, which bring
+   their own midtones. Fractional alpha belongs only to rules, which are
+   graphics rather than language.
+
+   Emphasis is not inversion — it is light. Nothing here is asserted;
+   only what is lit is proven.
    ───────────────────────────────────────────────────────────────────── */
 
 @theme {
-  --color-field: #000000;
-  --color-signal: #ffffff;
-  --color-rule: rgb(255 255 255 / 0.26);
-  --color-rule-soft: rgb(255 255 255 / 0.11);
+  --color-ground: #08070a;
+  --color-signal: #f2ede3;
+  --color-ember: #e8a33d;
+  --color-rule: rgb(242 237 227 / 0.24);
+  --color-rule-soft: rgb(242 237 227 / 0.12);
 
   --font-mono: var(--font-chivo-mono), ui-monospace, monospace;
   --font-sans: var(--font-chivo), system-ui, sans-serif;
-}
-
-/* Inverted region: white ground, black marks. Same components, no
-   variant props — the tokens do the work.
-   Named `negative`, not `invert`: Tailwind ships an `invert` filter
-   utility, and the two would stack and cancel each other out. */
-.negative {
-  --color-field: #ffffff;
-  --color-signal: #000000;
-  --color-rule: rgb(0 0 0 / 0.3);
-  --color-rule-soft: rgb(0 0 0 / 0.13);
-  background: var(--color-field);
-  color: var(--color-signal);
+  --font-display: var(--font-newsreader), Georgia, serif;
 }
 
 html {
-  background: #000;
+  background: var(--color-ground);
   color-scheme: dark;
-  scroll-behavior: smooth;
   scrollbar-width: thin;
-  scrollbar-color: rgb(255 255 255 / 0.3) #000;
+  scrollbar-color: rgb(242 237 227 / 0.3) #08070a;
 }
 
 body {
-  background: var(--color-field);
+  background: var(--color-ground);
   color: var(--color-signal);
   font-family: var(--font-mono);
   font-feature-settings: "tnum" 1; /* tabular figures: columns line up */
@@ -56,7 +45,7 @@ body {
 
 ::selection {
   background: var(--color-signal);
-  color: var(--color-field);
+  color: var(--color-ground);
 }
 
 :focus-visible {
@@ -73,15 +62,14 @@ section[id] {
   height: 9px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgb(255 255 255 / 0.28);
+  background: rgb(242 237 227 / 0.28);
 }
 ::-webkit-scrollbar-track {
-  background: #000;
+  background: #08070a;
 }
 
 /* ── Type primitives ────────────────────────────────────────────────── */
 
-/* Small mono label: the world's caption voice. */
 .label {
   font-size: 0.6875rem;
   line-height: 1.1;
@@ -89,33 +77,41 @@ section[id] {
   text-transform: uppercase;
 }
 
-/* Reading passages — the one place a proportional face is allowed,
-   because a case study is read, not scanned. */
 .prose-field {
   font-family: var(--font-sans);
   font-size: 1rem;
   line-height: 1.68;
-  max-width: 68ch;
+  max-width: 62ch;
   letter-spacing: 0.001em;
 }
 .prose-field p + p {
   margin-top: 1.15em;
 }
 
-/* Emphasis without colour: the single strongest metric in a bullet is
-   inverted out of the surface. */
+/* The act statement — the only display voice on the site. */
+.statement {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-size: clamp(2.2rem, 6.5vw, 5.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+
+/* A metric inside a bullet. Mono, never dimmed, ignites under the lamp
+   via the ::after layer in the materials block below. */
 .metric {
-  background: var(--color-signal);
-  color: var(--color-field);
-  padding: 0.05em 0.32em;
-  font-weight: 600;
+  position: relative;
+  display: inline-block;
   font-family: var(--font-mono);
+  font-weight: 600;
   white-space: nowrap;
 }
 
 /* ── Materials ──────────────────────────────────────────────────────── */
 
-/* Bar fields and lattices inherit the current ground automatically. */
 .mark {
   fill: var(--color-signal);
 }
@@ -123,8 +119,9 @@ section[id] {
   stroke: var(--color-signal);
 }
 
-/* Fades a bar field out where display type sits over it, so the type
-   never has to fight the ground for contrast. */
+/* Retained from the Datamatics Field design: BarField.tsx, page.tsx and
+   projects/[id]/page.tsx still render these masks. Remove once those
+   components are rebuilt for Lamplight. */
 .field-mask {
   -webkit-mask-image: linear-gradient(
     to right,
@@ -143,8 +140,6 @@ section[id] {
     rgb(0 0 0 / 0.22) 100%
   );
 }
-/* Case files run their content column much wider than the index hero does,
-   so the field has to stay clear of it for longer. */
 .field-mask-wide {
   -webkit-mask-image: linear-gradient(
     to right,
@@ -168,7 +163,7 @@ section[id] {
   mask-image: linear-gradient(to right, transparent, #000 68%);
 }
 
-/* Barcode end-caps on controls (from the world's button grammar). */
+/* Barcode end-caps on controls. */
 .cap {
   background-image: repeating-linear-gradient(
     to right,
@@ -181,10 +176,119 @@ section[id] {
   );
 }
 
+/* ── The lamp ────────────────────────────────────────────────────────
+   Default state — no JS, or reduced motion — is FULLY LIT. The mask is
+   only introduced once <html data-lamp="on"> is set by the client. A
+   page that never runs JavaScript is a painted page, not a black one. */
+
+.plate {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--color-ground);
+  background-size: cover;
+  background-position: center;
+}
+.plate img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Scroll pushes the frame in, very slightly. Free — no layout. */
+  transform: scale(calc(1.04 + var(--p, 0) * 0.06));
+  transform-origin: center;
+}
+.plate-dark {
+  display: none;
+}
+
+[data-lamp="on"] .plate-dark {
+  display: block;
+  filter: brightness(0.18) saturate(0.7);
+}
+[data-lamp="on"] .plate-lit {
+  --lamp-r: calc(18vmax + min(var(--p, 0), 1 - var(--p, 0)) * 32vmax);
+  -webkit-mask-image: radial-gradient(
+    circle var(--lamp-r) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+    #000 0%,
+    #000 38%,
+    transparent 78%
+  );
+  mask-image: radial-gradient(
+    circle var(--lamp-r) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+    #000 0%,
+    #000 38%,
+    transparent 78%
+  );
+}
+
+/* Text never sits on painted midtone. */
+.scrim {
+  position: relative;
+  z-index: 1;
+}
+.scrim::before {
+  content: "";
+  position: absolute;
+  inset: -8vh -6vw;
+  z-index: -1;
+  background: linear-gradient(
+    to right,
+    var(--color-ground) 0%,
+    var(--color-ground) 42%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+@media (max-width: 48rem) {
+  .scrim::before {
+    background: linear-gradient(
+      to top,
+      var(--color-ground) 0%,
+      var(--color-ground) 62%,
+      transparent 100%
+    );
+  }
+}
+
+/* A number ignites when the light reaches it. The ember copy is a
+   pseudo-element, so assistive technology reads the bone original once
+   and axe never sees a second colour on the same text node. */
+.ignite {
+  position: relative;
+  color: var(--color-signal);
+}
+.ignite::after {
+  content: attr(data-value);
+  position: absolute;
+  inset: 0;
+  color: var(--color-ember);
+  pointer-events: none;
+}
+[data-lamp="on"] .ignite::after {
+  -webkit-mask-image: radial-gradient(
+    circle var(--lamp-r, 26vmax) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+    #000 0%,
+    #000 30%,
+    transparent 62%
+  );
+  mask-image: radial-gradient(
+    circle var(--lamp-r, 26vmax) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+    #000 0%,
+    #000 30%,
+    transparent 62%
+  );
+}
+
 /* ── The authored moment ────────────────────────────────────────────────
    One event, once, on load: the hero field resolves left to right and
    the sine draws behind the name. Nothing else on this site animates on
-   entry — no per-section reveal, no scattered hover motion. */
+   entry — no per-section reveal, no scattered hover motion.
+
+   Retained from the Datamatics Field design: SineLattice.tsx, BarField.tsx,
+   page.tsx and projects/[id]/page.tsx still render these classes. Remove
+   once those components are rebuilt for Lamplight. */
 
 @keyframes field-resolve {
   from {
@@ -244,8 +348,7 @@ section[id] {
   animation-delay: var(--d, 0s);
 }
 
-/* Benchmark bars measure a real quantity, so they grow from zero once,
-   in place, as part of the same single moment when scrolled to. */
+/* Benchmark bars measure a real quantity, so they grow from zero once. */
 .bar-grow {
   transform-origin: left center;
   transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
@@ -259,26 +362,39 @@ section[id] {
 
 @media print {
   :root {
-    --color-field: #ffffff;
-    --color-signal: #000000;
-    --color-rule: rgb(0 0 0 / 0.4);
-    --color-rule-soft: rgb(0 0 0 / 0.18);
+    --color-ground: #ffffff;
+    --color-signal: #08070a;
+    --color-ember: #08070a;
+    --color-rule: rgb(8 7 10 / 0.4);
+    --color-rule-soft: rgb(8 7 10 / 0.18);
   }
   html,
   body {
     background: #fff;
-    color: #000;
+    color: #08070a;
   }
   .negative {
-    --color-field: #ffffff;
-    --color-signal: #000000;
+    --color-ground: #ffffff;
+    --color-signal: #08070a;
   }
-  /* Full-bleed black fields cost a cartridge and prove nothing on paper. */
+  /* Full-bleed paintings cost a cartridge and prove nothing on paper. */
+  .plate,
+  .scrim::before,
   .print-drop,
   header[data-chrome],
   .print-hidden {
     display: none !important;
   }
+  .ignite::after {
+    display: none;
+  }
+  [data-act] {
+    position: static !important;
+    height: auto !important;
+    min-height: 0 !important;
+    break-inside: avoid-page;
+  }
+  /* Retained: SineLattice.tsx and BarField.tsx still render these classes. */
   .field-resolve,
   .sine-draw,
   .node-in,
@@ -305,6 +421,10 @@ section[id] {
   html {
     scroll-behavior: auto;
   }
+  .plate img {
+    transform: none;
+  }
+  /* Retained: SineLattice.tsx and BarField.tsx still render these classes. */
   .field-resolve,
   .sine-draw,
   .node-in,
@@ -326,4 +446,14 @@ section[id] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Temporary: removed in Task 9 when the last .negative region is rewritten. */
+.negative {
+  --color-ground: #f2ede3;
+  --color-signal: #08070a;
+  --color-rule: rgb(8 7 10 / 0.3);
+  --color-rule-soft: rgb(8 7 10 / 0.13);
+  background: var(--color-ground);
+  color: var(--color-signal);
 }

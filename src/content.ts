@@ -3,6 +3,8 @@
  * Edit copy here — components only render what this file exports.
  */
 
+import type { PlateId } from "@/lib/art";
+
 /** Pass/fail only — reserved for verifiable outcomes (tests, CI). */
 export type ChipTone = "pass" | "fail";
 
@@ -392,6 +394,10 @@ export const caseStudies: Record<string, CaseStudy> = {
       "The codebase is a TypeScript monorepo on npm workspaces: packages/shared holds the domain logic used identically by all clients — the watering schedule calculator, the Atwater energy identity, and Mifflin-St Jeor BMR are each implemented once. apps/api is an Express + TypeScript REST service on PostgreSQL, apps/web is React + Vite, apps/mobile is React Native with Expo.",
       "Specification came before implementation. Phase 1 produced 36 documents: 228 functional requirements, 307 business rules, 111 NFRs across 13 quality attributes, 119 user stories with Gherkin acceptance criteria, 89 fully-specified use cases, and 119 Mermaid diagrams. Phase 2 added system architecture, an OpenAPI 3.1 spec, sequence diagrams, and ADRs; Phase 3 mapped artifacts back to requirements for traceability.",
       "Auth uses JWT with a 32+ character access secret, a refresh-token flow, and a 30-day account deletion window that blocks session renewal. Sync is an append-only event log: only three operations queue offline (watering events, workout records, meals), each carrying a client-generated UUID idempotency key that the server upserts by — conflict-free by construction, with no CRDTs or last-write-wins. All other operations require connectivity explicitly.",
+      /* Relocated verbatim from featuredProjects[2].bullets when the landing
+         page stopped rendering bullets — these claims appear nowhere else. */
+      "TypeScript monorepo: React Native (Expo) mobile app, React + Vite web app, Node.js/Express REST API on PostgreSQL; node-cron reminder engine; 11-table JWT auth service with a custom migration runner; GitHub Actions CI.",
+      "Unit-tested scientific domain layer (Mifflin-St Jeor/TDEE energy models, workout energy/1RM/volume, species- and season-aware watering intervals); offline-light sync via an append-only event log with client-generated UUID idempotency keys.",
     ],
     diagram: [
       { label: "spec phase", sub: "36 docs · 228 FRs" },
@@ -676,10 +682,40 @@ export const education: EducationEntry[] = [
 
 export const navSections = [
   { id: "about", label: "About" },
-  { id: "projects", label: "Projects" },
+  { id: "warden", label: "Warden" },
+  { id: "scheduler", label: "Scheduler" },
+  { id: "plantpal", label: "PlantPal+" },
   { id: "research", label: "Research" },
-  { id: "achievements", label: "Achievements" },
-  { id: "skills", label: "Skills" },
-  { id: "education", label: "Education" },
+  { id: "ledger", label: "Ledger" },
   { id: "contact", label: "Contact" },
 ] as const;
+
+export type ActId =
+  | "hero"
+  | "about"
+  | "warden"
+  | "scheduler"
+  | "plantpal"
+  | "research"
+  | "ledger"
+  | "contact";
+
+/**
+ * The eight acts of the landing page. `statement` is the single display
+ * line each act carries — every one approved by the owner and traceable
+ * to copy elsewhere in this file or to a linked repo. `plate` names the
+ * painting the act is set in (see src/lib/art.ts).
+ */
+export const acts: Record<
+  ActId,
+  { label: string; statement: string; plate: PlateId }
+> = {
+  hero: { label: "act 01 — the record", statement: "Rakshit Rameshbabu", plate: "airpump" },
+  about: { label: "act 02 — the work", statement: "End to end, from written requirements to CI-tested deployments.", plate: "alchemist" },
+  warden: { label: "act 03 — warden", statement: "Judges what a package would actually do.", plate: "forge" },
+  scheduler: { label: "act 04 — the scheduler", statement: "The answer is a proven negative result.", plate: "orrery" },
+  plantpal: { label: "act 05 — plantpal+", statement: "No second implementation to drift.", plate: "kitten" },
+  research: { label: "act 06 — the finding", statement: "The honest baseline is not FIFO.", plate: "anatomy" },
+  ledger: { label: "act 07 — the ledger", statement: "Everything public lives on GitHub.", plate: "dovedale" },
+  contact: { label: "act 08 — the close", statement: "Open to internships and full-time roles in software and security engineering.", plate: "academy" },
+};

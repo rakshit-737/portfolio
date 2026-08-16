@@ -55,3 +55,6 @@ next-env.d.ts
 # playwright artifacts
 /test-results/
 /playwright-report/
+
+# subagent-driven-development scratch (ledger, briefs, review packages)
+/.superpowers/

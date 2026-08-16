@@ -145,7 +145,7 @@ export default async function CaseStudyPage({
 
       <header
         data-chrome
-        className="sticky top-0 z-50 border-b border-rule bg-field"
+        className="sticky top-0 z-50 border-b border-rule bg-ground"
       >
         <nav
           aria-label="Case file"
@@ -153,7 +153,7 @@ export default async function CaseStudyPage({
         >
           <a
             href={withBase("/")}
-            className="label -mx-2 flex items-center gap-2 px-2 py-1 transition-colors hover:bg-signal hover:text-field"
+            className="label -mx-2 flex items-center gap-2 px-2 py-1 transition-colors hover:bg-signal hover:text-ground"
           >
             <ArrowLeft size={13} aria-hidden="true" />
             back to the index

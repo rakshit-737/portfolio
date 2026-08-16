@@ -1,21 +1,24 @@
 import { ArrowUpRight } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/icons";
+import Act from "@/components/Act";
 import BarField from "@/components/BarField";
 import BenchmarkChart from "@/components/BenchmarkChart";
-import BitMatrix from "@/components/BitMatrix";
 import { BracketLink } from "@/components/Bracket";
 import CommandPalette from "@/components/CommandPalette";
 import CopyEmailButton from "@/components/CopyEmailButton";
 import Metric from "@/components/Metric";
 import Nav from "@/components/Nav";
+import Plate from "@/components/Plate";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
 import SectionHead from "@/components/SectionHead";
-import SineLattice from "@/components/SineLattice";
+import Statement from "@/components/Statement";
 import {
   about,
   achievements,
+  acts,
   archive,
+  benchmarkChart,
   contact,
   education,
   featuredProjects,
@@ -27,7 +30,9 @@ import {
   site,
   skills,
 } from "@/content";
+import { plates } from "@/lib/art";
 import { withBase } from "@/lib/base";
+import { withCredit } from "@/lib/credit";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
 
 const SHELL = "mx-auto w-full max-w-[100rem] px-5 sm:px-8 lg:px-12";
@@ -105,7 +110,7 @@ export default async function Home() {
     <>
       <a
         href="#top"
-        className="label sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-100 focus:bg-signal focus:px-3 focus:py-2 focus:text-field"
+        className="label sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-100 focus:bg-signal focus:px-3 focus:py-2 focus:text-ground"
       >
         Skip to content
       </a>
@@ -121,118 +126,62 @@ export default async function Home() {
       <CommandPalette />
 
       <main id="top">
-        {/* ── The field ─────────────────────────────────────────────── */}
-        <section
-          aria-label="Introduction"
-          className="relative overflow-hidden border-b border-rule"
+        <Act
+          id="hero"
+          label={acts.hero.label}
+          lamp={plates[acts.hero.plate].lamp}
+          className="flex items-end"
         >
-          {/* Ground: dense bar field, resolving left to right once on load,
-              masked so the display type never fights it for contrast. */}
-          <div
-            aria-hidden="true"
-            className="print-drop pointer-events-none absolute inset-0"
-          >
-            <BarField
-              seed="hero-field"
-              density={1.35}
-              height={100}
-              animate
-              className="field-mask absolute inset-y-0 right-0 h-full w-full opacity-55 sm:opacity-85"
-            />
-            {/* The curve runs at every width. On narrow screens it takes
-                the band above the name rather than crossing it. */}
-            <SineLattice
-              width={1000}
-              height={200}
-              cycles={1.4}
-              nodes={4}
-              animate
-              className="absolute top-[8%] right-0 hidden h-[42%] w-[72%] opacity-90 sm:block"
-            />
-          </div>
+          <Plate id={acts.hero.plate} priority />
 
-          <div
-            className={`${SHELL} relative grid gap-x-10 gap-y-12 pt-16 pb-16 sm:pt-24 sm:pb-20 lg:grid-cols-[10.5rem_minmax(0,1fr)_12rem] lg:pt-28 lg:pb-20`}
-          >
-            <Rail
-              items={heroStats}
-              className="signal-in order-2 lg:order-1 lg:pt-2"
-            />
+          <div className={`${SHELL} scrim relative z-10 pb-20 sm:pb-24`}>
+            <p className="label">{hero.role}</p>
 
-            <div className="order-1 min-w-0 lg:order-2">
-              <h1
-                className="signal-in font-mono leading-[0.88] font-semibold tracking-[-0.03em]"
-                style={{ fontSize: "clamp(2.6rem, 9.2vw, 6rem)" }}
-              >
-                Rakshit
-                <br />
-                Rameshbabu
-              </h1>
+            <h1 id="hero-title" className="statement mt-6">
+              {hero.name}
+            </h1>
 
-              <p
-                className="signal-in mt-7 max-w-xl font-mono text-sm leading-relaxed tracking-tight sm:text-base"
-                style={{ "--d": "0.08s" } as React.CSSProperties}
-              >
-                {hero.role}
-              </p>
+            <p className="label mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 normal-case">
+              <span className="bg-signal px-1.5 py-0.5 text-ground">
+                {hero.provenance.prefix}
+              </span>
+              {hero.provenance.text}
+            </p>
 
-              <p
-                className="signal-in label mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 normal-case"
-                style={{ "--d": "0.14s" } as React.CSSProperties}
-              >
-                <span className="bg-signal px-1.5 py-0.5 text-field">
-                  {hero.provenance.prefix}
-                </span>
-                {hero.provenance.text}
-              </p>
+            <Rail items={heroStats} className="mt-10" ignite />
 
-              <div
-                className="signal-in print-hidden mt-10 flex flex-wrap items-center gap-3"
-                style={{ "--d": "0.2s" } as React.CSSProperties}
-              >
-                <BracketLink
-                  href={withBase(links.resume)}
-                  weight="filled"
-                  download
-                >
-                  Download résumé
-                </BracketLink>
-                <BracketLink href={`mailto:${links.email}`}>
-                  Email me
-                </BracketLink>
-                <BracketLink href={links.github.url} external>
-                  <GithubIcon size={13} />
-                  GitHub
-                </BracketLink>
-              </div>
+            <div className="print-hidden mt-10 flex flex-wrap items-center gap-3">
+              <BracketLink href={withBase(links.resume)} weight="filled" download>
+                Download résumé
+              </BracketLink>
+              <BracketLink href={`mailto:${links.email}`}>Email me</BracketLink>
+              <BracketLink href={links.github.url} external>
+                <GithubIcon size={13} />
+                GitHub
+              </BracketLink>
             </div>
 
-            <Rail
-              items={buildRail}
-              align="right"
-              className="signal-in order-3 hidden lg:block lg:pt-2"
+            <Provenance
+              className="mt-8"
+              segments={withCredit(acts.hero.plate, buildRail.map((r) => ({
+                label: `${r.label}: ${r.value}`,
+                href: r.href,
+              })))}
             />
           </div>
+        </Act>
 
-          {/* Narrow screens get the curve as its own band at the foot of the
-              hero. Overlaid, it either crosses the name or clips against the
-              section edge; in flow it does neither. */}
-          <div className={`${SHELL} print-drop relative pb-10 sm:hidden`}>
-            <SineLattice
-              width={1000}
-              height={120}
-              cycles={1.3}
-              nodes={3}
-              animate
-              className="h-12 w-full"
-            />
-          </div>
-        </section>
+        <Act
+          id="about"
+          label={acts.about.label}
+          lamp={plates[acts.about.plate].lamp}
+          className="flex items-center"
+        >
+          <Plate id={acts.about.plate} />
 
-        {/* ── About ─────────────────────────────────────────────────── */}
-        <section id="about" aria-labelledby="about-title" className="py-16 sm:py-24">
-          <div className={SHELL}>
-            <SectionHead id="about" title="About" />
+          <div className={`${SHELL} scrim relative z-10 py-24`}>
+            <Statement id="about-title">{acts.about.statement}</Statement>
+
             <div className="mt-10 grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
               <div className="prose-field">
                 {about.paragraphs.map((p) => (
@@ -240,19 +189,14 @@ export default async function Home() {
                 ))}
               </div>
               <div>
-                <h3 className="label border-b border-rule pb-2">
-                  Interests
-                </h3>
+                <h3 className="label border-b border-rule pb-2">Interests</h3>
                 <ul className="mt-4 space-y-2.5">
                   {about.interests.map((interest, i) => (
                     <li
                       key={interest}
                       className="flex items-baseline gap-3 font-mono text-sm"
                     >
-                      <span
-                        aria-hidden="true"
-                        className="label shrink-0"
-                      >
+                      <span aria-hidden="true" className="label shrink-0">
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       {interest}
@@ -261,129 +205,90 @@ export default async function Home() {
                 </ul>
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* ── Featured work ─────────────────────────────────────────── */}
-        <section
-          id="projects"
-          aria-labelledby="projects-title"
-          className="py-16 sm:py-24"
-        >
-          <div className={SHELL}>
-            <SectionHead
-              id="projects"
-              title="Featured work"
-              meta={`${featuredProjects.length} records`}
+            <Provenance
+              className="mt-10"
+              segments={withCredit(acts.about.plate, [])}
             />
-
-            <div>
-              {featuredProjects.map((project, i) => {
-                const live = featuredLive[i];
-                return (
-                  <article
-                    key={project.id}
-                    className="grid gap-x-12 gap-y-8 border-b border-rule py-12 lg:grid-cols-[13rem_minmax(0,1fr)] sm:py-16"
-                  >
-                    {/* Signature block: the repo's head commit as bits. */}
-                    <div className="flex flex-row items-start gap-6 lg:flex-col lg:gap-7">
-                      <BitMatrix
-                        source={live?.sha || project.id}
-                        cols={8}
-                        rows={6}
-                        cell={8}
-                        className="print-drop shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <p className="label">{project.timeframe}</p>
-                        <ul className="mt-3 space-y-1 font-mono text-[0.6875rem] leading-relaxed">
-                          {project.tech.map((t) => (
-                            <li key={t}>{t}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="min-w-0">
-                      <h3 className="font-mono text-xl leading-tight font-semibold tracking-[-0.03em] sm:text-2xl">
-                        {project.name}
-                      </h3>
-                      <p className="prose-field mt-4">{project.oneLiner}</p>
-
-                      {project.headlineNumbers && (
-                        <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-5 border-y border-rule py-5">
-                          {project.headlineNumbers.map((n) => (
-                            <div key={n.label}>
-                              <dd className="font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl">
-                                {n.value}
-                              </dd>
-                              <dt className="label mt-2">
-                                {n.label}
-                              </dt>
-                            </div>
-                          ))}
-                        </dl>
-                      )}
-
-                      <ul className="mt-8 space-y-4">
-                        {project.bullets.map((b) => (
-                          <li
-                            key={b.slice(0, 40)}
-                            className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-x-3"
-                          >
-                            <span
-                              aria-hidden="true"
-                              className="mt-2 block h-px w-3 bg-signal"
-                            />
-                            <p className="prose-field text-[0.9375rem]">
-                              <Metric text={b} />
-                            </p>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Provenance
-                        className="mt-8"
-                        segments={[...project.evidence, ...liveSegments(live)]}
-                      />
-
-                      <div className="print-hidden mt-8 flex flex-wrap gap-3">
-                        <BracketLink
-                          href={withBase(`/projects/${project.id}/`)}
-                          weight="filled"
-                          small
-                        >
-                          Read the case file
-                        </BracketLink>
-                        {project.repoUrl && (
-                          <BracketLink href={project.repoUrl} small external>
-                            Repository
-                            <ArrowUpRight size={12} aria-hidden="true" />
-                          </BracketLink>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
           </div>
-        </section>
+        </Act>
 
-        {/* ── Research: the negative result, inverted out of the page ── */}
-        <section
+        {featuredProjects.map((project, i) => {
+          const act = acts[project.id as "warden" | "scheduler" | "plantpal"];
+          const live = featuredLive[i];
+          return (
+            <Act
+              key={project.id}
+              id={project.id}
+              label={act.label}
+              lamp={plates[act.plate].lamp}
+              className="flex items-center"
+            >
+              <Plate id={act.plate} />
+
+              <div className={`${SHELL} scrim relative z-10 py-24`}>
+                <p className="label">{project.timeframe}</p>
+                <Statement id={`${project.id}-title`}>{act.statement}</Statement>
+
+                <p className="prose-field mt-8">{project.oneLiner}</p>
+
+                {project.headlineNumbers && (
+                  <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-6 border-y border-rule py-6">
+                    {project.headlineNumbers.map((n) => (
+                      <div key={n.label}>
+                        <dd
+                          className="ignite font-mono text-3xl leading-none font-semibold tracking-tight tabular-nums sm:text-4xl"
+                          data-value={n.value}
+                        >
+                          {n.value}
+                        </dd>
+                        <dt className="label mt-2">{n.label}</dt>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+
+                <Provenance
+                  className="mt-8"
+                  segments={withCredit(act.plate, [
+                    ...project.evidence,
+                    ...liveSegments(live),
+                  ])}
+                />
+
+                <div className="print-hidden mt-8 flex flex-wrap gap-3">
+                  <BracketLink
+                    href={withBase(`/projects/${project.id}/`)}
+                    weight="filled"
+                    small
+                  >
+                    Read the case file
+                  </BracketLink>
+                  {project.repoUrl && (
+                    <BracketLink href={project.repoUrl} small external>
+                      Repository
+                      <ArrowUpRight size={12} aria-hidden="true" />
+                    </BracketLink>
+                  )}
+                </div>
+              </div>
+            </Act>
+          );
+        })}
+
+        <Act
           id="research"
-          aria-labelledby="research-title"
-          className="negative py-16 sm:py-24"
+          label={acts.research.label}
+          lamp={plates[acts.research.plate].lamp}
+          className="flex items-center"
         >
-          <div className={SHELL}>
-            <SectionHead id="research" title="Research" />
+          <Plate id={acts.research.plate} />
 
-            <figure className="mt-12 grid gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-              <blockquote
-                className="font-mono leading-[1.18] font-medium tracking-[-0.035em]"
-                style={{ fontSize: "clamp(1.35rem, 3.1vw, 2.35rem)" }}
-              >
+          <div className={`${SHELL} scrim relative z-10 py-24`}>
+            <Statement id="research-title">{acts.research.statement}</Statement>
+
+            <figure className="mt-10 grid gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+              <blockquote className="prose-field text-lg">
                 {researchSpotlight.quote}
               </blockquote>
               <figcaption className="prose-field text-sm lg:pt-2">
@@ -393,28 +298,38 @@ export default async function Home() {
 
             <BenchmarkChart />
 
-            <div className="print-hidden mt-10">
+            <Provenance
+              className="mt-8"
+              segments={withCredit(acts.research.plate, [
+                { label: benchmarkChart.source },
+              ])}
+            />
+
+            <div className="print-hidden mt-8">
               <BracketLink href={researchSpotlight.repoUrl} external>
                 View the study
                 <ArrowUpRight size={12} aria-hidden="true" />
               </BracketLink>
             </div>
           </div>
-        </section>
+        </Act>
 
-        {/* ── Archive ───────────────────────────────────────────────── */}
-        <section
-          id="more-projects"
-          aria-labelledby="more-projects-title"
-          className="py-16 sm:py-24"
+        <Act
+          id="ledger"
+          label={acts.ledger.label}
+          lamp={plates[acts.ledger.plate].lamp}
+          className="!min-h-0"
         >
-          <div className={SHELL}>
-            <SectionHead
-              id="more-projects"
-              title="Archive"
-              meta={`${moreProjects.length} records`}
-            />
+          <div className="pointer-events-none absolute inset-0">
+            <div className="sticky top-0 h-[100svh]">
+              <Plate id={acts.ledger.plate} />
+            </div>
+          </div>
 
+          <div className={`${SHELL} scrim relative z-10 py-24`}>
+            <Statement id="ledger-title">{acts.ledger.statement}</Statement>
+
+            <h3 className="label mt-16 border-b border-rule pb-2">Archive</h3>
             <ul>
               {moreProjects.map((project, i) => (
                 <li
@@ -474,17 +389,8 @@ export default async function Home() {
                 </div>
               </li>
             </ul>
-          </div>
-        </section>
 
-        {/* ── Achievements ──────────────────────────────────────────── */}
-        <section
-          id="achievements"
-          aria-labelledby="achievements-title"
-          className="py-16 sm:py-24"
-        >
-          <div className={SHELL}>
-            <SectionHead id="achievements" title="Achievements" />
+            <h3 className="label mt-16 border-b border-rule pb-2">Achievements</h3>
             <ul>
               {achievements.map((a) => (
                 <li
@@ -512,13 +418,8 @@ export default async function Home() {
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
 
-        {/* ── Skills ────────────────────────────────────────────────── */}
-        <section id="skills" aria-labelledby="skills-title" className="py-16 sm:py-24">
-          <div className={SHELL}>
-            <SectionHead id="skills" title="Skills" />
+            <h3 className="label mt-16 border-b border-rule pb-2">Skills</h3>
             <dl className="mt-4">
               {skills.map(({ group, items }) => (
                 <div
@@ -541,17 +442,8 @@ export default async function Home() {
                 </div>
               ))}
             </dl>
-          </div>
-        </section>
 
-        {/* ── Education ─────────────────────────────────────────────── */}
-        <section
-          id="education"
-          aria-labelledby="education-title"
-          className="py-16 sm:py-24"
-        >
-          <div className={SHELL}>
-            <SectionHead id="education" title="Education" />
+            <h3 className="label mt-16 border-b border-rule pb-2">Education</h3>
             <ul>
               {education.map((e) => (
                 <li
@@ -571,8 +463,13 @@ export default async function Home() {
                 </li>
               ))}
             </ul>
+
+            <Provenance
+              className="mt-12"
+              segments={withCredit(acts.ledger.plate, [...archive.evidence])}
+            />
           </div>
-        </section>
+        </Act>
 
         {/* ── Contact: the close ────────────────────────────────────── */}
         <section

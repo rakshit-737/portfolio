@@ -12,8 +12,8 @@ const base =
   "focus-visible:outline-2 focus-visible:outline-offset-2";
 
 const weights = {
-  filled: "bg-signal text-field hover:bg-transparent hover:text-signal",
-  outline: "text-signal hover:bg-signal hover:text-field",
+  filled: "bg-signal text-ground hover:bg-transparent hover:text-signal",
+  outline: "text-signal hover:bg-signal hover:text-ground",
 } as const;
 
 function Inner({ children, small }: { children: ReactNode; small?: boolean }) {

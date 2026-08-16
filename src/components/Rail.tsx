@@ -13,10 +13,12 @@ export default function Rail({
   items,
   align = "left",
   className = "",
+  ignite = false,
 }: {
   items: RailItem[];
   align?: "left" | "right";
   className?: string;
+  ignite?: boolean;
 }) {
   return (
     <dl
@@ -25,7 +27,14 @@ export default function Rail({
       {items.map((item) => (
         <div key={item.label}>
           <dt className="label leading-[1.45]">{item.label}</dt>
-          <dd className="mt-1 font-mono text-sm leading-none tracking-tight tabular-nums sm:text-base">
+          <dd
+            className={
+              ignite
+                ? "ignite font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl"
+                : "mt-1 font-mono text-sm leading-none tracking-tight tabular-nums sm:text-base"
+            }
+            data-value={ignite ? item.value : undefined}
+          >
             {item.href ? (
               <a
                 href={item.href}
