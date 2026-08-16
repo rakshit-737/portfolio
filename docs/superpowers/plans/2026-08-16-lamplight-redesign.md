@@ -2908,6 +2908,195 @@ git commit -m "feat: let the paintings read, and resolve the copy on arrival"
 
 ---
 
+### Task 14d: The torch — a page-wide flashlight
+
+**Added 2026-08-17 at the owner's request**, from a detailed specification. Must
+run **after Task 14c**, which sets the plates' brightness floor — the two
+interact directly and tuning 14d against unfixed plates would waste the pass.
+
+**The unification ruling.** The site already has a light: the per-act lamp that
+reveals each painting. A second, independent global dimmer would mean two
+uncorrelated light sources and a compounding darkness the paintings cannot
+afford. So the torch and the plate lamp are **one light**: the same pointer
+drives both, and the plate's own unlit floor rises to compensate for the
+overlay's dimming. The reader sees a single flashlight moving over a dark
+archive, which is exactly what the concept asks for.
+
+**Files:**
+- Create: `src/components/Torch.tsx`
+- Modify: `src/components/Lamp.tsx`, `src/app/globals.css`, `src/app/layout.tsx`
+- Test: `tests/lamplight.spec.ts`
+
+**Interfaces:**
+- Consumes: nothing new.
+- Produces: `--torch-x`, `--torch-y`, `--torch-r` on `<html>`; `data-torch="on"` once the pointer has entered.
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `tests/lamplight.spec.ts`:
+
+```ts
+test("the torch follows the pointer and never blocks interaction", async ({ page }) => {
+  await page.goto("/");
+  const overlay = page.locator(".torch");
+  await expect(overlay).toHaveCount(1);
+  expect(
+    await overlay.evaluate((el) => getComputedStyle(el).pointerEvents),
+  ).toBe("none");
+
+  const read = () =>
+    page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue("--torch-x"),
+    );
+  await page.mouse.move(200, 200);
+  await page.waitForTimeout(160);
+  const a = await read();
+  await page.mouse.move(900, 600);
+  await page.waitForTimeout(300);
+  expect(await read()).not.toBe(a);
+
+  // The overlay must not intercept clicks.
+  await page.getByRole("link", { name: /résumé/i }).first().click({ trial: true });
+});
+
+test("the torch stays off for touch, reduced motion, and no JS", async ({ browser }) => {
+  for (const opts of [
+    { reducedMotion: "reduce" as const },
+    { hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } },
+    { javaScriptEnabled: false },
+  ]) {
+    const ctx = await browser.newContext(opts);
+    const page = await ctx.newPage();
+    await page.goto("/");
+    await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on");
+    // Content is readable regardless.
+    await expect(page.locator(".statement").first()).toBeVisible();
+    await ctx.close();
+  }
+});
+```
+
+- [ ] **Step 2: Run them to make sure they fail**
+
+```bash
+npm run build && npx playwright test tests/lamplight.spec.ts -g "torch"
+```
+
+Expected: the first FAILS (no `.torch` element). The second passes trivially —
+it is a guard, not a driver.
+
+- [ ] **Step 3: Build the torch**
+
+Create `src/components/Torch.tsx` as a client component mounted once in
+`layout.tsx`, beside `Lamp`.
+
+Behaviour, following the owner's specification:
+
+- A **fixed-position overlay above all content**, `pointer-events: none`,
+  covering the viewport. It dims the page by **20–35%** outside the beam and
+  leaves it fully visible inside. The page must stay readable everywhere —
+  this creates contrast, it does not hide content.
+- The beam is a **soft radial gradient** with no hard edge:
+  `transparent 0%, transparent 35%, slight 60%, stronger 80%, full 100%`.
+- Radius: **240px desktop, 200px tablet**, via `--torch-r`. Read the breakpoint
+  once on mount and on resize — never per frame.
+- **Smoothing:** the beam trails the pointer with slight inertia. Lerp toward
+  the raw pointer at ~0.14 per frame — physical, but with no perceptible lag.
+  Reuse the pattern Task 14b's Step 8c introduces for the lamp.
+- **Entrance:** on load the overlay is only slightly dark and the beam is
+  absent. When the pointer first enters, `data-torch="on"` goes on `<html>` and
+  the beam fades in over ~600ms. It must never look broken before first move.
+- **Interactive elements:** when the pointer is over an `a`, `button`, or
+  `[role="button"]`, the radius eases from 240px to ~260px. Detect with a
+  single delegated `pointerover`/`pointerout` on `document`, not per-element
+  listeners, and never pulse or repeat.
+
+Write it exactly like `Lamp`: **one rAF loop, passive listeners, CSS custom
+properties only.** No React state per pointer event, no re-renders, no canvas,
+no animation library, no filters on scrolling content. Only compositor-friendly
+properties.
+
+- [ ] **Step 4: Gate it hard**
+
+The torch is desktop-only and must be absent — not merely invisible — in every
+other case:
+
+```css
+@media (hover: none) {
+  .torch { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .torch { display: none; }
+}
+```
+
+and in JS, return early from the effect (registering no listeners at all) when
+`matchMedia("(hover: none)")` or `matchMedia("(prefers-reduced-motion: reduce)")`
+matches. With no JavaScript the element renders inert and undimmed.
+
+Keyboard users must get the normal page: focus, selection, scrolling and link
+activation are untouched, and nothing about the torch is required to read or
+operate the site.
+
+- [ ] **Step 5: Rebalance against the plates**
+
+Because the overlay now supplies the page-wide darkness, the plates must not
+double-dim. In `globals.css`, raise the unlit floor set by Task 14c whenever the
+torch is active:
+
+```css
+[data-torch="on"] [data-lamp="on"] .plate-dark {
+  filter: brightness(0.56) saturate(0.9);
+}
+```
+
+Tune this number against the rendered page — the target is that a plate under
+the torch's dim region looks the same as it did before the torch existed.
+
+- [ ] **Step 6: Optional grain**
+
+Add a very low-opacity film-grain texture to the overlay only if it improves it:
+an inline base64 noise tile at ≤3% opacity, `background-repeat: repeat`, no
+animation. Archival paper and darkroom, not digital noise. **If it looks worse,
+delete it** and say so in the report — a rejected option honestly reported is a
+better outcome than a mediocre one shipped.
+
+- [ ] **Step 7: Inspect the real thing**
+
+This step is not optional and is not satisfied by tests passing. Build, serve
+`./out`, and drive a real browser: move the pointer slowly across the hero, the
+nav, each project act, the research chart, the ledger and the footer, then move
+it fast across the whole page. Capture screenshots at 1440×900 with the pointer
+at three positions and attach them to the report.
+
+Check and report on each: the beam follows smoothly; no visible lag; no
+flicker; no layout shift; no text made unreadable; no click interception; no
+frame drops. **Tune radius and opacity until it reads as premium** — the target
+feeling is a flashlight in an engineering archive, not a glowing cursor.
+
+Explicitly confirm none of these appear: a glowing or replaced cursor, a neon
+or RGB edge, a particle or cursor trail, lens flare, pulsing, flashing,
+excessive blur, or full-page darkness.
+
+- [ ] **Step 8: Run everything**
+
+```bash
+npm run lint && npm run typecheck && npm run build && npm run budget && npm run check:art && npm test
+```
+
+Expected: all green, axe zero violations, contrast test still passing. The
+budget must absorb the torch within the existing JS ceiling — report its
+gzipped cost.
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add -A
+git commit -m "feat: the torch — a page-wide flashlight over the archive"
+```
+
+---
+
 ### Task 15: Documentation and the finish
 
 **Files:**
