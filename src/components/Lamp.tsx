@@ -32,6 +32,10 @@ export default function Lamp() {
     let last = 0;
 
     const collect = () => {
+      // disconnect() fires no final "not intersecting" callback, so any
+      // element that leaves the query between collections would otherwise
+      // stay in `visible` forever, driven every frame from a detached node.
+      visible.clear();
       acts = Array.from(document.querySelectorAll<HTMLElement>("[data-act]"));
       observer.disconnect();
       for (const act of acts) observer.observe(act);
