@@ -295,21 +295,38 @@ for (const id of ACTS) {
 // a conservative test: it can only be harder to pass than measuring the
 // bare background would be, never easier.
 //
-// THRESHOLD (0.10) was set after Task 14c raised the plate brightness floor
-// (`.plate-dark` 0.18 → 0.42), widened the lamp's reveal, and pulled the
-// scrim back to a lighter, narrower band. Re-ran this over the built site
-// four times back to back — every act's real region measured identically
-// each run: 0.0228 (plantpal, research) to 0.0471 (ledger). 0.10 is ~2.1x
-// the worst real act, not the ~8x headroom the previous (pre-14c) threshold
-// carried — deliberately tight, because Task 14's own gate was not yet
-// catching the defect it existed to catch (see the break-and-restore notes
-// in task-14c-report.md). A run-to-run reproducibility note: the copy now
-// fades in once per act (Task 14c, gated on `data-seen`); the tests above
-// wait for `opacity: 1` before sampling, or a statement caught mid-fade
-// reads as noisy, occasionally spiking the measured luminance well above
-// its settled value — that mechanism, not the plate itself, was the
-// earlier source of run-to-run variance during development.
-const CONTRAST_LUMINANCE_CEILING = 0.1;
+// THRESHOLD (0.12) was set during the 14c fix round, after correcting the
+// bug the first 14c pass was unknowingly calibrated against: `Plate.tsx`
+// rendered `.plate-lit` before `.plate-dark` in the DOM, and with neither
+// layer carrying a `z-index`, the later (opaque, `brightness()`-dimmed)
+// element always painted over the masked one — the lamp's reveal was never
+// actually visible, on any build before this fix. Once the paint order was
+// corrected (`.plate-dark` first, `.plate-lit` second) the plate brightness
+// floor was re-tuned down (`.plate-dark` 0.42 → 0.32 — 0.42 was calibrated
+// against a reveal that did nothing, so it read as "fine" for the wrong
+// reason) and the narrow scrim was changed from percentage-of-box stops to
+// fixed vh stops (see the media query above) so a few long acts (about,
+// research) don't stretch the protected band across their whole,
+// content-driven height.
+//
+// Re-ran this over the corrected, re-tuned build four times back to back —
+// every act's real region measured byte-identical each run: 0.021
+// (research) to 0.099 (ledger). 0.12 is ~1.2x the worst real act, not the
+// ~8-10x headroom an under-tuned threshold would carry — deliberately
+// tight. Verified this threshold actually gates something: disabling
+// `.scrim::before`'s background (both the wide and narrow rules) and
+// rebuilding raised every act's measured luminance (e.g. ledger
+// 0.099 → 0.156, hero 0.050 → 0.065, scheduler 0.041 → 0.052) — with the
+// paint order fixed, the scrim is now doing real, measurable work, and at
+// 0.12 the break trips this gate (ledger's 0.156 fails; see
+// task-14c-report.md for the full break-and-restore log). A run-to-run
+// reproducibility note: the copy fades in once per act (Task 14c, gated on
+// `data-seen`); the tests above wait for `opacity: 1` before sampling, or a
+// statement caught mid-fade reads as noisy, occasionally spiking the
+// measured luminance well above its settled value — that mechanism, not
+// the plate itself, was the earlier source of run-to-run variance during
+// development.
+const CONTRAST_LUMINANCE_CEILING = 0.12;
 
 for (const id of ACTS) {
   test(`text in act ${id} clears AA contrast behind its statement`, async ({

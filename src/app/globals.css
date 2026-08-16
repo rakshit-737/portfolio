@@ -172,7 +172,7 @@ section[id] {
   /* A Wright of Derby is already mostly black. 0.18 erased it; this keeps
      the unlit field clearly subordinate while leaving the painting legible
      as a painting. */
-  filter: brightness(0.42) saturate(0.85);
+  filter: brightness(0.32) saturate(0.85);
 }
 [data-lamp="on"] .plate-lit {
   /* A pool, not a spot — the lit region has to be big enough to carry a
@@ -212,11 +212,18 @@ section[id] {
 }
 @media (max-width: 48rem) {
   .scrim::before {
+    /* Fixed viewport-relative stops, not percentages of the box: a few
+       acts (about, research) run 1.5-1.8x taller than one mobile screen,
+       and a percentage-based gradient stretches its "solid" and "open"
+       bands across the *whole* box — over-protecting the long tail below
+       the fold and under-protecting whatever's actually on screen. vh
+       units keep the band roughly one-viewport-scale regardless of how
+       tall the act's content grows. */
     background: linear-gradient(
       to top,
-      var(--color-ground) 0%,
-      color-mix(in srgb, var(--color-ground) 90%, transparent) 42%,
-      transparent 78%
+      var(--color-ground) 0,
+      color-mix(in srgb, var(--color-ground) 90%, transparent) 34vh,
+      transparent 66vh
     );
   }
 }

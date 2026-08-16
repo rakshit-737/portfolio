@@ -52,18 +52,28 @@ export default function Plate({
       }
       aria-hidden={false}
     >
-      {/* The lit layer carries the alt text: it is the one that renders
-          in every state — no JS, reduced motion, or masked-and-lit — while
-          the dark layer only exists once `data-lamp="on"` is set. */}
-      <picture>
-        <source srcSet={srcset(id, "avif")} sizes="100vw" type="image/avif" />
-        <source srcSet={srcset(id, "webp")} sizes="100vw" type="image/webp" />
-        <img className="plate-lit" src={fallback} alt={plate.alt} {...common} />
-      </picture>
+      {/* Paint order matters as much as the alt split: both layers are
+          `position: absolute; inset: 0` with no `z-index`, so whichever
+          element is later in the DOM paints on top. `.plate-dark` MUST
+          come first and `.plate-lit` MUST come second — the masked lit
+          layer has to sit above the opaque dimmed one, or the lamp's
+          reveal is invisible underneath it (Task 14c's fix round; this
+          order inverted once already when an accessibility fix moved the
+          alt text by swapping the two elements' classNames instead of
+          just their alt/aria-hidden attributes — don't repeat that).
+
+          The lit layer carries the alt text: it is the one that renders
+          in every state — no JS, reduced motion, or masked-and-lit —
+          while the dark layer only exists once `data-lamp="on"` is set. */}
       <picture>
         <source srcSet={srcset(id, "avif")} sizes="100vw" type="image/avif" />
         <source srcSet={srcset(id, "webp")} sizes="100vw" type="image/webp" />
         <img className="plate-dark" src={fallback} alt="" aria-hidden="true" {...common} />
+      </picture>
+      <picture>
+        <source srcSet={srcset(id, "avif")} sizes="100vw" type="image/avif" />
+        <source srcSet={srcset(id, "webp")} sizes="100vw" type="image/webp" />
+        <img className="plate-lit" src={fallback} alt={plate.alt} {...common} />
       </picture>
     </div>
   );
