@@ -49,3 +49,48 @@ test("the display face is loaded and applied to statements", async ({
     .evaluate((el) => getComputedStyle(el).fontFamily);
   expect(family).toMatch(/Newsreader/i);
 });
+
+test("the lamp turns on and moves with scroll", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+
+  const act = page.locator("[data-act]").first();
+  const before = await act.evaluate((el) =>
+    getComputedStyle(el).getPropertyValue("--lamp-y"),
+  );
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 0.6));
+  await page.waitForTimeout(120);
+  const after = await act.evaluate((el) =>
+    getComputedStyle(el).getPropertyValue("--lamp-y"),
+  );
+  expect(after).not.toBe(before);
+});
+
+test("reduced motion leaves the lamp off and the plates lit", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.locator("html")).not.toHaveAttribute("data-lamp", "on");
+  const opacity = await page
+    .locator(".plate-lit")
+    .first()
+    .evaluate((el) => getComputedStyle(el).opacity);
+  expect(Number(opacity)).toBe(1);
+  await ctx.close();
+});
+
+test("with JavaScript disabled the plates are lit and the text is present", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Rakshit Rameshbabu" }),
+  ).toBeVisible();
+  await expect(page.locator(".plate-lit").first()).toBeVisible();
+  await expect(page.locator(".statement").first()).toBeVisible();
+  await ctx.close();
+});

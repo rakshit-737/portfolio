@@ -112,7 +112,6 @@ section[id] {
 
 /* ── Materials ──────────────────────────────────────────────────────── */
 
-/* Bar fields and lattices inherit the current ground automatically. */
 .mark {
   fill: var(--color-signal);
 }
@@ -120,8 +119,9 @@ section[id] {
   stroke: var(--color-signal);
 }
 
-/* Fades a bar field out where display type sits over it, so the type
-   never has to fight the ground for contrast. */
+/* Retained from the Datamatics Field design: BarField.tsx, page.tsx and
+   projects/[id]/page.tsx still render these masks. Remove once those
+   components are rebuilt for Lamplight. */
 .field-mask {
   -webkit-mask-image: linear-gradient(
     to right,
@@ -140,8 +140,6 @@ section[id] {
     rgb(0 0 0 / 0.22) 100%
   );
 }
-/* Case files run their content column much wider than the index hero does,
-   so the field has to stay clear of it for longer. */
 .field-mask-wide {
   -webkit-mask-image: linear-gradient(
     to right,
@@ -165,7 +163,7 @@ section[id] {
   mask-image: linear-gradient(to right, transparent, #000 68%);
 }
 
-/* Barcode end-caps on controls (from the world's button grammar). */
+/* Barcode end-caps on controls. */
 .cap {
   background-image: repeating-linear-gradient(
     to right,
@@ -178,10 +176,119 @@ section[id] {
   );
 }
 
+/* ── The lamp ────────────────────────────────────────────────────────
+   Default state — no JS, or reduced motion — is FULLY LIT. The mask is
+   only introduced once <html data-lamp="on"> is set by the client. A
+   page that never runs JavaScript is a painted page, not a black one. */
+
+.plate {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--color-ground);
+  background-size: cover;
+  background-position: center;
+}
+.plate img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Scroll pushes the frame in, very slightly. Free — no layout. */
+  transform: scale(calc(1.04 + var(--p, 0) * 0.06));
+  transform-origin: center;
+}
+.plate-dark {
+  display: none;
+}
+
+[data-lamp="on"] .plate-dark {
+  display: block;
+  filter: brightness(0.18) saturate(0.7);
+}
+[data-lamp="on"] .plate-lit {
+  --lamp-r: calc(18vmax + min(var(--p, 0), 1 - var(--p, 0)) * 32vmax);
+  -webkit-mask-image: radial-gradient(
+    circle var(--lamp-r) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+    #000 0%,
+    #000 38%,
+    transparent 78%
+  );
+  mask-image: radial-gradient(
+    circle var(--lamp-r) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+    #000 0%,
+    #000 38%,
+    transparent 78%
+  );
+}
+
+/* Text never sits on painted midtone. */
+.scrim {
+  position: relative;
+  z-index: 1;
+}
+.scrim::before {
+  content: "";
+  position: absolute;
+  inset: -8vh -6vw;
+  z-index: -1;
+  background: linear-gradient(
+    to right,
+    var(--color-ground) 0%,
+    var(--color-ground) 42%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+@media (max-width: 48rem) {
+  .scrim::before {
+    background: linear-gradient(
+      to top,
+      var(--color-ground) 0%,
+      var(--color-ground) 62%,
+      transparent 100%
+    );
+  }
+}
+
+/* A number ignites when the light reaches it. The ember copy is a
+   pseudo-element, so assistive technology reads the bone original once
+   and axe never sees a second colour on the same text node. */
+.ignite {
+  position: relative;
+  color: var(--color-signal);
+}
+.ignite::after {
+  content: attr(data-value);
+  position: absolute;
+  inset: 0;
+  color: var(--color-ember);
+  pointer-events: none;
+}
+[data-lamp="on"] .ignite::after {
+  -webkit-mask-image: radial-gradient(
+    circle var(--lamp-r, 26vmax) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+    #000 0%,
+    #000 30%,
+    transparent 62%
+  );
+  mask-image: radial-gradient(
+    circle var(--lamp-r, 26vmax) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+    #000 0%,
+    #000 30%,
+    transparent 62%
+  );
+}
+
 /* ── The authored moment ────────────────────────────────────────────────
    One event, once, on load: the hero field resolves left to right and
    the sine draws behind the name. Nothing else on this site animates on
-   entry — no per-section reveal, no scattered hover motion. */
+   entry — no per-section reveal, no scattered hover motion.
+
+   Retained from the Datamatics Field design: SineLattice.tsx, BarField.tsx,
+   page.tsx and projects/[id]/page.tsx still render these classes. Remove
+   once those components are rebuilt for Lamplight. */
 
 @keyframes field-resolve {
   from {
@@ -241,8 +348,7 @@ section[id] {
   animation-delay: var(--d, 0s);
 }
 
-/* Benchmark bars measure a real quantity, so they grow from zero once,
-   in place, as part of the same single moment when scrolled to. */
+/* Benchmark bars measure a real quantity, so they grow from zero once. */
 .bar-grow {
   transform-origin: left center;
   transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
@@ -257,25 +363,38 @@ section[id] {
 @media print {
   :root {
     --color-ground: #ffffff;
-    --color-signal: #000000;
-    --color-rule: rgb(0 0 0 / 0.4);
-    --color-rule-soft: rgb(0 0 0 / 0.18);
+    --color-signal: #08070a;
+    --color-ember: #08070a;
+    --color-rule: rgb(8 7 10 / 0.4);
+    --color-rule-soft: rgb(8 7 10 / 0.18);
   }
   html,
   body {
     background: #fff;
-    color: #000;
+    color: #08070a;
   }
   .negative {
     --color-ground: #ffffff;
-    --color-signal: #000000;
+    --color-signal: #08070a;
   }
-  /* Full-bleed black fields cost a cartridge and prove nothing on paper. */
+  /* Full-bleed paintings cost a cartridge and prove nothing on paper. */
+  .plate,
+  .scrim::before,
   .print-drop,
   header[data-chrome],
   .print-hidden {
     display: none !important;
   }
+  .ignite::after {
+    display: none;
+  }
+  [data-act] {
+    position: static !important;
+    height: auto !important;
+    min-height: 0 !important;
+    break-inside: avoid-page;
+  }
+  /* Retained: SineLattice.tsx and BarField.tsx still render these classes. */
   .field-resolve,
   .sine-draw,
   .node-in,
@@ -302,6 +421,10 @@ section[id] {
   html {
     scroll-behavior: auto;
   }
+  .plate img {
+    transform: none;
+  }
+  /* Retained: SineLattice.tsx and BarField.tsx still render these classes. */
   .field-resolve,
   .sine-draw,
   .node-in,
