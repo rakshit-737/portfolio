@@ -2721,6 +2721,193 @@ git commit -m "feat: scroll-scrubbed motion on the plates, eased and dissolving"
 
 ---
 
+### Task 14c: Make the plates read as paintings
+
+**Added 2026-08-17.** Screenshots of the built site at four viewports
+(1440×900, 390×844, 844×390, 834×1112) show the same defect in all eight acts:
+**the paintings are effectively invisible.** Each act renders as a black page
+with a faint smudge. The typography and the chart are excellent; the ground the
+whole design rests on is not delivering.
+
+Three causes compound:
+
+1. `.plate-dark` sits at `filter: brightness(0.18)` — far below what a dark
+   oil painting can survive. Wright's blacks are already near-black; multiplying
+   them by 0.18 leaves nothing.
+2. The lamp reveals a relatively small circle, and its rest position comes from
+   each plate's `lamp` descriptor — which points at the painting's own light
+   source, usually near centre.
+3. The `.scrim` runs `ground 0% → ground 42% → transparent 100%`, so the left
+   42% of every act is solid ground. The lamp's rest position sits under it.
+   The light is landing behind the blackout.
+
+This task also carries the owner's request for **text that fades in on scroll**.
+
+**Files:**
+- Modify: `src/app/globals.css`, `src/lib/art.ts` (per-plate framing), `src/components/Lamp.tsx`, `src/components/Act.tsx`
+- Test: `tests/lamplight.spec.ts`
+
+- [ ] **Step 1: Capture the evidence**
+
+Before changing anything, reproduce the screenshots so the before/after is real
+rather than asserted. Build, serve `./out`, and capture each act at
+1440×900 and 390×844. Keep them; the report references them.
+
+- [ ] **Step 2: Let the paintings breathe**
+
+In `globals.css`:
+
+```css
+[data-lamp="on"] .plate-dark {
+  display: block;
+  /* A Wright of Derby is already mostly black. 0.18 erased it; this keeps
+     the unlit field clearly subordinate while leaving the painting legible
+     as a painting. */
+  filter: brightness(0.42) saturate(0.85);
+}
+```
+
+and widen the reveal so the lit region is a pool rather than a spot:
+
+```css
+[data-lamp="on"] .plate-lit {
+  --lamp-r: calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax);
+  /* …gradient stops become #000 0%, #000 46%, transparent 88% */
+}
+```
+
+- [ ] **Step 3: Pull the scrim back and move the light out from under it**
+
+The scrim must protect the text and nothing more. In `globals.css`:
+
+```css
+.scrim::before {
+  background: linear-gradient(
+    to right,
+    var(--color-ground) 0%,
+    color-mix(in srgb, var(--color-ground) 92%, transparent) 30%,
+    transparent 62%
+  );
+}
+```
+
+and on narrow screens:
+
+```css
+@media (max-width: 48rem) {
+  .scrim::before {
+    background: linear-gradient(
+      to top,
+      var(--color-ground) 0%,
+      color-mix(in srgb, var(--color-ground) 90%, transparent) 42%,
+      transparent 78%
+    );
+  }
+}
+```
+
+**Re-verify contrast after this change.** The existing per-act contrast test
+must still pass; if a scrim this light drops any text below AA, tighten the
+scrim rather than dimming the painting, and say so in the report.
+
+- [ ] **Step 4: Frame each painting against its text**
+
+This is the "orientation" fix. Each plate's subject must sit in the **open**
+half of the frame, not behind the text column. Add to each entry in
+`src/lib/art.ts`:
+
+```ts
+  /** Where the painting sits inside the act box, per axis, as a CSS
+   *  object-position. Chosen so the subject lands clear of the text
+   *  column — right-of-centre on wide screens, upper half on narrow. */
+  framing: { wide: string; narrow: string };
+```
+
+For example `airpump` takes `{ wide: "62% 50%", narrow: "50% 38%" }` so the
+glass globe and the lit faces clear the copy. Set all eight by eye against the
+Step 1 screenshots — this is a judgement call per painting, and the report must
+show the before/after for each.
+
+Consume it in `Plate.tsx` via a CSS custom property on the `.plate` wrapper,
+with the narrow value applied under the same `48rem` breakpoint the scrim uses.
+
+- [ ] **Step 5: Move the lamp's rest position out of the text column**
+
+In `Lamp.tsx`, bias the resting `x` toward the open half rather than using the
+plate's own `lamp.x` unmodified:
+
+```ts
+        // The painting's light source is where the lamp *wants* to sit, but
+        // the text column owns the left of the frame. Push the rest position
+        // into the open half so the reveal lands where it can be seen.
+        const restX = Math.max(0.52, Number(act.dataset.lampX ?? 0.5));
+```
+
+On narrow screens the text sits at the bottom, so bias `y` upward instead —
+gate this on a `matchMedia("(max-width: 48rem)")` check captured once on mount.
+
+- [ ] **Step 6: Text that resolves on scroll**
+
+The owner asked for the copy to fade in as it arrives. One authored beat per
+act, not a carnival: the eyebrow, statement, body and provenance resolve in
+sequence, once, when the act first enters view — never re-firing on scroll back.
+
+`Act.tsx` already has an `IntersectionObserver` gate via `Lamp`. Add a
+`data-seen` attribute set once when an act first intersects, then in CSS:
+
+```css
+/* One beat per act, on first arrival. Never replayed — a page that
+   re-animates every time you scroll past is a page you cannot read. */
+[data-act] .scrim > * {
+  opacity: 0;
+  transform: translateY(0.6rem);
+}
+[data-act][data-seen] .scrim > * {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-act][data-seen] .scrim > :nth-child(2) { transition-delay: 0.06s; }
+[data-act][data-seen] .scrim > :nth-child(3) { transition-delay: 0.12s; }
+[data-act][data-seen] .scrim > :nth-child(4) { transition-delay: 0.18s; }
+[data-act][data-seen] .scrim > :nth-child(5) { transition-delay: 0.24s; }
+```
+
+**The no-JS and reduced-motion states must show the text.** Since the hidden
+state is the default, gate the whole block on `[data-lamp="on"]` exactly as the
+mask is gated — no lamp, no hiding. Add a test asserting that with JavaScript
+disabled every act's statement is visible, and another under
+`reducedMotion: "reduce"`.
+
+Set `data-seen` in `Lamp.tsx`'s existing observer callback — do not add a
+second observer.
+
+- [ ] **Step 7: Re-shoot and compare**
+
+Recapture the Step 1 viewports and put before/after pairs in the report. The
+bar to clear is plain: **a reader should be able to tell what each painting
+depicts.** If they still cannot, raise `brightness` further and say what you
+landed on.
+
+- [ ] **Step 8: Run everything**
+
+```bash
+npm run lint && npm run typecheck && npm run build && npm run budget && npm run check:art && npm test
+```
+
+Expected: all green, axe zero violations, contrast test still passing.
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add -A
+git commit -m "feat: let the paintings read, and resolve the copy on arrival"
+```
+
+---
+
 ### Task 15: Documentation and the finish
 
 **Files:**
