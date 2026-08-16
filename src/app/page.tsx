@@ -3,7 +3,6 @@ import { GithubIcon, LinkedinIcon } from "@/components/icons";
 import Act from "@/components/Act";
 import BarField from "@/components/BarField";
 import BenchmarkChart from "@/components/BenchmarkChart";
-import BitMatrix from "@/components/BitMatrix";
 import { BracketLink } from "@/components/Bracket";
 import CommandPalette from "@/components/CommandPalette";
 import CopyEmailButton from "@/components/CopyEmailButton";
@@ -213,111 +212,68 @@ export default async function Home() {
           </div>
         </Act>
 
-        {/* ── Featured work ─────────────────────────────────────────── */}
-        <section
-          id="projects"
-          aria-labelledby="projects-title"
-          className="py-16 sm:py-24"
-        >
-          <div className={SHELL}>
-            <SectionHead
-              id="projects"
-              title="Featured work"
-              meta={`${featuredProjects.length} records`}
-            />
+        {featuredProjects.map((project, i) => {
+          const act = acts[project.id as "warden" | "scheduler" | "plantpal"];
+          const live = featuredLive[i];
+          return (
+            <Act
+              key={project.id}
+              id={project.id}
+              label={act.label}
+              lamp={plates[act.plate].lamp}
+              className="flex items-center"
+            >
+              <Plate id={act.plate} />
 
-            <div>
-              {featuredProjects.map((project, i) => {
-                const live = featuredLive[i];
-                return (
-                  <article
-                    key={project.id}
-                    className="grid gap-x-12 gap-y-8 border-b border-rule py-12 lg:grid-cols-[13rem_minmax(0,1fr)] sm:py-16"
-                  >
-                    {/* Signature block: the repo's head commit as bits. */}
-                    <div className="flex flex-row items-start gap-6 lg:flex-col lg:gap-7">
-                      <BitMatrix
-                        source={live?.sha || project.id}
-                        cols={8}
-                        rows={6}
-                        cell={8}
-                        className="print-drop shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <p className="label">{project.timeframe}</p>
-                        <ul className="mt-3 space-y-1 font-mono text-[0.6875rem] leading-relaxed">
-                          {project.tech.map((t) => (
-                            <li key={t}>{t}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+              <div className={`${SHELL} scrim relative z-10 py-24`}>
+                <p className="label">{project.timeframe}</p>
+                <Statement id={`${project.id}-title`}>{act.statement}</Statement>
 
-                    <div className="min-w-0">
-                      <h3 className="font-mono text-xl leading-tight font-semibold tracking-[-0.03em] sm:text-2xl">
-                        {project.name}
-                      </h3>
-                      <p className="prose-field mt-4">{project.oneLiner}</p>
+                <p className="prose-field mt-8">{project.oneLiner}</p>
 
-                      {project.headlineNumbers && (
-                        <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-5 border-y border-rule py-5">
-                          {project.headlineNumbers.map((n) => (
-                            <div key={n.label}>
-                              <dd className="font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl">
-                                {n.value}
-                              </dd>
-                              <dt className="label mt-2">
-                                {n.label}
-                              </dt>
-                            </div>
-                          ))}
-                        </dl>
-                      )}
-
-                      <ul className="mt-8 space-y-4">
-                        {project.bullets.map((b) => (
-                          <li
-                            key={b.slice(0, 40)}
-                            className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-x-3"
-                          >
-                            <span
-                              aria-hidden="true"
-                              className="mt-2 block h-px w-3 bg-signal"
-                            />
-                            <p className="prose-field text-[0.9375rem]">
-                              <Metric text={b} />
-                            </p>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Provenance
-                        className="mt-8"
-                        segments={[...project.evidence, ...liveSegments(live)]}
-                      />
-
-                      <div className="print-hidden mt-8 flex flex-wrap gap-3">
-                        <BracketLink
-                          href={withBase(`/projects/${project.id}/`)}
-                          weight="filled"
-                          small
+                {project.headlineNumbers && (
+                  <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-6 border-y border-rule py-6">
+                    {project.headlineNumbers.map((n) => (
+                      <div key={n.label}>
+                        <dd
+                          className="ignite font-mono text-3xl leading-none font-semibold tracking-tight tabular-nums sm:text-4xl"
+                          data-value={n.value}
                         >
-                          Read the case file
-                        </BracketLink>
-                        {project.repoUrl && (
-                          <BracketLink href={project.repoUrl} small external>
-                            Repository
-                            <ArrowUpRight size={12} aria-hidden="true" />
-                          </BracketLink>
-                        )}
+                          {n.value}
+                        </dd>
+                        <dt className="label mt-2">{n.label}</dt>
                       </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+                    ))}
+                  </dl>
+                )}
+
+                <Provenance
+                  className="mt-8"
+                  segments={withCredit(act.plate, [
+                    ...project.evidence,
+                    ...liveSegments(live),
+                  ])}
+                />
+
+                <div className="print-hidden mt-8 flex flex-wrap gap-3">
+                  <BracketLink
+                    href={withBase(`/projects/${project.id}/`)}
+                    weight="filled"
+                    small
+                  >
+                    Read the case file
+                  </BracketLink>
+                  {project.repoUrl && (
+                    <BracketLink href={project.repoUrl} small external>
+                      Repository
+                      <ArrowUpRight size={12} aria-hidden="true" />
+                    </BracketLink>
+                  )}
+                </div>
+              </div>
+            </Act>
+          );
+        })}
 
         {/* ── Research: the negative result, inverted out of the page ── */}
         <section
