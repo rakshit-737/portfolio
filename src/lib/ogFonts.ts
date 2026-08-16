@@ -28,19 +28,50 @@ export async function loadGoogleFont(
   }
 }
 
-/** Satori font entries for the evidence-file OG cards (null-safe). */
+export const OG_MONO = "Chivo Mono";
+
+/** Satori font entries for the field cards (null-safe). */
 export async function ogFonts() {
-  const [mono, monoSemi, display] = await Promise.all([
-    loadGoogleFont("IBM Plex Mono", 400),
-    loadGoogleFont("IBM Plex Mono", 600),
-    loadGoogleFont("Archivo", 700),
+  const [regular, semi] = await Promise.all([
+    loadGoogleFont(OG_MONO, 400),
+    loadGoogleFont(OG_MONO, 600),
   ]);
   const fonts = [];
-  if (mono)
-    fonts.push({ name: "IBM Plex Mono", data: mono, weight: 400 as const });
-  if (monoSemi)
-    fonts.push({ name: "IBM Plex Mono", data: monoSemi, weight: 600 as const });
-  if (display)
-    fonts.push({ name: "Archivo", data: display, weight: 700 as const });
+  if (regular)
+    fonts.push({ name: OG_MONO, data: regular, weight: 400 as const });
+  if (semi) fonts.push({ name: OG_MONO, data: semi, weight: 600 as const });
   return fonts;
+}
+
+/** The font family string to use, given what actually loaded. */
+export function ogFamily(fonts: { name: string }[]) {
+  return fonts.length ? OG_MONO : "monospace";
+}
+
+const SUPERSCRIPT: Record<string, string> = {
+  "⁰": "0",
+  "¹": "1",
+  "²": "2",
+  "³": "3",
+  "⁴": "4",
+  "⁵": "5",
+  "⁶": "6",
+  "⁷": "7",
+  "⁸": "8",
+  "⁹": "9",
+  "⁻": "-",
+  "⁺": "+",
+};
+
+/**
+ * Superscripts survive on the page (the browser has fonts for them) but not
+ * in an OG card: Satori has no glyph for U+207B and renders a tofu box, so
+ * `2.6×10⁻¹⁶` shipped as `2.6×10□¹⁶` on every share. Runs of superscript
+ * characters become an unambiguous caret exponent instead.
+ */
+export function ogText(s: string): string {
+  return s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]+/g, (run) => {
+    const flat = [...run].map((ch) => SUPERSCRIPT[ch]).join("");
+    return `^${flat}`;
+  });
 }

@@ -1,26 +1,42 @@
 import type { Metadata } from "next";
-import { Archivo, IBM_Plex_Mono, Public_Sans } from "next/font/google";
+import { Chivo, Chivo_Mono } from "next/font/google";
 import { site } from "@/content";
 import "./globals.css";
 
-const archivo = Archivo({
-  variable: "--font-archivo",
+const chivoMono = Chivo_Mono({
+  variable: "--font-chivo-mono",
   subsets: ["latin"],
   display: "swap",
 });
 
-const publicSans = Public_Sans({
-  variable: "--font-public-sans",
+const chivo = Chivo({
+  variable: "--font-chivo",
   subsets: ["latin"],
   display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
+/** The direction contract. Emitted into the built HTML so it can be
+ *  audited against the render, not just against intent. */
+const CONTRACT = `
+  THESIS: an engineer's record rendered as a data field — the numbers are the
+  page, at the scale of the thing they measure. Refuses the dark-terminal
+  developer portfolio and its opposite, the airy white résumé page.
+  OWN-WORLD: absolute #000/#fff, no third value and no grey; hierarchy by scale,
+  tracking and density. Hairline bar fields, sine lattices, binary matrices cut
+  from real commit SHAs, bracketed controls with barcode end-caps, and inversion
+  used as a structural beat rather than a filter. Monospace at every size, with a
+  single stated exception: reading passages take the sans sibling, because a case
+  study is read rather than scanned.
+  STORY: this person measures things, publishes what the measurements say —
+  including when they say no — and every claim here carries its proof.
+  FIRST VIEWPORT: full-bleed bar field, sine drawn over it, name at display
+  scale on the left, real measurements stacked in rails on both flanks, résumé
+  as the one filled control.
+  FORM: Datamatics Field — user-pinned challenger over assigned grounded
+  candidate 4 (Admiralty Chart); seed fda32a15.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the
+  finish review, the verdict, and DESIGN.md
+`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -60,9 +76,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${publicSans.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${chivoMono.variable} ${chivo.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-bg text-ink">{children}</body>
+      <body className="min-h-full bg-field text-signal">
+        <div hidden dangerouslySetInnerHTML={{ __html: `<!--${CONTRACT}-->` }} />
+        {children}
+      </body>
     </html>
   );
 }

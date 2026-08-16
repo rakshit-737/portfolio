@@ -1,93 +1,124 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import { benchmarkChart } from "@/content";
 
 /**
- * Horizontal bar list of the scheduler study's per-policy trace results.
- * Server-rendered HTML — no JS. Single-series magnitude chart; the two
- * amber rows are the finding (ML result == ML-free control). Bars grow on
- * first reveal (CSS keyed off the ancestor Reveal's data-reveal state;
- * reduced motion renders instantly). A visually-hidden table carries the
- * data for screen readers; the visual list is aria-hidden.
+ * The finding, drawn: mean wait by scheduling policy on the SDSC SP2 trace.
+ * The two marked rows are the result — the XGBoost scheduler and its own
+ * ML-free control land on the same number — so they are the only rows
+ * pulled out of the ground by inversion.
+ *
+ * Bars grow once, on approach, as part of the page's single motion budget.
  */
 export default function BenchmarkChart() {
+  const ref = useRef<HTMLElement>(null);
+
+  // The grown flag is a DOM attribute rather than React state: this is a
+  // one-shot presentational transition, so it never needs to re-render.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const grow = () => {
+      el.dataset.grown = "true";
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      grow();
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          grow();
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -12% 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const max = Math.max(...benchmarkChart.policies.map((p) => p.wait));
+  const ticks = [0, 0.25, 0.5, 0.75, 1];
 
   return (
-    <figure className="mt-10 border border-hairline bg-surface px-5 py-5 sm:px-6">
-      <figcaption>
-        <p className="font-mono text-xs text-ink">{benchmarkChart.title}</p>
-        <p className="mt-0.5 font-mono text-[11px] text-muted">
-          {benchmarkChart.unit} · {benchmarkChart.source}
+    <figure ref={ref} data-grown="false" className="mt-12">
+      <figcaption className="max-w-2xl">
+        <h3 className="font-mono text-lg leading-tight font-semibold tracking-tight sm:text-xl">
+          {benchmarkChart.title}
+        </h3>
+        <p className="label mt-3 normal-case">
+          {benchmarkChart.unit} · source: {benchmarkChart.source}
         </p>
       </figcaption>
 
-      {/* Screen-reader data table — the chart itself is presentation. */}
-      <table className="sr-only">
-        <caption>{benchmarkChart.title}</caption>
-        <thead>
+      {/* Axis */}
+      <div
+        aria-hidden="true"
+        className="relative mt-8 hidden h-4 border-b border-rule sm:ml-[15rem] sm:block"
+      >
+        {ticks.map((t) => (
+          <span
+            key={t}
+            className="label absolute bottom-1 -translate-x-1/2"
+            style={{ left: `${t * 100}%` }}
+          >
+            {Math.round(t * max)}
+          </span>
+        ))}
+      </div>
+
+      <table className="mt-2 w-full border-collapse">
+        <caption className="sr-only">
+          {benchmarkChart.title} — {benchmarkChart.unit}
+        </caption>
+        <thead className="sr-only">
           <tr>
             <th scope="col">Policy</th>
-            <th scope="col">Mean wait ({benchmarkChart.unit})</th>
+            <th scope="col">Mean wait</th>
           </tr>
         </thead>
         <tbody>
-          {benchmarkChart.policies.map((p) => (
-            <tr key={p.name}>
-              <th scope="row">
+          {benchmarkChart.policies.map((p, i) => (
+            <tr
+              key={p.name}
+              className={
+                p.highlight
+                  ? "bg-signal text-field"
+                  : "border-b border-rule-soft"
+              }
+            >
+              <th
+                scope="row"
+                className="w-full py-2.5 pr-4 pl-2 text-left font-mono text-[0.8125rem] leading-tight font-normal sm:w-[15rem] sm:min-w-[15rem]"
+              >
                 {p.name}
-                {p.highlight ? " (tie — the finding)" : ""}
               </th>
-              <td>{p.wait.toFixed(1)}</td>
+              <td className="py-2.5 pr-2 align-middle sm:w-full">
+                <span className="flex items-center gap-3">
+                  <span className="relative block h-2.5 grow bg-current/12">
+                    <span
+                      className="bar-grow absolute inset-y-0 left-0 block bg-current"
+                      style={
+                        {
+                          width: `${(p.wait / max) * 100}%`,
+                          "--i": i,
+                        } as React.CSSProperties
+                      }
+                    />
+                  </span>
+                  <span className="w-14 shrink-0 text-right font-mono text-sm tabular-nums">
+                    {p.wait.toFixed(1)}
+                  </span>
+                </span>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <ul aria-hidden="true" className="mt-4 space-y-1.5">
-        {benchmarkChart.policies.map((p, i) => {
-          const highlight = p.highlight;
-          return (
-            <li
-              key={p.name}
-              className={`-mx-2 grid grid-cols-[minmax(0,8.5rem)_1fr_auto] items-center gap-x-3 px-2 py-px sm:grid-cols-[minmax(0,14rem)_1fr_auto] ${
-                highlight ? "bg-amber/5" : ""
-              }`}
-              title={`${p.name}: ${p.wait}`}
-            >
-              <span
-                className={`truncate font-mono text-[11px] ${
-                  highlight ? "font-medium text-ink" : "text-muted"
-                }`}
-              >
-                {p.name}
-              </span>
-              <span
-                className={`bench-bar h-2.5 ${highlight ? "bg-amber" : "bg-bar"}`}
-                style={
-                  {
-                    width: `${(p.wait / max) * 100}%`,
-                    minWidth: "2px",
-                    "--bar-i": i,
-                  } as React.CSSProperties
-                }
-              />
-              <span
-                className={`font-mono text-[11px] tabular-nums ${
-                  highlight ? "font-semibold text-amber" : "text-muted"
-                }`}
-              >
-                {p.wait.toFixed(1)}
-                {highlight && (
-                  <span className="ml-1.5 border border-amber/40 px-1 py-px text-[9px] text-amber">
-                    tie
-                  </span>
-                )}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-
-      <p className="mt-4 max-w-2xl font-mono text-[11px] leading-relaxed text-muted">
+      <p className="prose-field mt-6 text-sm">
         {benchmarkChart.note}
       </p>
     </figure>

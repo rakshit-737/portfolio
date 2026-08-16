@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { caseStudies, featuredProjects } from "@/content";
-import { ogFonts } from "@/lib/ogFonts";
+import { OgBarField } from "@/lib/ogField";
+import { ogFamily, ogFonts, ogText } from "@/lib/ogFonts";
 
 export const dynamic = "force-static";
 
@@ -10,7 +11,7 @@ export function generateStaticParams() {
     .map((p) => ({ id: p.id }));
 }
 
-/** Per-case-file OG card: evidence strip, project name, one number. */
+/** Per-case-file OG card: the project's own field, name, and numbers. */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -20,18 +21,13 @@ export async function GET(
   if (!project) return new Response("not found", { status: 404 });
 
   const fonts = await ogFonts();
-  const mono = fonts.some((f) => f.name === "IBM Plex Mono")
-    ? "IBM Plex Mono"
-    : "monospace";
-  const display = fonts.some((f) => f.name === "Archivo")
-    ? "Archivo"
-    : "sans-serif";
-  const stat = project.headlineNumbers?.[0];
+  const mono = ogFamily(fonts);
   const strip = project.evidence
     .filter((s) => !s.href)
     .map((s) => s.label)
     .slice(0, 3)
-    .join(" · ");
+    .join("  ·  ");
+  const numbers = project.headlineNumbers ?? [];
 
   return new ImageResponse(
     (
@@ -42,24 +38,41 @@ export async function GET(
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: 72,
-          backgroundColor: "#101418",
-          color: "#E8EAED",
+          padding: 64,
+          backgroundColor: "#000",
+          color: "#fff",
+          fontFamily: mono,
+          position: "relative",
         }}
       >
+        <OgBarField
+          seed={`og-${id}`}
+          width={1200}
+          height={630}
+          density={1.1}
+          opacity={0.3}
+          style={{ position: "absolute", left: 0, top: 0 }}
+        />
+
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 14,
-            fontFamily: mono,
-            fontSize: 24,
-            color: "#98A2AD",
-            borderBottom: "1px solid rgba(152,162,173,0.25)",
-            paddingBottom: 28,
+            gap: 16,
+            fontSize: 22,
+            letterSpacing: 3,
+            textTransform: "uppercase",
           }}
         >
-          <span style={{ color: "#E0A83C" }}>case file:</span>
+          <span
+            style={{
+              backgroundColor: "#fff",
+              color: "#000",
+              padding: "4px 10px",
+            }}
+          >
+            case file
+          </span>
           <span>{strip}</span>
         </div>
 
@@ -67,52 +80,61 @@ export async function GET(
           <div
             style={{
               display: "flex",
-              fontFamily: display,
-              fontSize: 64,
-              fontWeight: 700,
-              letterSpacing: -1.5,
-              lineHeight: 1.1,
+              fontSize: 68,
+              fontWeight: 600,
+              letterSpacing: -2.5,
+              lineHeight: 1.05,
             }}
           >
-            {project.name}
+            {ogText(project.name)}
           </div>
           <div
             style={{
               display: "flex",
-              marginTop: 20,
-              fontSize: 28,
-              color: "#98A2AD",
+              marginTop: 22,
+              fontSize: 26,
               lineHeight: 1.4,
             }}
           >
-            {project.oneLiner}
+            {ogText(project.oneLiner)}
           </div>
         </div>
 
         <div
           style={{
             display: "flex",
-            alignItems: "baseline",
-            gap: 16,
-            fontFamily: mono,
-            borderTop: "1px solid rgba(152,162,173,0.25)",
-            paddingTop: 28,
+            alignItems: "flex-end",
+            gap: 56,
+            borderTop: "1px solid rgba(255,255,255,0.35)",
+            paddingTop: 26,
           }}
         >
-          {stat ? (
-            <>
-              <span
-                style={{ fontSize: 44, fontWeight: 600, color: "#E0A83C" }}
+          {numbers.length ? (
+            numbers.map((n) => (
+              <div
+                key={ogText(n.label)}
+                style={{ display: "flex", flexDirection: "column" }}
               >
-                {stat.value}
-              </span>
-              <span style={{ fontSize: 24, color: "#98A2AD" }}>
-                {stat.label}
-              </span>
-            </>
+                <span
+                  style={{ fontSize: 42, fontWeight: 600, letterSpacing: -1 }}
+                >
+                  {ogText(n.value)}
+                </span>
+                <span
+                  style={{
+                    fontSize: 18,
+                    letterSpacing: 2.5,
+                    textTransform: "uppercase",
+                    marginTop: 8,
+                  }}
+                >
+                  {ogText(n.label)}
+                </span>
+              </div>
+            ))
           ) : (
-            <span style={{ fontSize: 24, color: "#98A2AD" }}>
-              rakshit rameshbabu · software & security engineer
+            <span style={{ fontSize: 22, letterSpacing: 2 }}>
+              rakshit rameshbabu · software &amp; security engineer
             </span>
           )}
         </div>

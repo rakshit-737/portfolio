@@ -1,14 +1,9 @@
 import type { DiagramStep } from "@/content";
 
-const PAD = 4;
-const BOX_H = 50;
-const GAP = 26;
-const CHAR_W = 6.5; // approx IBM Plex Mono advance at 11px
-
 /**
- * Inline SVG pipeline diagram in the evidence-file style: hairline boxes,
- * mono labels, one amber verdict node. Server-rendered, no JS. Scrolls
- * horizontally inside its own container on narrow viewports.
+ * A pipeline drawn in the field's grammar: bracketed stages on a hairline,
+ * the verdict stage inverted out of the ground. Horizontal where there is
+ * room, vertical where there is not; the reading order never changes.
  */
 export default function DiagramFlow({
   steps,
@@ -17,99 +12,62 @@ export default function DiagramFlow({
   steps: DiagramStep[];
   title: string;
 }) {
-  const widths = steps.map(
-    (s) =>
-      Math.max(s.label.length, (s.sub?.length ?? 0) * 0.85, 6) * CHAR_W + 18,
-  );
-  const xs: number[] = [];
-  let x = PAD;
-  for (const w of widths) {
-    xs.push(x);
-    x += w + GAP;
-  }
-  const width = x - GAP + PAD;
-  const height = BOX_H + PAD * 2;
-
   return (
-    // Focusable region: the diagram can scroll horizontally on narrow
-    // viewports, so keyboard users must be able to reach it.
-    <div
-      className="overflow-x-auto"
-      role="region"
+    <ol
       aria-label={title}
-      tabIndex={0}
+      className="flex flex-col gap-0 lg:flex-row lg:items-stretch"
     >
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        role="img"
-        aria-label={title}
-        className="h-auto w-full"
-        style={{ minWidth: `${Math.round(width * 0.8)}px` }}
-      >
-        <title>{title}</title>
-        {steps.map((s, i) => {
-          const bx = xs[i];
-          const bw = widths[i];
-          const cx = bx + bw / 2;
-          const stroke = s.accent
-            ? "var(--color-amber)"
-            : "var(--color-hairline)";
-          const labelFill = s.accent ? "var(--color-amber)" : "var(--color-ink)";
-          return (
-            <g key={s.label}>
-              <rect
-                x={bx}
-                y={PAD}
-                width={bw}
-                height={BOX_H}
-                fill="var(--color-surface)"
-                stroke={stroke}
-                strokeWidth="1"
+      {steps.map((step, i) => (
+        <li
+          key={step.label}
+          className="flex items-stretch gap-0 lg:flex-1 lg:flex-col"
+        >
+          {/* Connector into this stage (never before the first). */}
+          {i > 0 && (
+            <span
+              aria-hidden="true"
+              className="flex shrink-0 items-center justify-center lg:hidden"
+              style={{ width: "2.75rem" }}
+            >
+              <span className="h-full w-px bg-rule" />
+            </span>
+          )}
+
+          <div className="flex grow flex-col lg:grow-0">
+            {/* Horizontal rail with the stage node on it. */}
+            <span
+              aria-hidden="true"
+              className="hidden items-center lg:flex"
+              style={{ height: "1.25rem" }}
+            >
+              <span
+                className={`h-px grow ${i === 0 ? "bg-transparent" : "bg-rule"}`}
               />
-              <text
-                x={cx}
-                y={PAD + (s.sub ? 21 : 29)}
-                textAnchor="middle"
-                fontFamily="var(--font-mono)"
-                fontSize="11"
-                fill={labelFill}
-              >
-                {s.label}
-              </text>
-              {s.sub && (
-                <text
-                  x={cx}
-                  y={PAD + 37}
-                  textAnchor="middle"
-                  fontFamily="var(--font-mono)"
-                  fontSize="9"
-                  fill="var(--color-muted)"
-                >
-                  {s.sub}
-                </text>
+              <span className="mx-1.5 block h-1.5 w-1.5 shrink-0 bg-signal" />
+              <span
+                className={`h-px grow ${
+                  i === steps.length - 1 ? "bg-transparent" : "bg-rule"
+                }`}
+              />
+            </span>
+
+            <div
+              className={`flex h-full flex-col justify-center border px-3.5 py-3 lg:mx-1 ${
+                step.accent
+                  ? "border-signal bg-signal text-field"
+                  : "border-rule"
+              }`}
+            >
+              <p className="label">{step.label}</p>
+              {step.sub && (
+                <p className="mt-1.5 font-mono text-[0.6875rem] leading-snug">
+                  {step.sub}
+                </p>
               )}
-              {i < steps.length - 1 && (
-                <g stroke="var(--color-muted)" strokeWidth="1">
-                  <line
-                    x1={bx + bw + 4}
-                    y1={PAD + BOX_H / 2}
-                    x2={bx + bw + GAP - 6}
-                    y2={PAD + BOX_H / 2}
-                  />
-                  <polyline
-                    points={`${bx + bw + GAP - 11},${PAD + BOX_H / 2 - 4} ${
-                      bx + bw + GAP - 6
-                    },${PAD + BOX_H / 2} ${bx + bw + GAP - 11},${
-                      PAD + BOX_H / 2 + 4
-                    }`}
-                    fill="none"
-                  />
-                </g>
-              )}
-            </g>
-          );
-        })}
-      </svg>
-    </div>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
   );
 }

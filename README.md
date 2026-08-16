@@ -71,52 +71,54 @@ GitHub Actions**. The workflow computes `NEXT_PUBLIC_BASE_PATH` and
 
 ## Design notes
 
-Concept: **“the evidence file”** — the site reads like a precise researcher’s
-record. Tokens (defined in `src/app/globals.css` `@theme`):
+Concept: **“the data field”** — an engineer’s record rendered as a data
+field, where the numbers are the page at the scale of the thing they measure.
+`DESIGN.md` holds the full system; tokens live in `src/app/globals.css`
+`@theme`.
 
-- Palette: graphite `#101418` background, surface `#171C22`, text `#E8EAED`,
-  muted `#98A2AD`, **verdict amber** `#E0A83C` (signature element and key
-  numbers only — hero stats, headline numbers, bolded bullet metrics, the
-  chart's tie rows, evidence-table values), **steel** `#7FB4D9`
-  (links/interactive), pass/fail `#4CAF7D`/`#D26B6B` inside metadata chips
-  only and only for verifiable outcomes (tests, CI) — never status labels.
-  `--color-bar #507087` exists solely for presentational chart bars.
-- Type: Archivo (display), Public Sans (body), IBM Plex Mono (all metadata,
-  numbers, labels), loaded with `next/font`.
-- Signature element: the **evidence strip** — a mono provenance line
-  (date · status · stack · repo · tests/CI) heading every project card, echoed
-  by the typed `verified:` line under the hero name (typed once on load;
-  `prefers-reduced-motion` renders it instantly). Strips are augmented at
-  build time with live GitHub data (stars, head sha → commit link, CI
-  conclusion → Actions link) via `src/lib/github.ts`; the footer fetches this
-  repo itself, so the record carries its own verification.
-- Proof above the fold: a mono hero stat strip (CGPA · tests in CI · dispatch
-  instants), every number sourced from `content.ts`.
-- Motion inventory (all with reduced-motion fallbacks): hero page-load
-  reveal, typed provenance line, scroll reveals per section, sliding nav
-  scroll-spy indicator, cursor-tracked hairline glow on cards, benchmark
-  bars growing on first reveal. Nothing else.
-- Case-study pages follow the same grammar: numbered sections (problem →
-  approach + inline SVG pipeline diagram → decisions → evidence table →
-  outcome), evidence strip header, amber reserved for the numbers.
-- Print: theme tokens flip to a light record-on-paper palette; interactive
-  chrome is hidden.
-- Easter egg: `~` opens a read-only "evidence shell" (`help`, `whoami`,
-  `ls projects`, `cat resume.txt`, `open <section>`); all output comes from
-  `content.ts`.
+- Palette: `#000` field, `#fff` signal, and nothing else. **There is no grey.**
+  Hierarchy comes from scale, tracking and density rather than from dimmed
+  text, so every text pair on the site sits at 21:1. Fractional alpha is
+  reserved for rules and bar fields, which are graphics, not language.
+- Inversion is the only emphasis device: `.negative` re-declares the four
+  colour tokens and flips a whole region to white ground. The Research
+  section (the negative result) and the Contact close are inverted; so is the
+  evidence table on every case file. The class is deliberately *not* called
+  `invert` — Tailwind ships an `invert` filter utility that would cancel it.
+- Type: Chivo Mono at every size, with Chivo (sans) used only for reading
+  passages, loaded with `next/font`.
+- Materials: hairline bar fields, a sine lattice, binary matrices, bracketed
+  controls with barcode end-caps. Field geometry is generated deterministically
+  at build time from a seeded PRNG (`src/lib/field.ts`), so the export is
+  byte-stable and nothing ships to the client. A bar field measures nothing;
+  every rendered *number* traces to `content.ts` or to live GitHub data.
+- Provenance: every record carries a mono provenance line (date · status ·
+  stack · repo · tests/CI), augmented at build time with live GitHub data
+  (stars, head sha → commit link, CI conclusion → Actions link) via
+  `src/lib/github.ts`. The footer fetches this repo itself, so the record
+  carries its own verification. A project’s binary matrix is cut from its
+  head commit SHA — change the commit and the pattern changes.
+- Motion: **one authored moment.** On load, the hero field resolves left to
+  right and the sine draws. The only other motion is the benchmark bars
+  growing once when scrolled to. No per-section entrance animations, no hover
+  effects; everything has a `prefers-reduced-motion` fallback.
+- Case files follow the same grammar: the section title sits in a left rail,
+  the record on the right (problem → approach + pipeline diagram → decisions →
+  evidence → outcome), with the evidence table inverted.
+- Print: tokens flip to black-on-white, full-bleed fields are dropped, and
+  link targets are printed after their text.
 
 ### Deviations from the brief
 
-- The 🥇 in the achievements copy is rendered as an amber award icon
-  (lucide) instead of the emoji, to respect the "no emoji noise" design ban
-  while keeping the "First Prize" content intact.
-- The scheduler study stays in **Featured Projects** (it is Featured 2, with
-  its headline-numbers strip on the card); the separate **Research Spotlight**
-  section carries the constructive-takeaway pull quote, so the two sections
-  don't duplicate each other.
-- The original "one reveal in the hero, nothing else" motion rule grew into
-  the inventory above — each addition is deliberate, quiet, and disabled
-  under `prefers-reduced-motion`.
+- The 🥇 in the achievements copy is not rendered — the achievement is stated
+  as a record row, respecting the “no emoji” ban while keeping the “First
+  Prize” content intact.
+- The scheduler study stays in **Featured work**; the separate **Research**
+  section carries the constructive-takeaway pull quote and the benchmark
+  chart, so the two don’t duplicate each other.
+- The `~` evidence shell from the previous design was dropped: a terminal
+  window is the one thing this world cannot contain without becoming the
+  developer-portfolio cliché it exists to refuse. The ⌘K index remains.
 
 ## Discoverability
 

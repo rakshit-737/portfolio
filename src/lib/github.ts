@@ -81,7 +81,7 @@ export function liveSegments(live: RepoLive | null): EvidenceSegment[] {
   const segments: EvidenceSegment[] = [];
   if (live.stars > 0)
     segments.push({
-      label: `★ ${live.stars}`,
+      label: `${live.stars} stars`,
       href: `${live.repoUrl}/stargazers`,
     });
   if (live.sha) {

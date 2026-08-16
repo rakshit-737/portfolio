@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-16T00:00:00.000Z",
+  "title": "Design System: Rakshit Rameshbabu — Portfolio",
+  "extensions": {
+    "colorMeta": {
+      "field": {
+        "role": "neutral",
+        "displayName": "Field Black",
+        "canonical": "#000000",
+        "tonalRamp": ["#000000", "#ffffff"]
+      },
+      "signal": {
+        "role": "primary",
+        "displayName": "Signal White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#000000", "#ffffff"]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "rgb(255 255 255 / 0.26)",
+        "tonalRamp": ["rgb(255 255 255 / 0.11)", "rgb(255 255 255 / 0.26)"]
+      },
+      "rule-soft": {
+        "role": "neutral",
+        "displayName": "Rule Soft",
+        "canonical": "rgb(255 255 255 / 0.11)",
+        "tonalRamp": ["rgb(255 255 255 / 0.11)", "rgb(255 255 255 / 0.26)"]
+      },
+      "rule-negative": {
+        "role": "neutral",
+        "displayName": "Rule (negative region)",
+        "canonical": "rgb(0 0 0 / 0.3)",
+        "tonalRamp": ["rgb(0 0 0 / 0.13)", "rgb(0 0 0 / 0.3)"]
+      },
+      "rule-soft-negative": {
+        "role": "neutral",
+        "displayName": "Rule Soft (negative region)",
+        "canonical": "rgb(0 0 0 / 0.13)",
+        "tonalRamp": ["rgb(0 0 0 / 0.13)", "rgb(0 0 0 / 0.3)"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The owner's name in the index hero and the 404 statement. Two lines, left-aligned, over a masked bar field."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Case-file titles, the contact statement, and the inverted research pull-quote — a sentence set large enough to be the surface."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section headings and project names."
+      },
+      "number": {
+        "displayName": "Number",
+        "purpose": "Headline measurements, set above their label so the value reads first. Tabular figures are on globally."
+      },
+      "body": {
+        "displayName": "Body (mono)",
+        "purpose": "The site's default voice: rail values, tech lists, nav, chips, tables, chrome."
+      },
+      "prose": {
+        "displayName": "Prose (sans)",
+        "purpose": "The one proportional face, scoped to .prose-field. Reading passages only — a case study is read, not scanned."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "The system's caption voice: every metadata key, rail label, chip, nav item, control text and provenance segment."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-field",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The only easing in the system. Every animation and transition uses it."
+      },
+      {
+        "name": "field-resolve",
+        "value": "clip-path inset(0 100% 0 0) → inset(0 0 0 0), 1.15s",
+        "purpose": "The hero bar field resolving left to right, once, on load."
+      },
+      {
+        "name": "sine-draw",
+        "value": "stroke-dashoffset var(--len) → 0, 1.6s, 0.15s delay",
+        "purpose": "The hero sine drawing itself behind the name, once, on load."
+      },
+      {
+        "name": "node-in",
+        "value": "opacity 0→1 + scale(0.2)→scale(1), 0.4s, delay calc(0.9s + var(--i) * 90ms)",
+        "purpose": "Square node markers landing on the drawn sine, staggered."
+      },
+      {
+        "name": "signal-in",
+        "value": "opacity 0→1 + translateY(0.45em)→0, 0.8s, delay var(--d)",
+        "purpose": "Hero text and rails rising into place as part of the same single moment."
+      },
+      {
+        "name": "bar-grow",
+        "value": "transform scaleX(0)→scaleX(1), 0.85s, delay calc(var(--i) * 40ms)",
+        "purpose": "Benchmark bars growing once, on approach, triggered by a data attribute rather than React state."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce) — all of the above cancelled to their end state",
+        "purpose": "The moment is simply already over. Every animation ships this fallback."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "shell-index", "value": "100rem max-width" },
+      { "name": "shell-case", "value": "88rem max-width" },
+      { "name": "shell-chrome", "value": "110rem max-width" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Bracket Control — filled",
+      "kind": "button",
+      "refersTo": "bracket-filled",
+      "description": "The one primary action on a surface. Inverted ground with barcode end-caps; hover empties it.",
+      "html": "<a class=\"ds-bracket ds-bracket-filled\" href=\"#\"><span class=\"ds-cap\" aria-hidden=\"true\"></span><span class=\"ds-bracket-label\">Download résumé</span><span class=\"ds-cap\" aria-hidden=\"true\"></span></a>",
+      "css": ".ds-bracket { display: inline-flex; align-items: stretch; border: 1px solid #fff; border-radius: 0; text-decoration: none; transition: background-color .15s, color .15s; } .ds-bracket-label { display: flex; align-items: center; gap: .5rem; white-space: nowrap; padding: .75rem 1rem; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; line-height: 1.1; letter-spacing: .19em; text-transform: uppercase; } .ds-cap { width: 1rem; flex-shrink: 0; margin: 1px 0; opacity: .7; background-image: repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px 3px, currentColor 3px 4px, transparent 4px 9px, currentColor 9px 11px, transparent 11px 14px); } .ds-bracket-filled { background: #fff; color: #000; } .ds-bracket-filled:hover { background: transparent; color: #fff; } .ds-bracket-filled:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }"
+    },
+    {
+      "name": "Bracket Control — outline",
+      "kind": "button",
+      "refersTo": "bracket-outline",
+      "description": "Every action that is not the surface's primary one. Hover fills it — inversion is the only emphasis this palette has.",
+      "html": "<a class=\"ds-bracket ds-bracket-outline\" href=\"#\"><span class=\"ds-cap\" aria-hidden=\"true\"></span><span class=\"ds-bracket-label\">Repository</span><span class=\"ds-cap\" aria-hidden=\"true\"></span></a>",
+      "css": ".ds-bracket-outline { background: transparent; color: #fff; } .ds-bracket-outline:hover { background: #fff; color: #000; } .ds-bracket-outline:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }"
+    },
+    {
+      "name": "Bracket Control — disabled",
+      "kind": "button",
+      "refersTo": "bracket-outline",
+      "description": "A disabled control still occupies its place in the record: dashed rule border, never dimmed text.",
+      "html": "<span class=\"ds-bracket-disabled\"><span class=\"ds-cap\" aria-hidden=\"true\"></span><span class=\"ds-bracket-label\">Certificate pending</span><span class=\"ds-cap\" aria-hidden=\"true\"></span></span>",
+      "css": ".ds-bracket-disabled { display: inline-flex; align-items: stretch; cursor: not-allowed; border: 1px dashed rgb(255 255 255 / .26); color: #fff; border-radius: 0; }"
+    },
+    {
+      "name": "Provenance Line",
+      "kind": "custom",
+      "refersTo": "chip-pass",
+      "description": "The signature component: date, status, stack, repo, head SHA and CI conclusion, each deep-linked to its own proof. A verified outcome is a filled chip with a drawn check; a failing one is outlined with a cross. The hairline trails its item so a wrapped line never starts with an orphaned separator.",
+      "html": "<ul class=\"ds-prov\"><li class=\"ds-prov-item\">shipped 2025<span class=\"ds-prov-sep\" aria-hidden=\"true\"></span></li><li class=\"ds-prov-item\"><span class=\"ds-chip-pass\"><svg width=\"11\" height=\"11\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>ci: success</span><span class=\"ds-prov-sep\" aria-hidden=\"true\"></span></li><li class=\"ds-prov-item\"><a class=\"ds-prov-link\" href=\"#\">head 0ba6f7d</a></li></ul>",
+      "css": ".ds-prov { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; list-style: none; margin: 0; padding: 0; color: #fff; } .ds-prov-item { display: flex; align-items: center; gap: .75rem; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; line-height: 1.1; letter-spacing: .13em; } .ds-prov-sep { display: block; width: 1px; height: .75rem; background: rgb(255 255 255 / .26); } .ds-chip-pass { display: inline-flex; align-items: center; gap: .375rem; padding: .125rem .375rem; background: #fff; color: #000; } .ds-chip-fail { display: inline-flex; align-items: center; gap: .375rem; padding: .125rem .375rem; border: 1px solid #fff; color: #fff; } .ds-prov-link { color: inherit; text-decoration: underline; text-decoration-color: rgb(255 255 255 / .26); text-underline-offset: 4px; transition: text-decoration-color .15s; } .ds-prov-link:hover { text-decoration-color: #fff; }"
+    },
+    {
+      "name": "Rail",
+      "kind": "custom",
+      "refersTo": "body",
+      "description": "A flank of real measurements: label above tabular value. If the datum is absent, the row is absent.",
+      "html": "<dl class=\"ds-rail\"><div class=\"ds-rail-row\"><dt class=\"ds-rail-label\">dispatch instants</dt><dd class=\"ds-rail-value\">45,432</dd></div><div class=\"ds-rail-row\"><dt class=\"ds-rail-label\">this site, head</dt><dd class=\"ds-rail-value\">0ba6f7d</dd></div></dl>",
+      "css": ".ds-rail { margin: 0; color: #fff; } .ds-rail-row + .ds-rail-row { margin-top: 1rem; } .ds-rail-label { margin: 0; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; line-height: 1.45; letter-spacing: .19em; text-transform: uppercase; } .ds-rail-value { margin: .25rem 0 0; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: 1rem; line-height: 1; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Metadata Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Tech and skill tokens: 1px rule border, transparent ground, label type at source casing.",
+      "html": "<ul class=\"ds-chips\"><li class=\"ds-chip\">Python</li><li class=\"ds-chip\">FastAPI</li><li class=\"ds-chip\">GitHub Actions</li></ul>",
+      "css": ".ds-chips { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; margin: 0; padding: 0; } .ds-chip { padding: .375rem .625rem; border: 1px solid rgb(255 255 255 / .26); border-radius: 0; color: #fff; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; line-height: 1.1; letter-spacing: .19em; }"
+    },
+    {
+      "name": "Navigation Rail",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Sticky top chrome. The scroll-spied section inverts rather than taking an underline or a sliding indicator, so nothing is measured at runtime.",
+      "html": "<header class=\"ds-nav\"><nav class=\"ds-nav-inner\" aria-label=\"Main\"><a class=\"ds-nav-mark\" href=\"#\"><span class=\"ds-cap ds-nav-cap\" aria-hidden=\"true\"></span>Rakshit Rameshbabu</a><div class=\"ds-nav-links\"><a class=\"ds-nav-link ds-nav-link-active\" href=\"#\" aria-current=\"location\">Projects</a><a class=\"ds-nav-link\" href=\"#\">Research</a><a class=\"ds-nav-link\" href=\"#\">Contact</a></div></nav></header>",
+      "css": ".ds-nav { border-bottom: 1px solid rgb(255 255 255 / .26); background: #000; color: #fff; } .ds-nav-inner { display: flex; height: 3.5rem; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 0 1.25rem; } .ds-nav-mark { display: flex; align-items: center; gap: .75rem; color: inherit; text-decoration: none; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .875rem; font-weight: 600; letter-spacing: -.01em; } .ds-nav-cap { width: 1.75rem; height: 1rem; opacity: .8; } .ds-nav-links { display: flex; align-items: center; gap: .25rem; } .ds-nav-link { padding: .375rem .625rem; color: inherit; text-decoration: none; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; letter-spacing: .19em; text-transform: uppercase; transition: background-color .15s, color .15s; } .ds-nav-link:hover { background: #fff; color: #000; } .ds-nav-link-active { background: #fff; color: #000; } .ds-nav-link:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }"
+    },
+    {
+      "name": "Command Palette",
+      "kind": "custom",
+      "refersTo": "palette-dialog",
+      "description": "The one stacked surface in the system. Scrim plus a signal-bordered dialog; the selected option inverts. No radius, no shadow, no blur.",
+      "html": "<div class=\"ds-palette\" role=\"dialog\" aria-modal=\"true\" aria-label=\"Field index\"><div class=\"ds-palette-search\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg><input class=\"ds-input-search\" placeholder=\"QUERY THE FIELD…\" aria-label=\"Search the field\"><kbd class=\"ds-kbd\">esc</kbd></div><ul class=\"ds-palette-list\" role=\"listbox\" aria-label=\"Commands\"><li class=\"ds-palette-group\">Sections</li><li class=\"ds-palette-option ds-palette-option-selected\" role=\"option\" aria-selected=\"true\">Featured work</li><li class=\"ds-palette-option\" role=\"option\" aria-selected=\"false\">Research</li></ul></div>",
+      "css": ".ds-palette { width: 100%; max-width: 36rem; border: 1px solid #fff; border-radius: 0; background: #000; color: #fff; } .ds-palette-search { display: flex; align-items: center; gap: .75rem; padding: 0 1rem; border-bottom: 1px solid rgb(255 255 255 / .26); } .ds-input-search { height: 3.25rem; width: 100%; background: transparent; border: 0; color: #fff; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .875rem; } .ds-input-search:focus { outline: none; } .ds-input-search::placeholder { color: #fff; opacity: 1; font-size: .6875rem; letter-spacing: .19em; text-transform: uppercase; } .ds-kbd { flex-shrink: 0; padding: .25rem .375rem; border: 1px solid rgb(255 255 255 / .26); font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; letter-spacing: .19em; text-transform: uppercase; } .ds-palette-list { list-style: none; margin: 0; padding: .25rem 0; } .ds-palette-group { padding: 1rem 1rem .5rem; border-bottom: 1px solid rgb(255 255 255 / .11); font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; letter-spacing: .19em; text-transform: uppercase; } .ds-palette-option { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .625rem 1rem; cursor: pointer; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .875rem; } .ds-palette-option-selected { background: #fff; color: #000; }"
+    },
+    {
+      "name": "Record Row",
+      "kind": "card",
+      "refersTo": "number",
+      "description": "The system's replacement for a card: a rule-separated two-track row. Metadata column against a content column, headline numbers in a bordered strip, and an inline inverted metric in the bullet.",
+      "html": "<article class=\"ds-record\"><div class=\"ds-record-meta\"><p class=\"ds-record-timeframe\">2025</p><ul class=\"ds-record-tech\"><li>Python</li><li>FastAPI</li></ul></div><div class=\"ds-record-body\"><h3 class=\"ds-record-title\">Warden</h3><p class=\"ds-record-lede\">A supply-chain firewall for PyPI installs.</p><dl class=\"ds-record-numbers\"><div><dd class=\"ds-number\">40</dd><dt class=\"ds-number-label\">tests in CI</dt></div><div><dd class=\"ds-number\">6</dd><dt class=\"ds-number-label\">analyzers</dt></div></dl><ul class=\"ds-record-bullets\"><li><span class=\"ds-dash\" aria-hidden=\"true\"></span><p class=\"ds-record-lede\">Scores every candidate package on a <strong class=\"ds-metric\">0–100</strong> risk verdict before it installs.</p></li></ul></div></article>",
+      "css": ".ds-record { display: grid; gap: 2rem 3rem; padding: 3rem 0; border-bottom: 1px solid rgb(255 255 255 / .26); color: #fff; } @media (min-width: 1024px) { .ds-record { grid-template-columns: 13rem minmax(0, 1fr); } } .ds-record-timeframe, .ds-number-label, .ds-record-tech { font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; line-height: 1.1; letter-spacing: .19em; text-transform: uppercase; } .ds-record-tech { list-style: none; margin: .75rem 0 0; padding: 0; letter-spacing: normal; text-transform: none; line-height: 1.6; } .ds-record-title { margin: 0; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: 1.5rem; font-weight: 600; line-height: 1.1; letter-spacing: -.03em; } .ds-record-lede { margin: 1rem 0 0; font-family: Chivo, system-ui, sans-serif; font-size: 1rem; line-height: 1.68; max-width: 68ch; } .ds-record-numbers { display: flex; flex-wrap: wrap; gap: 1.25rem 2.5rem; margin: 2rem 0 0; padding: 1.25rem 0; border-top: 1px solid rgb(255 255 255 / .26); border-bottom: 1px solid rgb(255 255 255 / .26); } .ds-number { margin: 0; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: 1.875rem; font-weight: 600; line-height: 1; letter-spacing: -.025em; font-variant-numeric: tabular-nums; } .ds-number-label { margin-top: .5rem; } .ds-record-bullets { list-style: none; margin: 2rem 0 0; padding: 0; } .ds-record-bullets li { display: grid; grid-template-columns: 1.25rem minmax(0, 1fr); column-gap: .75rem; } .ds-dash { display: block; width: .75rem; height: 1px; margin-top: .75rem; background: #fff; } .ds-metric { background: #fff; color: #000; padding: .05em .32em; font-weight: 600; font-family: 'Chivo Mono', ui-monospace, monospace; white-space: nowrap; }"
+    },
+    {
+      "name": "Section Head",
+      "kind": "custom",
+      "refersTo": "title",
+      "description": "A section opens with a title, a bar field running to the edge as its rule, and — when there is one — a count of what the section contains. No eyebrows, no numbering.",
+      "html": "<div class=\"ds-sectionhead\"><h2 class=\"ds-sectionhead-title\">Featured work</h2><svg class=\"ds-sectionhead-field\" viewBox=\"0 0 1000 16\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><rect x=\"12\" y=\"0\" width=\"1.1\" height=\"16\" fill=\"#fff\" opacity=\".38\"/><rect x=\"31\" y=\"0\" width=\"3.4\" height=\"16\" fill=\"#fff\" opacity=\".82\"/><rect x=\"47\" y=\"0\" width=\".8\" height=\"16\" fill=\"#fff\" opacity=\".2\"/><rect x=\"70\" y=\"0\" width=\"1.4\" height=\"16\" fill=\"#fff\" opacity=\".5\"/><rect x=\"78\" y=\"0\" width=\".9\" height=\"16\" fill=\"#fff\" opacity=\".3\"/><rect x=\"86\" y=\"0\" width=\"1.2\" height=\"16\" fill=\"#fff\" opacity=\".44\"/><rect x=\"124\" y=\"0\" width=\"5.2\" height=\"16\" fill=\"#fff\" opacity=\".9\"/><rect x=\"150\" y=\"0\" width=\".7\" height=\"16\" fill=\"#fff\" opacity=\".16\"/><rect x=\"181\" y=\"0\" width=\"1.6\" height=\"16\" fill=\"#fff\" opacity=\".55\"/><rect x=\"221\" y=\"0\" width=\".9\" height=\"16\" fill=\"#fff\" opacity=\".28\"/><rect x=\"266\" y=\"0\" width=\"1.3\" height=\"16\" fill=\"#fff\" opacity=\".47\"/><rect x=\"300\" y=\"0\" width=\"2.8\" height=\"16\" fill=\"#fff\" opacity=\".75\"/><rect x=\"342\" y=\"0\" width=\".8\" height=\"16\" fill=\"#fff\" opacity=\".22\"/><rect x=\"388\" y=\"0\" width=\"1.5\" height=\"16\" fill=\"#fff\" opacity=\".52\"/><rect x=\"430\" y=\"0\" width=\".6\" height=\"16\" fill=\"#fff\" opacity=\".14\"/></svg><p class=\"ds-sectionhead-meta\">3 records</p></div>",
+      "css": ".ds-sectionhead { display: flex; align-items: flex-end; gap: 1.25rem; padding-bottom: .75rem; border-bottom: 1px solid rgb(255 255 255 / .26); color: #fff; } .ds-sectionhead-title { margin: 0; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: 1.5rem; font-weight: 600; line-height: 1; letter-spacing: -.03em; } .ds-sectionhead-field { flex-grow: 1; min-width: 0; height: 1rem; opacity: .55; } .ds-sectionhead-meta { margin: 0 0 0 auto; flex-shrink: 0; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; letter-spacing: .19em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Diagram Stage",
+      "kind": "custom",
+      "refersTo": "chip",
+      "description": "A pipeline in the field's grammar: bordered stages on a hairline rail with a square node above each. The verdict stage is inverted rather than coloured.",
+      "html": "<ol class=\"ds-flow\"><li class=\"ds-flow-step\"><span class=\"ds-flow-rail\" aria-hidden=\"true\"><span class=\"ds-flow-line ds-flow-line-blank\"></span><span class=\"ds-flow-node\"></span><span class=\"ds-flow-line\"></span></span><div class=\"ds-flow-box\"><p class=\"ds-flow-label\">Resolve</p><p class=\"ds-flow-sub\">candidate package</p></div></li><li class=\"ds-flow-step\"><span class=\"ds-flow-rail\" aria-hidden=\"true\"><span class=\"ds-flow-line\"></span><span class=\"ds-flow-node\"></span><span class=\"ds-flow-line ds-flow-line-blank\"></span></span><div class=\"ds-flow-box ds-flow-box-accent\"><p class=\"ds-flow-label\">Verdict</p><p class=\"ds-flow-sub\">0–100 risk</p></div></li></ol>",
+      "css": ".ds-flow { display: flex; list-style: none; margin: 0; padding: 0; color: #fff; } .ds-flow-step { flex: 1; display: flex; flex-direction: column; } .ds-flow-rail { display: flex; align-items: center; height: 1.25rem; } .ds-flow-line { flex-grow: 1; height: 1px; background: rgb(255 255 255 / .26); } .ds-flow-line-blank { background: transparent; } .ds-flow-node { flex-shrink: 0; width: .375rem; height: .375rem; margin: 0 .375rem; background: #fff; } .ds-flow-box { display: flex; flex-direction: column; justify-content: center; height: 100%; margin: 0 .25rem; padding: .75rem .875rem; border: 1px solid rgb(255 255 255 / .26); border-radius: 0; } .ds-flow-box-accent { border-color: #fff; background: #fff; color: #000; } .ds-flow-label { margin: 0; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; letter-spacing: .19em; text-transform: uppercase; } .ds-flow-sub { margin: .375rem 0 0; font-family: 'Chivo Mono', ui-monospace, monospace; font-size: .6875rem; line-height: 1.4; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Datamatics Field",
+    "overview": "This is an engineer's record rendered as a data field. The numbers are the page, printed at the scale of the thing they measure, and the ground they sit on is a field of hairline bars — the visual language of an instrument readout rather than of a résumé. The world refuses both of the defaults available to a developer portfolio: the dark terminal with its green-on-black nostalgia, and the airy white page with its generous grey type. What is left is two values and nothing between them.\n\nThe palette is absolute: #000000 and #ffffff, with no third value and no grey. Because every surface utility resolves through four custom properties, an entire region can flip its ground by re-declaring them — inversion is used as a structural beat that marks the two moments the record wants read hardest (the research finding, the evidence table), never as a decorative filter. Hierarchy is therefore carried by scale, tracking and density: display type is enormous and negatively tracked, labels are tiny and tracked wide open at 0.19em, and nothing is ever dimmed to make it rank lower. There is no contrast headroom in this palette to spend on dimming.\n\nThe type is monospace at every size — Chivo Mono for headings, data, labels, chrome and running copy — with a single stated exception: reading passages take its proportional sibling, Chivo, because a case study is read rather than scanned. Materials are drawn, not applied: seeded bar fields, one sine curve with square node markers, and binary matrices cut from real commit SHAs. Motion is a single authored moment on load, and one growth of the benchmark bars on approach; nothing else moves.",
+    "keyCharacteristics": [
+      "Two absolute values, no grey, no accent hue.",
+      "Inversion as structure — a whole section flips ground, using the same components unchanged.",
+      "Monospace everywhere; one sans exception for reading passages.",
+      "Zero radius, zero shadow; hairline rules and drawn fields carry all the structure.",
+      "Numbers set in tabular figures at display scale, sourced only from real data.",
+      "One motion moment on load, one on scroll, and a prefers-reduced-motion path out of both."
+    ],
+    "rules": [
+      {
+        "name": "The Two Values Rule",
+        "body": "The palette is #000000 and #ffffff. There is no third value, no grey, and no accent hue. A new surface that \"needs a colour\" needs a different device — scale, inversion, or a rule.",
+        "section": "colors"
+      },
+      {
+        "name": "The Negative Rule",
+        "body": "The inversion class is .negative, deliberately not .invert. Tailwind ships an invert filter utility; the two stack and cancel, and whole sections silently render un-inverted. Never rename it, and never add a second inversion mechanism.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Dimming Rule",
+        "body": "Text is never dimmed, faded, or set at partial opacity to signal a state. A pending item is marked by a dashed outline; an inactive nav item simply lacks its inverted ground. Fractional alpha belongs only to rules, bar fields and barcode end-caps, which are graphics rather than language.",
+        "section": "colors"
+      },
+      {
+        "name": "The Inverted Emphasis Rule",
+        "body": "Emphasis is inversion. The strongest metric in a bullet, a passing CI chip, the active nav item, the highlighted benchmark rows, the verdict stage of a diagram — all are the same move: swap the ground and the mark. Nothing on this site is emphasised by hue, weight alone, or a glow.",
+        "section": "colors"
+      },
+      {
+        "name": "The Monospace Default Rule",
+        "body": "Chivo Mono is the default for the entire site, including body copy. The proportional face appears only inside .prose-field, and only for passages a visitor reads rather than scans. A new surface does not get to introduce a third face, and it does not get to make the sans the default.",
+        "section": "typography"
+      },
+      {
+        "name": "The Scale-Is-Hierarchy Rule",
+        "body": "Rank is expressed by size, tracking and caps — nothing else. Tracking runs inverse to size: display type is tracked in to -0.03em/-0.05em, labels are tracked out to 0.19em. If two things need to rank differently, change their size or their case, never their opacity.",
+        "section": "typography"
+      },
+      {
+        "name": "The Number-First Rule",
+        "body": "A measurement is set larger than the words describing it, in tabular figures, with its label beneath it in .label. Numbers are the page.",
+        "section": "typography"
+      },
+      {
+        "name": "The Rule-Not-Card Rule",
+        "body": "Records are separated by hairlines. There are no cards, no panels, no filled containers and no rounded boxes anywhere in this system; a bordered box appears only around a control, a chip, or a diagram stage.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flank Rule",
+        "body": "Verifiable measurements live in rails on the flanks of a header, not in the header's centre. The centre carries identity and statement; the flanks carry evidence.",
+        "section": "layout"
+      },
+      {
+        "name": "The Zero-Shadow Rule",
+        "body": "Nothing in this system casts a shadow. If a surface needs to read as separate, give it a rule, a mask, or an inversion — never elevation.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Field-Mask Rule",
+        "body": "Display type never competes with a bar field for contrast. Any field sitting behind large type takes a mask: .field-mask for the index hero, .field-mask-wide for case files (their content column runs wider, so the field must stay clear of it for longer), .field-mask-soft for the 404. Add a field behind new display type and you add its mask in the same commit.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Square Corner Rule",
+        "body": "Radius is zero everywhere, on everything. rounded-* utilities do not belong in this codebase.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Deterministic Field Rule",
+        "body": "All field geometry (src/lib/field.ts) is seeded and generated at build time — a mulberry32 PRNG plus an FNV-1a string seed — so the same seed yields the same marks on every build, the static export stays byte-stable, and no geometry code ships to the client. Give every new field a stable string seed; never randomise at runtime.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Graphics-Aren't-Claims Rule",
+        "body": "A bar field encodes no measurement. Bit matrices are the exception that proves it: they are cut from a repo's real head SHA, so the pattern is the commit. Every rendered number traces to src/content.ts or to the build-time GitHub fetch — never to the geometry layer.",
+        "section": "shapes"
+      },
+      {
+        "name": "The One Moment Rule",
+        "body": "The site has exactly one authored entrance: the hero bar field resolves left-to-right (1.15s) while the sine draws behind the name (1.6s), its nodes landing on a 90ms stagger, and the hero's own text rises 0.45em into place. Benchmark bars grow once when scrolled to. That is the entire motion budget. There are no per-section entrance animations, no scroll-linked parallax, and no hover motion anywhere — hover states resolve by colour swap only. All easing is cubic-bezier(0.16, 1, 0.3, 1).",
+        "section": "components"
+      },
+      {
+        "name": "The Reduced-Motion Rule",
+        "body": "Under prefers-reduced-motion: reduce, the moment is simply already over: every keyframe animation and bar transition is cancelled to its end state, the sine's dash array is cleared, and smooth scrolling is turned off. Every animation added to this system ships its fallback in the same commit.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do use .negative for inversion — never .invert, which collides with Tailwind's filter utility and silently cancels.",
+      "Do express emphasis, state and selection by swapping ground and mark. It is the only emphasis this palette has.",
+      "Do set every measurement in tabular monospace, larger than its .label, sourced from src/content.ts or the build-time GitHub fetch.",
+      "Do give every new bar field a stable string seed and generate it at build time (src/lib/field.ts).",
+      "Do mask any field that sits behind display type: .field-mask on the index, .field-mask-wide on case files, .field-mask-soft on the 404.",
+      "Do lay the sine out in flow, in its own band, whenever an overlay would cross copy or a rail.",
+      "Do separate records with border-b border-rule and let them breathe on the 4rem/6rem section rhythm.",
+      "Do keep exactly one filled bracket control per surface; everything else is outline.",
+      "Do carry a provenance line on every record, with each claim deep-linked to its own proof.",
+      "Do pair every state mark with a word — a check or cross chip always carries its label.",
+      "Do ship a prefers-reduced-motion fallback and a print behaviour (print-drop / print-hidden) with every new visual element.",
+      "Do keep new work inside the export constraints the world already satisfies: internal assets through withBase, the 210 kB gzipped-JS ceiling, and axe at zero violations."
+    ],
+    "donts": [
+      "Don't introduce a third colour value — no grey, no accent hue, no tinted surface. If something needs to rank differently, change its size, case or ground.",
+      "Don't dim text to signal a state. Pending is a dashed border; inactive is the absence of an inverted ground. Fractional alpha is for rules, fields and barcode caps only.",
+      "Don't add a radius. rounded-* has no place in this system.",
+      "Don't add a shadow, blur, gradient or glass panel. The system is flat and its depth is graphic.",
+      "Don't make the proportional face the default. Chivo appears only inside .prose-field, for passages that are read rather than scanned.",
+      "Don't add per-section entrance animations, scroll-linked motion, or hover transforms. One moment on load, one on approach, and nothing else.",
+      "Don't wrap records in cards, panels or filled containers; a bordered box is for a control, a chip or a diagram stage.",
+      "Don't let a bar field or matrix imply a measurement — geometry is a graphic, and numbers come only from real data.",
+      "Don't use an eyebrow, kicker or section numbering above a heading. The heading carries itself; the bar field beside it does the rest.",
+      "Don't emit raw superscript characters into an OG card without ogText(); Satori renders them as tofu.",
+      "Don't use emoji anywhere in the interface, in copy or in content."
+    ]
+  }
+}

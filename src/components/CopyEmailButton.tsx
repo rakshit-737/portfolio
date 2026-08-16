@@ -32,16 +32,16 @@ export default function CopyEmailButton({ email }: { email: string }) {
         type="button"
         onClick={copy}
         aria-label={copied ? `Copied ${email}` : `Copy email address ${email}`}
-        className="print-hidden inline-flex items-center gap-1.5 border border-hairline px-2.5 py-1.5 font-mono text-xs text-muted transition-colors hover:border-steel/60 hover:text-steel"
+        className="label print-hidden inline-flex items-center gap-2 border border-rule px-3 py-2.5 transition-colors hover:bg-signal hover:text-field"
       >
         {copied ? (
           <>
-            <Check size={13} aria-hidden="true" className="text-steel" />
+            <Check size={13} strokeWidth={2.2} aria-hidden="true" />
             Copied
           </>
         ) : (
           <>
-            <Copy size={13} aria-hidden="true" />
+            <Copy size={13} strokeWidth={2.2} aria-hidden="true" />
             Copy
           </>
         )}

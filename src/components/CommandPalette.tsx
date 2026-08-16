@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, CornerDownLeft, Search } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpRight,
+  CornerDownLeft,
+  Search,
+} from "lucide-react";
 import { featuredProjects, links, moreProjects, navSections } from "@/content";
 import { withBase } from "@/lib/base";
 
@@ -275,19 +281,19 @@ export default function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-start justify-center bg-bg/70 p-4 pt-[12vh] backdrop-blur-sm"
+      className="fixed inset-0 z-100 flex items-start justify-center bg-field/85 p-4 pt-[12vh]"
       onClick={close}
     >
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Evidence index"
-        className="w-full max-w-lg border border-hairline bg-surface shadow-none"
+        aria-label="Field index"
+        className="w-full max-w-xl border border-signal bg-field"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onDialogKeyDown}
       >
-        <div className="flex items-center gap-2.5 border-b border-hairline px-4">
-          <Search size={14} aria-hidden="true" className="shrink-0 text-muted" />
+        <div className="flex items-center gap-3 border-b border-rule px-4">
+          <Search size={14} aria-hidden="true" className="shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -296,27 +302,24 @@ export default function CommandPalette() {
               setQuery(e.target.value);
               setSelected(0); // reset selection as the list refilters
             }}
-            placeholder="Search the record…"
-            aria-label="Search the evidence index"
+            placeholder="Query the field…"
+            aria-label="Search the field"
             role="combobox"
             aria-expanded="true"
             aria-controls="palette-list"
             aria-activedescendant={
               filtered[selected] ? `cmd-${filtered[selected].id}` : undefined
             }
-            className="h-12 w-full bg-transparent font-mono text-sm text-ink placeholder:text-muted focus:outline-none"
+            className="h-13 w-full bg-transparent font-mono text-sm placeholder:text-[0.6875rem] placeholder:tracking-[0.19em] placeholder:uppercase placeholder:opacity-100 focus:outline-none"
           />
-          <kbd className="shrink-0 border border-hairline px-1.5 py-0.5 font-mono text-[10px] text-muted">
+          <kbd className="label shrink-0 border border-rule px-1.5 py-1">
             esc
           </kbd>
         </div>
 
         {filtered.length === 0 && (
-          <p
-            role="status"
-            className="px-4 py-6 font-mono text-xs text-muted"
-          >
-            0 matches · record unchanged
+          <p role="status" className="label px-4 py-6 normal-case">
+            0 matches · the field is unchanged
           </p>
         )}
 
@@ -325,13 +328,17 @@ export default function CommandPalette() {
           ref={listRef}
           role="listbox"
           aria-label="Commands"
-          className="max-h-[50vh] overflow-y-auto py-2"
+          className="max-h-[52vh] overflow-y-auto py-1"
         >
           {groups.map((g) => (
-            <li key={g.name} role="group" aria-labelledby={`palette-group-${g.name}`}>
+            <li
+              key={g.name}
+              role="group"
+              aria-labelledby={`palette-group-${g.name}`}
+            >
               <p
                 id={`palette-group-${g.name}`}
-                className="px-4 pt-3 pb-1 font-mono text-[10px] lowercase tracking-widest text-muted"
+                className="label border-b border-rule-soft px-4 pt-4 pb-2"
               >
                 {g.name}
               </p>
@@ -344,16 +351,16 @@ export default function CommandPalette() {
                   tabIndex={-1}
                   onMouseEnter={() => setSelected(i)}
                   onClick={() => run(c)}
-                  className={`flex cursor-pointer items-center justify-between gap-4 px-4 py-2 text-sm ${
-                    i === selected ? "bg-steel/10 text-ink" : "text-muted"
+                  className={`flex cursor-pointer items-center justify-between gap-4 px-4 py-2.5 font-mono text-sm ${
+                    i === selected ? "bg-signal text-field" : ""
                   }`}
                 >
                   <span className="truncate">
                     {c.id.endsWith("copy-email") && copied
-                      ? "Copied ✓"
+                      ? "Copied to clipboard"
                       : c.label}
                   </span>
-                  <span className="flex shrink-0 items-center gap-1.5 font-mono text-[10px] text-muted">
+                  <span className="label flex shrink-0 items-center gap-1.5 normal-case">
                     {c.hint}
                     {c.group === "repositories" ? (
                       <ArrowUpRight size={11} aria-hidden="true" />
@@ -372,9 +379,16 @@ export default function CommandPalette() {
           {copied ? `Email address ${links.email} copied to clipboard` : ""}
         </span>
 
-        <div className="flex items-center gap-3 border-t border-hairline px-4 py-2 font-mono text-[10px] text-muted">
-          <span>↑↓ navigate</span>
-          <span>↵ run</span>
+        <div className="label flex items-center gap-4 border-t border-rule px-4 py-2.5">
+          <span className="flex items-center gap-1.5">
+            <ArrowUp size={11} aria-hidden="true" />
+            <ArrowDown size={11} aria-hidden="true" />
+            navigate
+          </span>
+          <span className="flex items-center gap-1.5">
+            <CornerDownLeft size={11} aria-hidden="true" />
+            run
+          </span>
           <span>esc close</span>
         </div>
       </div>

@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
+import BarField from "@/components/BarField";
+import BitMatrix from "@/components/BitMatrix";
+import { BracketLink } from "@/components/Bracket";
 import DiagramFlow from "@/components/DiagramFlow";
-import EvidenceStrip from "@/components/EvidenceStrip";
 import Metric from "@/components/Metric";
+import Provenance from "@/components/Provenance";
+import Rail, { type RailItem } from "@/components/Rail";
+import SineLattice from "@/components/SineLattice";
 import { caseStudies, featuredProjects, site } from "@/content";
 import { withBase } from "@/lib/base";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
 
 export const dynamicParams = false;
+
+const SHELL = "mx-auto w-full max-w-[88rem] px-5 sm:px-8 lg:px-12";
+const GRID = "grid gap-x-12 gap-y-6 lg:grid-cols-[13rem_minmax(0,1fr)]";
 
 export function generateStaticParams() {
   return featuredProjects
@@ -47,33 +55,31 @@ export async function generateMetadata({
   };
 }
 
+/** A case-file section: title held in the left rail, record on the right. */
 function CaseSection({
-  index,
-  eyebrow,
+  slug,
   title,
+  invert = false,
   children,
 }: {
-  index: number;
-  eyebrow: string;
+  slug: string;
   title: string;
+  invert?: boolean;
   children: React.ReactNode;
 }) {
-  const id = `case-${eyebrow.replace(/[^a-z]+/gi, "-").toLowerCase()}`;
   return (
-    <section aria-labelledby={`${id}-title`} className="border-t border-hairline">
-      <div className="mx-auto max-w-3xl px-6 py-12 sm:py-14">
-        <p className="font-mono text-xs lowercase tracking-widest text-muted">
-          <span className="text-ink/70">{String(index).padStart(2, "0")}</span>
-          {" / "}
-          {eyebrow}
-        </p>
+    <section
+      aria-labelledby={`${slug}-title`}
+      className={`border-t border-rule py-12 sm:py-16 ${invert ? "negative" : ""}`}
+    >
+      <div className={`${SHELL} ${GRID}`}>
         <h2
-          id={`${id}-title`}
-          className="mt-2 font-display text-xl font-bold tracking-tight text-ink sm:text-2xl"
+          id={`${slug}-title`}
+          className="font-mono text-lg leading-none font-semibold tracking-[-0.03em] lg:sticky lg:top-24 lg:self-start"
         >
           {title}
         </h2>
-        <div className="mt-6">{children}</div>
+        <div className="min-w-0">{children}</div>
       </div>
     </section>
   );
@@ -90,6 +96,34 @@ export default async function CaseStudyPage({
   if (!project || !study) notFound();
 
   const live = project.repoUrl ? await fetchRepoLive(project.repoUrl) : null;
+
+  const caseRail: RailItem[] = [
+    { value: project.timeframe, label: "timeframe" },
+    ...(live?.stars
+      ? [
+          {
+            value: String(live.stars),
+            label: "stars",
+            href: `${live.repoUrl}/stargazers`,
+          },
+        ]
+      : []),
+    ...(live?.sha
+      ? [
+          {
+            value: live.sha,
+            label: "head",
+            href: `${live.repoUrl}/commit/${live.sha}`,
+          },
+        ]
+      : []),
+    ...(live?.commitDate
+      ? [{ value: live.commitDate, label: "last commit" }]
+      : []),
+    ...(live?.ci
+      ? [{ value: live.ci, label: "ci", href: `${live.repoUrl}/actions` }]
+      : []),
+  ];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -109,51 +143,116 @@ export default async function CaseStudyPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="sticky top-0 z-50 border-b border-hairline bg-bg/90 backdrop-blur">
+      <header
+        data-chrome
+        className="sticky top-0 z-50 border-b border-rule bg-field"
+      >
         <nav
           aria-label="Case file"
-          className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6"
+          className={`${SHELL} flex h-14 items-center justify-between gap-6`}
         >
           <a
             href={withBase("/")}
-            className="flex items-center gap-2 font-mono text-xs text-muted transition-colors hover:text-steel"
+            className="label -mx-2 flex items-center gap-2 px-2 py-1 transition-colors hover:bg-signal hover:text-field"
           >
             <ArrowLeft size={13} aria-hidden="true" />
             back to the index
           </a>
-          <span className="font-display text-sm font-bold tracking-tight text-ink">
+          <span className="font-mono text-sm font-semibold tracking-tight">
             Rakshit Rameshbabu
           </span>
         </nav>
       </header>
 
       <main>
-        <div className="mx-auto max-w-3xl px-6 pt-12 pb-4 sm:pt-16">
-          <EvidenceStrip
-            segments={[...project.evidence, ...liveSegments(live)]}
-          />
-          <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-            {project.name}
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted">
-            {project.oneLiner}
-          </p>
-          {project.repoUrl && (
-            <a
-              href={project.repoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center gap-1.5 border border-steel/40 px-3.5 py-2 font-mono text-xs text-steel transition-colors hover:border-steel hover:bg-steel/10"
-            >
-              View repository
-              <ArrowUpRight size={13} aria-hidden="true" />
-            </a>
-          )}
-          <div className="pb-8" />
-        </div>
+        <section
+          aria-label="Case file header"
+          className="relative overflow-hidden"
+        >
+          <div
+            aria-hidden="true"
+            className="print-drop pointer-events-none absolute inset-0"
+          >
+            <BarField
+              seed={`case-${id}`}
+              density={1.45}
+              height={100}
+              animate
+              className="field-mask-wide absolute inset-y-0 right-0 h-full w-full opacity-50 sm:opacity-80"
+            />
+          </div>
 
-        <CaseSection index={1} eyebrow="problem" title="Problem">
-          <div className="space-y-4 text-base leading-relaxed text-muted">
+          <div
+            className={`${SHELL} relative grid gap-x-10 gap-y-10 pt-14 pb-14 sm:pt-20 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_13rem]`}
+          >
+            <div className="min-w-0">
+              <Provenance
+                segments={[...project.evidence, ...liveSegments(live)]}
+              />
+              <div className="mt-7 flex flex-col items-start gap-6 sm:flex-row sm:gap-7">
+                <BitMatrix
+                  source={live?.sha || project.id}
+                  cols={6}
+                  rows={8}
+                  cell={8}
+                  className="print-drop shrink-0 sm:mt-1"
+                />
+                <div className="min-w-0">
+                  <h1
+                    className="font-mono leading-[0.97] font-semibold tracking-[-0.03em]"
+                    style={{ fontSize: "clamp(1.9rem, 5.4vw, 3.5rem)" }}
+                  >
+                    {project.name}
+                  </h1>
+                  <p className="prose-field mt-6">{project.oneLiner}</p>
+                </div>
+              </div>
+
+              {project.headlineNumbers && (
+                <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-5 border-y border-rule py-5">
+                  {project.headlineNumbers.map((n) => (
+                    <div key={n.label}>
+                      <dd className="font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl">
+                        {n.value}
+                      </dd>
+                      <dt className="label mt-2">{n.label}</dt>
+                    </div>
+                  ))}
+                </dl>
+              )}
+
+              {project.repoUrl && (
+                <div className="print-hidden mt-9">
+                  <BracketLink href={project.repoUrl} external>
+                    View repository
+                    <ArrowUpRight size={12} aria-hidden="true" />
+                  </BracketLink>
+                </div>
+              )}
+            </div>
+
+            {/* The case file's own measurements, on the flank the index
+                hero already uses. Every row is real or it is absent. */}
+            <Rail items={caseRail} align="right" className="hidden lg:block" />
+          </div>
+
+          {/* The curve gets its own band at the foot of the header. Laid out
+              in flow rather than absolutely, it can cross neither the copy
+              nor the rail — the two collisions an overlay produced here. */}
+          <div className={`${SHELL} print-drop relative pb-10`}>
+            <SineLattice
+              width={1000}
+              height={120}
+              cycles={1.2}
+              nodes={3}
+              animate
+              className="h-12 w-full sm:h-16"
+            />
+          </div>
+        </section>
+
+        <CaseSection slug="problem" title="Problem">
+          <div className="prose-field">
             {study.problem.map((p) => (
               <p key={p.slice(0, 32)}>
                 <Metric text={p} />
@@ -162,41 +261,30 @@ export default async function CaseStudyPage({
           </div>
         </CaseSection>
 
-        <CaseSection
-          index={2}
-          eyebrow="approach"
-          title="Approach & architecture"
-        >
-          <div className="space-y-4 text-base leading-relaxed text-muted">
+        <CaseSection slug="approach" title="Approach">
+          <div className="prose-field">
             {study.approach.map((p) => (
               <p key={p.slice(0, 32)}>
                 <Metric text={p} />
               </p>
             ))}
           </div>
-          <figure className="mt-8 border border-hairline bg-surface px-4 py-5 sm:px-5">
+          <figure className="mt-10">
             <DiagramFlow steps={study.diagram} title={study.diagramTitle} />
-            <figcaption className="mt-3 font-mono text-[11px] text-muted">
+            <figcaption className="label mt-4 normal-case">
               {study.diagramTitle}
             </figcaption>
           </figure>
         </CaseSection>
 
-        <CaseSection
-          index={3}
-          eyebrow="decisions"
-          title="Key decisions & hard parts"
-        >
-          <dl className="space-y-6">
+        <CaseSection slug="decisions" title="Decisions">
+          <dl className="space-y-9">
             {study.decisions.map((d) => (
-              <div
-                key={d.title}
-                className="border-l-2 border-hairline pl-5 sm:pl-6"
-              >
-                <dt className="font-display text-base font-bold tracking-tight text-ink">
+              <div key={d.title}>
+                <dt className="font-mono text-base leading-snug font-semibold tracking-tight">
                   {d.title}
                 </dt>
-                <dd className="mt-2 text-sm leading-relaxed text-muted">
+                <dd className="prose-field mt-3 text-[0.9375rem]">
                   <Metric text={d.body} />
                 </dd>
               </div>
@@ -204,27 +292,28 @@ export default async function CaseStudyPage({
           </dl>
         </CaseSection>
 
-        <CaseSection index={4} eyebrow="evidence" title="Evidence">
+        {/* The numbers, inverted out of the page — the case file's spine. */}
+        <CaseSection slug="evidence" title="Evidence" invert>
           <table className="w-full border-collapse">
             <caption className="sr-only">
               Verifiable numbers for {project.name}
             </caption>
             <tbody>
               {study.evidence.map((row) => (
-                <tr key={row.label} className="border-b border-hairline">
+                <tr key={row.label} className="border-b border-rule">
                   <th
                     scope="row"
-                    className="py-2.5 pr-4 text-left font-mono text-xs font-normal text-muted"
+                    className="label py-4 pr-6 text-left font-normal normal-case"
                   >
                     {row.label}
                   </th>
-                  <td className="py-2.5 text-right font-mono text-sm font-semibold text-amber">
+                  <td className="py-4 text-right font-mono text-base font-semibold tracking-tight tabular-nums sm:text-lg">
                     {row.href ? (
                       <a
                         href={row.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline decoration-amber/40 underline-offset-4 hover:decoration-amber"
+                        className="underline decoration-rule underline-offset-4 hover:decoration-signal"
                       >
                         {row.value}
                       </a>
@@ -238,46 +327,48 @@ export default async function CaseStudyPage({
           </table>
         </CaseSection>
 
-        <CaseSection index={5} eyebrow="outcome" title="Outcome & next steps">
-          <div className="space-y-4 text-base leading-relaxed text-muted">
+        <CaseSection slug="outcome" title="Outcome">
+          <div className="prose-field">
             {study.outcome.map((p) => (
               <p key={p.slice(0, 32)}>
                 <Metric text={p} />
               </p>
             ))}
           </div>
-          <ul className="mt-6 space-y-2">
+
+          <h3 className="label mt-12 border-b border-rule pb-2">
+            Next
+          </h3>
+          <ul className="mt-5 space-y-3">
             {study.next.map((n) => (
               <li
                 key={n}
-                className="flex items-baseline gap-3 text-sm leading-relaxed text-muted"
+                className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-x-3"
               >
-                <span aria-hidden="true" className="select-none font-mono">
-                  —
-                </span>
-                {n}
+                <span
+                  aria-hidden="true"
+                  className="mt-2.5 block h-px w-3 bg-signal"
+                />
+                <p className="prose-field text-[0.9375rem]">{n}</p>
               </li>
             ))}
           </ul>
         </CaseSection>
       </main>
 
-      <footer className="border-t border-hairline">
-        <div className="mx-auto max-w-3xl px-6 py-8">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <EvidenceStrip
-              segments={[
-                { label: `case file: ${id}` },
-                { label: "part of the record" },
-              ]}
-            />
-            <a
-              href={withBase("/")}
-              className="font-mono text-xs text-steel underline decoration-steel/40 underline-offset-4 transition-colors hover:decoration-steel"
-            >
-              back to the index
-            </a>
-          </div>
+      <footer className="border-t border-rule">
+        <div
+          className={`${SHELL} flex flex-wrap items-center justify-between gap-4 py-10`}
+        >
+          <Provenance
+            segments={[{ label: `case file: ${id}` }, { label: "part of the record" }]}
+          />
+          <a
+            href={withBase("/")}
+            className="label underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+          >
+            back to the index
+          </a>
         </div>
       </footer>
     </>

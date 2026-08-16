@@ -87,6 +87,16 @@ export const links = {
   resume: "/resume.pdf",
 } as const;
 
+/**
+ * Contact section copy. The headline states what the owner confirmed
+ * during the product interview: both internships and full-time roles.
+ */
+export const contact = {
+  headline:
+    "Open to internships and full-time roles in software and security engineering.",
+  body: "The fastest way to reach me is email — copy it here, or find me on GitHub and LinkedIn.",
+} as const;
+
 export const about = {
   paragraphs: [
     "B.Tech Computer Science (Cyber Security) student at VIT Chennai, CGPA 9.07. I build full-stack products and backend systems and take them end-to-end — from written requirements and architecture to CI-tested, reproducible deployments.",

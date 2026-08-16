@@ -45,6 +45,13 @@ next-env.d.ts
 .opencode
 .claude/
 
+# design-tool scratch (decision-page logs, live-mode session state).
+# design.json is the DESIGN.md sidecar and belongs in the repo.
+# (must ignore the contents, not the directory — git cannot re-include a
+# file inside an excluded directory)
+.impeccable/*
+!.impeccable/design.json
+
 # playwright artifacts
 /test-results/
 /playwright-report/

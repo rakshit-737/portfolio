@@ -1,34 +1,46 @@
 import type { Metadata } from "next";
-import EvidenceStrip from "@/components/EvidenceStrip";
+import BarField from "@/components/BarField";
+import { BracketLink } from "@/components/Bracket";
+import Provenance from "@/components/Provenance";
 import { withBase } from "@/lib/base";
 
 export const metadata: Metadata = {
-  title: "404 — record not found",
+  title: "404 — no record at this address",
 };
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-dvh flex-col items-start justify-center px-6">
-      <div className="mx-auto w-full max-w-5xl">
-        <EvidenceStrip
+    <main className="relative flex min-h-dvh flex-col justify-center overflow-hidden">
+      <BarField
+        seed="not-found"
+        density={0.9}
+        height={100}
+        className="field-mask-soft pointer-events-none absolute inset-y-0 right-0 h-full w-full opacity-40"
+      />
+      <div className="relative mx-auto w-full max-w-[100rem] px-5 sm:px-8 lg:px-12">
+        <Provenance
           segments={[
             { label: "404" },
-            { label: "record not found", tone: "fail" },
+            { label: "no record", tone: "fail" },
             { label: "path unverified" },
           ]}
         />
-        <h1 className="mt-4 font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-          No evidence at this address.
+        <h1
+          className="mt-7 font-mono leading-[0.9] font-semibold tracking-[-0.05em]"
+          style={{ fontSize: "clamp(2.4rem, 8vw, 5rem)" }}
+        >
+          Nothing measured
+          <br />
+          at this address.
         </h1>
-        <p className="mt-3 max-w-md text-base text-muted">
+        <p className="prose-field mt-6">
           The page you requested is not part of this record.
         </p>
-        <a
-          href={withBase("/")}
-          className="mt-8 inline-flex items-center border border-steel/40 px-4 py-2 font-mono text-sm text-steel transition-colors hover:border-steel hover:bg-steel/10"
-        >
-          Return to index
-        </a>
+        <div className="mt-10">
+          <BracketLink href={withBase("/")} weight="filled">
+            Return to the index
+          </BracketLink>
+        </div>
       </div>
     </main>
   );

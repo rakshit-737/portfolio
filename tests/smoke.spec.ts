@@ -16,7 +16,7 @@ test("command palette opens with Ctrl+K and jumps to a section", async ({
   await page.goto("/");
   await page.keyboard.press("Control+k");
   const input = page.getByRole("combobox", {
-    name: "Search the evidence index",
+    name: "Search the field",
   });
   await expect(input).toBeFocused();
   await input.fill("research");
