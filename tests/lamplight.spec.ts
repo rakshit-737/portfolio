@@ -95,6 +95,15 @@ test("with JavaScript disabled the plates are lit and the text is present", asyn
   await ctx.close();
 });
 
+/** Pulls the resolved `at X% Y%` position out of a computed radial-gradient
+ *  mask string. Scroll drives both the gradient's radius (via `--p`) and its
+ *  position (via `--lamp-y`) — asserting only that the whole string changed
+ *  cannot tell those apart, so this isolates the position channel. */
+function positionOf(mask: string): { x: number; y: number } | null {
+  const m = mask.match(/at\s+([\d.]+)%\s+([\d.]+)%/);
+  return m ? { x: Number(m[1]), y: Number(m[2]) } : null;
+}
+
 test("the mask on .plate-lit consumes the lamp's CSS variables on scroll", async ({
   page,
 }) => {
@@ -114,6 +123,14 @@ test("the mask on .plate-lit consumes the lamp's CSS variables on scroll", async
   const after = await readMask();
 
   expect(after).not.toBe(before);
+
+  // The discriminating assertion: the resolved gradient position (which
+  // reads --lamp-x/--lamp-y) must itself move, not just the radius (--p).
+  const beforePos = positionOf(before);
+  const afterPos = positionOf(after);
+  expect(beforePos).not.toBeNull();
+  expect(afterPos).not.toBeNull();
+  expect(afterPos!.y).not.toBe(beforePos!.y);
 });
 
 test("plates keep a non-empty accessible name under reduced motion and with no JavaScript", async ({

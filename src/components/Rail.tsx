@@ -28,9 +28,11 @@ export default function Rail({
         <div key={item.label}>
           <dt className="label leading-[1.45]">{item.label}</dt>
           <dd
-            className={`font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl${
-              ignite ? " ignite" : ""
-            }`}
+            className={
+              ignite
+                ? "ignite font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl"
+                : "mt-1 font-mono text-sm leading-none tracking-tight tabular-nums sm:text-base"
+            }
             data-value={ignite ? item.value : undefined}
           >
             {item.href ? (
