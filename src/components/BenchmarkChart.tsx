@@ -6,8 +6,9 @@ import { benchmarkChart } from "@/content";
 /**
  * The finding, drawn: mean wait by scheduling policy on the SDSC SP2 trace.
  * The two marked rows are the result — the XGBoost scheduler and its own
- * ML-free control land on the same number — so they are the only rows
- * pulled out of the ground by inversion.
+ * ML-free control land on the same number — so only their values ignite.
+ * Ember marks the number, never the bar: every bar stays signal-coloured,
+ * highlighted ones at full opacity and the rest at 0.55.
  *
  * Bars grow once, on approach, as part of the page's single motion budget.
  */
@@ -81,14 +82,7 @@ export default function BenchmarkChart() {
         </thead>
         <tbody>
           {benchmarkChart.policies.map((p, i) => (
-            <tr
-              key={p.name}
-              className={
-                p.highlight
-                  ? "bg-signal text-ground"
-                  : "border-b border-rule-soft"
-              }
-            >
+            <tr key={p.name} className="border-b border-rule-soft">
               <th
                 scope="row"
                 className="w-full py-2.5 pr-4 pl-2 text-left font-mono text-[0.8125rem] leading-tight font-normal sm:w-[15rem] sm:min-w-[15rem]"
@@ -97,9 +91,9 @@ export default function BenchmarkChart() {
               </th>
               <td className="py-2.5 pr-2 align-middle sm:w-full">
                 <span className="flex items-center gap-3">
-                  <span className="relative block h-2.5 grow bg-current/12">
+                  <span className="relative block h-2.5 grow bg-signal/12">
                     <span
-                      className="bar-grow absolute inset-y-0 left-0 block bg-current"
+                      className={`bar-grow absolute inset-y-0 left-0 block ${p.highlight ? "bg-signal" : "bg-signal/55"}`}
                       style={
                         {
                           width: `${(p.wait / max) * 100}%`,
@@ -108,7 +102,10 @@ export default function BenchmarkChart() {
                       }
                     />
                   </span>
-                  <span className="w-14 shrink-0 text-right font-mono text-sm tabular-nums">
+                  <span
+                    className={`w-14 shrink-0 text-right font-mono text-sm tabular-nums ${p.highlight ? "ignite" : ""}`}
+                    data-value={p.highlight ? p.wait.toFixed(1) : undefined}
+                  >
                     {p.wait.toFixed(1)}
                   </span>
                 </span>

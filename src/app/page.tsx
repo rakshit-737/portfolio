@@ -18,6 +18,7 @@ import {
   achievements,
   acts,
   archive,
+  benchmarkChart,
   contact,
   education,
   featuredProjects,
@@ -275,20 +276,19 @@ export default async function Home() {
           );
         })}
 
-        {/* ── Research: the negative result, inverted out of the page ── */}
-        <section
+        <Act
           id="research"
-          aria-labelledby="research-title"
-          className="negative py-16 sm:py-24"
+          label={acts.research.label}
+          lamp={plates[acts.research.plate].lamp}
+          className="flex items-center"
         >
-          <div className={SHELL}>
-            <SectionHead id="research" title="Research" />
+          <Plate id={acts.research.plate} />
 
-            <figure className="mt-12 grid gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-              <blockquote
-                className="font-mono leading-[1.18] font-medium tracking-[-0.035em]"
-                style={{ fontSize: "clamp(1.35rem, 3.1vw, 2.35rem)" }}
-              >
+          <div className={`${SHELL} scrim relative z-10 py-24`}>
+            <Statement id="research-title">{acts.research.statement}</Statement>
+
+            <figure className="mt-10 grid gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+              <blockquote className="prose-field text-lg">
                 {researchSpotlight.quote}
               </blockquote>
               <figcaption className="prose-field text-sm lg:pt-2">
@@ -298,14 +298,21 @@ export default async function Home() {
 
             <BenchmarkChart />
 
-            <div className="print-hidden mt-10">
+            <Provenance
+              className="mt-8"
+              segments={withCredit(acts.research.plate, [
+                { label: benchmarkChart.source },
+              ])}
+            />
+
+            <div className="print-hidden mt-8">
               <BracketLink href={researchSpotlight.repoUrl} external>
                 View the study
                 <ArrowUpRight size={12} aria-hidden="true" />
               </BracketLink>
             </div>
           </div>
-        </section>
+        </Act>
 
         {/* ── Archive ───────────────────────────────────────────────── */}
         <section
