@@ -3,6 +3,8 @@
  * Edit copy here — components only render what this file exports.
  */
 
+import type { PlateId } from "@/lib/art";
+
 /** Pass/fail only — reserved for verifiable outcomes (tests, CI). */
 export type ChipTone = "pass" | "fail";
 
@@ -683,3 +685,33 @@ export const navSections = [
   { id: "education", label: "Education" },
   { id: "contact", label: "Contact" },
 ] as const;
+
+export type ActId =
+  | "hero"
+  | "about"
+  | "warden"
+  | "scheduler"
+  | "plantpal"
+  | "research"
+  | "ledger"
+  | "contact";
+
+/**
+ * The eight acts of the landing page. `statement` is the single display
+ * line each act carries — every one approved by the owner and traceable
+ * to copy elsewhere in this file or to a linked repo. `plate` names the
+ * painting the act is set in (see src/lib/art.ts).
+ */
+export const acts: Record<
+  ActId,
+  { label: string; statement: string; plate: PlateId }
+> = {
+  hero: { label: "act 01 — the record", statement: "Rakshit Rameshbabu", plate: "airpump" },
+  about: { label: "act 02 — the work", statement: "End to end, from written requirements to CI-tested deployments.", plate: "alchemist" },
+  warden: { label: "act 03 — warden", statement: "Judges what a package would actually do.", plate: "forge" },
+  scheduler: { label: "act 04 — the scheduler", statement: "The answer is a proven negative result.", plate: "orrery" },
+  plantpal: { label: "act 05 — plantpal+", statement: "No second implementation to drift.", plate: "kitten" },
+  research: { label: "act 06 — the finding", statement: "The honest baseline is not FIFO.", plate: "anatomy" },
+  ledger: { label: "act 07 — the ledger", statement: "Everything public lives on GitHub.", plate: "dovedale" },
+  contact: { label: "act 08 — the close", statement: "Open to internships and full-time roles in software and security engineering.", plate: "academy" },
+};
