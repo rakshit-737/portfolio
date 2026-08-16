@@ -119,50 +119,6 @@ section[id] {
   stroke: var(--color-signal);
 }
 
-/* Retained from the Datamatics Field design: BarField.tsx, page.tsx and
-   projects/[id]/page.tsx still render these masks. Remove once those
-   components are rebuilt for Lamplight. */
-.field-mask {
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 12%,
-    #000 40%,
-    #000 76%,
-    rgb(0 0 0 / 0.22) 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 12%,
-    #000 40%,
-    #000 76%,
-    rgb(0 0 0 / 0.22) 100%
-  );
-}
-.field-mask-wide {
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 34%,
-    #000 68%,
-    #000 88%,
-    rgb(0 0 0 / 0.25) 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 34%,
-    #000 68%,
-    #000 88%,
-    rgb(0 0 0 / 0.25) 100%
-  );
-}
-.field-mask-soft {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 68%);
-  mask-image: linear-gradient(to right, transparent, #000 68%);
-}
-
 /* Barcode end-caps on controls. */
 .cap {
   background-image: repeating-linear-gradient(
@@ -373,10 +329,6 @@ section[id] {
     background: #fff;
     color: #08070a;
   }
-  .negative {
-    --color-ground: #ffffff;
-    --color-signal: #08070a;
-  }
   /* Full-bleed paintings cost a cartridge and prove nothing on paper. */
   .plate,
   .scrim::before,
@@ -446,14 +398,4 @@ section[id] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* Temporary: removed in Task 9 when the last .negative region is rewritten. */
-.negative {
-  --color-ground: #f2ede3;
-  --color-signal: #08070a;
-  --color-rule: rgb(8 7 10 / 0.3);
-  --color-rule-soft: rgb(8 7 10 / 0.13);
-  background: var(--color-ground);
-  color: var(--color-signal);
 }

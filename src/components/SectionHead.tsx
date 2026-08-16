@@ -1,10 +1,8 @@
-import BarField from "@/components/BarField";
-
 /**
  * A section opens the way a channel opens in this world: a title, a rule
- * that runs to the edge as a bar field, and — when there is one — a
- * measurement of what the section contains. No eyebrows, no numbering:
- * the heading carries itself.
+ * that runs to the edge, and — when there is one — a measurement of what
+ * the section contains. No eyebrows, no numbering: the heading carries
+ * itself.
  */
 export default function SectionHead({
   id,
@@ -23,11 +21,9 @@ export default function SectionHead({
       >
         {title}
       </h2>
-      <BarField
-        seed={`head-${id}`}
-        density={0.55}
-        height={16}
-        className="hidden h-4 min-w-0 grow opacity-55 sm:block"
+      <span
+        aria-hidden="true"
+        className="hidden h-px min-w-0 grow self-center bg-rule sm:block"
       />
       {meta && (
         <p className="label ml-auto shrink-0 sm:ml-0">{meta}</p>

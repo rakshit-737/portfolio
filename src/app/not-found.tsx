@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import BarField from "@/components/BarField";
 import { BracketLink } from "@/components/Bracket";
 import Provenance from "@/components/Provenance";
 import { withBase } from "@/lib/base";
@@ -11,12 +10,6 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <main className="relative flex min-h-dvh flex-col justify-center overflow-hidden">
-      <BarField
-        seed="not-found"
-        density={0.9}
-        height={100}
-        className="field-mask-soft pointer-events-none absolute inset-y-0 right-0 h-full w-full opacity-40"
-      />
       <div className="relative mx-auto w-full max-w-[100rem] px-5 sm:px-8 lg:px-12">
         <Provenance
           segments={[
