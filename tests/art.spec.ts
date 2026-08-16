@@ -40,19 +40,6 @@ test("every plate can serve at least the smallest tier without upscaling", () =>
   }
 });
 
-test("the tiers a plate can serve are exactly those no wider than its crop", () => {
-  for (const p of Object.values(plates)) {
-    const cropWidthPx = Math.round(p.native.w * p.crop.w);
-    const servable = PLATE_WIDTHS.filter((w) => w <= cropWidthPx);
-    expect(servable.length, `${p.id} serves no tier`).toBeGreaterThan(0);
-    for (const w of servable) {
-      expect(w, `${p.id} would upscale to ${w}px from ${cropWidthPx}px`).toBeLessThanOrEqual(
-        cropWidthPx,
-      );
-    }
-  }
-});
-
 test("lamp rest positions are inside the frame", () => {
   for (const p of Object.values(plates)) {
     expect(p.lamp.x).toBeGreaterThanOrEqual(0);
