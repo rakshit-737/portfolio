@@ -2526,6 +2526,57 @@ Set `motion` for all eight, each drifting toward that painting's subject — for
 Dr Tulp is holding open. Keep the scale range modest (`1.0` → `1.12`); a
 painting is not a drone shot.
 
+- [ ] **Step 3b: Narrow crops, carried forward from Task 14c**
+
+**Added 2026-08-17.** Task 14c proved that the vertical half of every plate's
+`framing` descriptor is inert: all eight crops are landscape (aspect ~1.24–1.52)
+while every mobile act container is far more portrait, so `object-fit: cover` is
+height-bound and no `object-position` Y value can move the frame. The visible
+consequence is the `about` act — Wright's *Alchemist* — reading weak on mobile,
+because the flask that is the whole point of the painting sits outside the band
+a phone shows.
+
+The fix belongs to the art pipeline, and this task already re-runs it.
+
+Add an optional second crop to the registry in `src/lib/art.ts`:
+
+```ts
+  /** A portrait-friendly crop for narrow viewports. Optional: set it only
+   *  for plates whose subject falls outside the band a phone shows under
+   *  the landscape crop. Same coordinate space as `crop`. */
+  cropNarrow?: { x: number; y: number; w: number; h: number };
+```
+
+In `scripts/fetch-art.mjs`, emit `<id>-narrow-<width>.avif|webp` for any plate
+carrying `cropNarrow`, at 640 and 960 widths only (a phone never needs more),
+and lock them exactly like the others.
+
+In `Plate.tsx`, serve them first inside each `<picture>`:
+
+```tsx
+        <source
+          media="(max-width: 48rem)"
+          srcSet={narrowSrcset(id, "avif")}
+          type="image/avif"
+        />
+```
+
+with the landscape sources following, so a wide viewport never matches the
+narrow entry and a plate without `cropNarrow` behaves exactly as it does today.
+
+Set `cropNarrow` for `alchemist` first — frame it on the glowing flask and the
+kneeling figure. Then check the other seven on a 390×844 screenshot and set it
+for any whose subject is also cut. **Report which plates needed it and which did
+not, with the reasoning per plate** — this is per-painting judgement, not a
+blanket transform.
+
+Then re-verify: the narrow variants must appear in `art.lock.json`, the
+file→lock check must stay clean, and the image budget must still measure only
+what a given viewport actually downloads — a narrow variant and a wide variant
+are alternatives, never both fetched, so the gate must not sum them. If the
+budget script would double-count them, fix it the same way it was fixed for
+AVIF/WebP.
+
 - [ ] **Step 4: Emit the WebM**
 
 In `scripts/fetch-art.mjs`, after the still variants, render the drift with
