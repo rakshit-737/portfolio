@@ -33,6 +33,10 @@ export interface Plate {
   crop: { x: number; y: number; w: number; h: number };
   lamp: { x: number; y: number };
   alt: string;
+  /** Where the painting sits inside the act box, per axis, as a CSS
+   *  object-position. Chosen so the subject lands clear of the text
+   *  column — right-of-centre on wide screens, upper half on narrow. */
+  framing: { wide: string; narrow: string };
 }
 
 /** Widths emitted per plate. A variant is skipped when it would upscale. */
@@ -57,6 +61,7 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0, w: 1, h: 0.9 },
     lamp: { x: 0.5, y: 0.62 },
     alt: "A candlelit room of onlookers watching a demonstrator withdraw the air from a glass globe containing a bird, their faces caught between fascination and dread.",
+    framing: { wide: "62% 50%", narrow: "50% 38%" },
   },
   alchemist: {
     id: "alchemist",
@@ -70,6 +75,7 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.16, w: 1, h: 0.62 },
     lamp: { x: 0.46, y: 0.55 },
     alt: "An alchemist kneeling alone at night in a vaulted room, hands raised before a flask that has begun to glow.",
+    framing: { wide: "62% 82%", narrow: "58% 22%" },
   },
   forge: {
     id: "forge",
@@ -85,6 +91,7 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.06, w: 1, h: 0.84 },
     lamp: { x: 0.44, y: 0.58 },
     alt: "A working forge at night, a white-hot ingot on the anvil throwing hard light across the smith, his family, and the timber frame of the shop.",
+    framing: { wide: "72% 55%", narrow: "56% 24%" },
   },
   orrery: {
     id: "orrery",
@@ -98,6 +105,7 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0, w: 1, h: 0.94 },
     lamp: { x: 0.52, y: 0.54 },
     alt: "A philosopher lecturing on a brass orrery, a lamp standing in for the sun at its centre and lighting the listening faces from below.",
+    framing: { wide: "58% 45%", narrow: "50% 26%" },
   },
   kitten: {
     id: "kitten",
@@ -114,6 +122,7 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.2, w: 1, h: 0.58 },
     lamp: { x: 0.5, y: 0.6 },
     alt: "Two girls bent over a kitten by candlelight, absorbed in a small domestic ritual repeated night after night.",
+    framing: { wide: "64% 42%", narrow: "56% 30%" },
   },
   anatomy: {
     id: "anatomy",
@@ -129,6 +138,7 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0, w: 1, h: 0.95 },
     lamp: { x: 0.42, y: 0.6 },
     alt: "Surgeons crowded around a dissection table as Dr Tulp lifts the tendons of a forearm with forceps, everyone watching the evidence rather than the body.",
+    framing: { wide: "68% 56%", narrow: "54% 28%" },
   },
   dovedale: {
     id: "dovedale",
@@ -145,6 +155,7 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.08, w: 1, h: 0.8 },
     lamp: { x: 0.62, y: 0.36 },
     alt: "A river valley under a full moon, the water carrying a cold band of reflected light between dark banks.",
+    framing: { wide: "64% 32%", narrow: "58% 18%" },
   },
   academy: {
     id: "academy",
@@ -161,6 +172,7 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.18, w: 1, h: 0.6 },
     lamp: { x: 0.38, y: 0.44 },
     alt: "Students gathered close around a single lamp to draw a classical statue, the light falling hardest on the work in front of them.",
+    framing: { wide: "56% 40%", narrow: "50% 22%" },
   },
 };
 

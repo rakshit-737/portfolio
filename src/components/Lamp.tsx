@@ -23,6 +23,10 @@ export default function Lamp() {
 
     const root = document.documentElement;
     const fine = window.matchMedia("(pointer: fine)").matches;
+    // Captured once on mount: on narrow screens the copy sits at the
+    // bottom of the frame rather than the left, so the bias below swaps
+    // from "push the light right" to "push the light up".
+    const narrow = window.matchMedia("(max-width: 48rem)").matches;
 
     let acts: HTMLElement[] = [];
     const visible = new Set<HTMLElement>();
@@ -45,8 +49,15 @@ export default function Lamp() {
       (entries) => {
         for (const e of entries) {
           const el = e.target as HTMLElement;
-          if (e.isIntersecting) visible.add(el);
-          else visible.delete(el);
+          if (e.isIntersecting) {
+            visible.add(el);
+            // One authored beat per act, on first arrival, never replayed:
+            // the attribute is only ever added, never removed, so the
+            // copy-reveal CSS it gates never re-triggers on a later pass.
+            if (!el.hasAttribute("data-seen")) el.setAttribute("data-seen", "");
+          } else {
+            visible.delete(el);
+          }
         }
       },
       { rootMargin: "10% 0px" },
@@ -80,8 +91,14 @@ export default function Lamp() {
         const span = r.height + vh;
         const p = Math.min(1, Math.max(0, (vh - r.top) / span));
 
-        const restX = Number(act.dataset.lampX ?? 0.5);
-        const restY = Number(act.dataset.lampY ?? 0.5);
+        const rawX = Number(act.dataset.lampX ?? 0.5);
+        const rawY = Number(act.dataset.lampY ?? 0.5);
+        // The painting's light source is where the lamp *wants* to sit,
+        // but the text column owns the left of the frame on wide screens
+        // and the bottom of the frame on narrow ones — push the rest
+        // position into whichever half is actually open.
+        const restX = narrow ? rawX : Math.max(0.52, rawX);
+        const restY = narrow ? Math.min(0.38, rawY) : rawY;
 
         // Scroll walks the light down the frame around its rest position;
         // the pointer nudges it, but never takes it over.

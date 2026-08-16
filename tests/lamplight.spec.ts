@@ -173,6 +173,81 @@ const ACTS = [
   "contact",
 ];
 
+// Task 14c: the copy fades in once per act, gated on `[data-lamp="on"]` —
+// the exact same gate the mask itself uses. No JS, or reduced motion, means
+// `data-lamp` is never set, so the hidden (`opacity: 0`) state in
+// globals.css never applies and the copy is simply present from first
+// paint. Playwright's `toBeVisible()` does not inspect opacity, so these
+// assert the actual computed value rather than trusting visibility alone.
+test("with JavaScript disabled every act's copy is opaque from first paint", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.locator("html")).not.toHaveAttribute("data-lamp", "on");
+  for (const id of ACTS) {
+    const statement = page.locator(`#${id} .statement`).first();
+    const opacity = await statement.evaluate(
+      (el) => getComputedStyle(el).opacity,
+    );
+    expect(
+      Number(opacity),
+      `act ${id} statement is not opaque with JavaScript disabled`,
+    ).toBe(1);
+  }
+  await ctx.close();
+});
+
+test("reduced motion shows every act's copy immediately, with no beat to wait for", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.locator("html")).not.toHaveAttribute("data-lamp", "on");
+  for (const id of ACTS) {
+    const statement = page.locator(`#${id} .statement`).first();
+    const opacity = await statement.evaluate(
+      (el) => getComputedStyle(el).opacity,
+    );
+    expect(
+      Number(opacity),
+      `act ${id} statement is not opaque under reduced motion`,
+    ).toBe(1);
+  }
+  await ctx.close();
+});
+
+// One authored beat per act, on first arrival, never replayed. Lamp.tsx
+// sets `data-seen` in its existing IntersectionObserver callback and never
+// removes it, so scrolling an act out of view and back does not re-hide or
+// re-fade its copy.
+test("the copy reveal fires once and does not replay on scrolling back", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const act = page.locator("#warden");
+  const statement = act.locator(".statement").first();
+
+  await act.scrollIntoViewIfNeeded();
+  await expect(act).toHaveAttribute("data-seen", "");
+  await expect(statement).toHaveCSS("opacity", "1");
+
+  // Scroll back to the top, away from the act, then return to it.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(100);
+  // `data-seen` persists — the attribute is only ever added, never removed.
+  await expect(act).toHaveAttribute("data-seen", "");
+
+  await act.scrollIntoViewIfNeeded();
+  // Still opaque, immediately — no re-fade from opacity 0 on the return
+  // pass. (If the beat had replayed, this would still resolve to 1 once
+  // the transition finished, so the meaningful guard is `data-seen` above:
+  // its persistence is what proves the CSS gate can't re-fire.)
+  await expect(statement).toHaveCSS("opacity", "1");
+});
+
 for (const id of ACTS) {
   // Layout guard, not a contrast measurement: confirms the `.scrim` rule
   // is present and that the act's copy stays inside the band it covers.
@@ -182,7 +257,11 @@ for (const id of ACTS) {
     await page.goto("/");
     const act = page.locator(`#${id}`);
     await act.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(150);
+    // The copy fades in on first arrival (Task 14c) — wait for the beat to
+    // resolve rather than sampling it mid-transition.
+    await expect(
+      act.locator(".statement, .prose-field, .label").first(),
+    ).toHaveCSS("opacity", "1");
 
     const sample = await act.evaluate((el) => {
       const text = el.querySelector<HTMLElement>(
@@ -214,22 +293,23 @@ for (const id of ACTS) {
 // The sampled region includes the statement's own glyphs (bone-on-ground),
 // which pulls the mean lighter than the true background alone — so this is
 // a conservative test: it can only be harder to pass than measuring the
-// bare background would be, never easier. THRESHOLD (0.30) was set by
-// running this over the built site: every act's real region measured
-// between 0.0186 (research) and 0.0356 (hero) — see task-14-report.md for
-// the full set — so 0.30 leaves roughly 8x headroom over the worst real
-// act. That headroom is wide because the plates are currently very dark
-// everywhere behind the text, not only where the scrim protects them: the
-// unlit `.plate-dark` layer sits at `brightness(0.18)` on paintings whose
-// shadow regions are already near-black in the source crop, a known,
-// separately-tracked condition (the plates read as "effectively invisible"
-// until a later brightness/framing pass). Disabling the scrim, and even
-// the dark layer's own dimming filter, barely moved the measured value in
-// this state — see task-14-report.md for the numbers. The threshold is
-// still meaningful: it is set from the real measured range with real
-// headroom, and a regression that actually brightens what's behind the
-// text (the failure mode this gate exists for) will cross it.
-const CONTRAST_LUMINANCE_CEILING = 0.3;
+// bare background would be, never easier.
+//
+// THRESHOLD (0.10) was set after Task 14c raised the plate brightness floor
+// (`.plate-dark` 0.18 → 0.42), widened the lamp's reveal, and pulled the
+// scrim back to a lighter, narrower band. Re-ran this over the built site
+// four times back to back — every act's real region measured identically
+// each run: 0.0228 (plantpal, research) to 0.0471 (ledger). 0.10 is ~2.1x
+// the worst real act, not the ~8x headroom the previous (pre-14c) threshold
+// carried — deliberately tight, because Task 14's own gate was not yet
+// catching the defect it existed to catch (see the break-and-restore notes
+// in task-14c-report.md). A run-to-run reproducibility note: the copy now
+// fades in once per act (Task 14c, gated on `data-seen`); the tests above
+// wait for `opacity: 1` before sampling, or a statement caught mid-fade
+// reads as noisy, occasionally spiking the measured luminance well above
+// its settled value — that mechanism, not the plate itself, was the
+// earlier source of run-to-run variance during development.
+const CONTRAST_LUMINANCE_CEILING = 0.1;
 
 for (const id of ACTS) {
   test(`text in act ${id} clears AA contrast behind its statement`, async ({
@@ -239,7 +319,11 @@ for (const id of ACTS) {
     const act = page.locator(`#${id}`);
     const statement = act.locator(".statement").first();
     await statement.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(150);
+    // The copy fades in on first arrival (Task 14c) — wait for the beat to
+    // resolve fully before sampling, or the mid-transition, partially
+    // transparent glyphs make this measurement noisy and occasionally
+    // spike well above the settled value.
+    await expect(statement).toHaveCSS("opacity", "1");
 
     const box = await statement.boundingBox();
     expect(box, `act ${id} has no statement to sample`).not.toBeNull();

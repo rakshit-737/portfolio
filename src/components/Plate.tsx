@@ -43,7 +43,13 @@ export default function Plate({
   return (
     <div
       className="plate print-drop"
-      style={{ backgroundImage: `url("${lqip(id)}")` }}
+      style={
+        {
+          backgroundImage: `url("${lqip(id)}")`,
+          "--framing-wide": plate.framing.wide,
+          "--framing-narrow": plate.framing.narrow,
+        } as React.CSSProperties
+      }
       aria-hidden={false}
     >
       {/* The lit layer carries the alt text: it is the one that renders

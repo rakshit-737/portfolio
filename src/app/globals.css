@@ -151,9 +151,17 @@ section[id] {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Per-plate framing (src/lib/art.ts) — keeps the painting's subject
+     clear of the text column instead of defaulting to dead centre. */
+  object-position: var(--framing-wide, 50% 50%);
   /* Scroll pushes the frame in, very slightly. Free — no layout. */
   transform: scale(calc(1.04 + var(--p, 0) * 0.06));
   transform-origin: center;
+}
+@media (max-width: 48rem) {
+  .plate img {
+    object-position: var(--framing-narrow, 50% 50%);
+  }
 }
 .plate-dark {
   display: none;
@@ -161,21 +169,26 @@ section[id] {
 
 [data-lamp="on"] .plate-dark {
   display: block;
-  filter: brightness(0.18) saturate(0.7);
+  /* A Wright of Derby is already mostly black. 0.18 erased it; this keeps
+     the unlit field clearly subordinate while leaving the painting legible
+     as a painting. */
+  filter: brightness(0.42) saturate(0.85);
 }
 [data-lamp="on"] .plate-lit {
-  --lamp-r: calc(18vmax + min(var(--p, 0), 1 - var(--p, 0)) * 32vmax);
+  /* A pool, not a spot — the lit region has to be big enough to carry a
+     subject, not just graze it. */
+  --lamp-r: calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax);
   -webkit-mask-image: radial-gradient(
     circle var(--lamp-r) at var(--lamp-x, 50%) var(--lamp-y, 50%),
     #000 0%,
-    #000 38%,
-    transparent 78%
+    #000 46%,
+    transparent 88%
   );
   mask-image: radial-gradient(
     circle var(--lamp-r) at var(--lamp-x, 50%) var(--lamp-y, 50%),
     #000 0%,
-    #000 38%,
-    transparent 78%
+    #000 46%,
+    transparent 88%
   );
 }
 
@@ -192,8 +205,8 @@ section[id] {
   background: linear-gradient(
     to right,
     var(--color-ground) 0%,
-    var(--color-ground) 42%,
-    transparent 100%
+    color-mix(in srgb, var(--color-ground) 92%, transparent) 30%,
+    transparent 62%
   );
   pointer-events: none;
 }
@@ -202,10 +215,42 @@ section[id] {
     background: linear-gradient(
       to top,
       var(--color-ground) 0%,
-      var(--color-ground) 62%,
-      transparent 100%
+      color-mix(in srgb, var(--color-ground) 90%, transparent) 42%,
+      transparent 78%
     );
   }
+}
+
+/* The copy resolves once, when its act first arrives. One authored beat,
+   never replayed — Lamp.tsx sets `data-seen` on an act's first
+   intersection and never removes it, so scrolling back past an act does
+   not re-hide or re-fade its copy.
+
+   The hidden state exists only once `data-lamp="on"` is set — the exact
+   same gate the mask itself uses. No JS, or reduced motion, means this
+   block never applies and the copy is simply present from first paint. */
+[data-lamp="on"] [data-act] .scrim > * {
+  opacity: 0;
+  transform: translateY(0.6rem);
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > * {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(2) {
+  transition-delay: 0.06s;
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(3) {
+  transition-delay: 0.12s;
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(4) {
+  transition-delay: 0.18s;
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(5) {
+  transition-delay: 0.24s;
 }
 
 /* A number ignites when the light reaches it. The ember copy is a
@@ -317,6 +362,13 @@ section[id] {
     height: auto !important;
     min-height: 0 !important;
     break-inside: avoid-page;
+  }
+  /* An act below the fold may never have intersected — and so never
+     earned `data-seen` — before the page was printed. Paper has no
+     scroll, so nothing here should be waiting on one. */
+  [data-act] .scrim > * {
+    opacity: 1 !important;
+    transform: none !important;
   }
   /* Retained: SineLattice.tsx still renders these classes. */
   .sine-draw,
