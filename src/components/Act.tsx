@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 
 /**
- * A sticky full-bleed act. The lamp finds it by `data-act` and writes
- * `--p`, `--lamp-x` and `--lamp-y` onto it each frame.
+ * A full-viewport act. The lamp finds it by `data-act` and writes `--p`
+ * (the act's own scroll progress), `--lamp-x` and `--lamp-y` onto it each
+ * frame; the light's travel comes from that progress, not from pinning.
  *
- * Sticky, not scroll-jacked: the page scrolls at native speed and the act
- * simply holds its position while its content passes. Nothing here
+ * Not scroll-jacked: the page scrolls at native speed and nothing here
  * intercepts wheel or touch events.
  */
 export default function Act({

@@ -46,17 +46,18 @@ export default function Plate({
       style={{ backgroundImage: `url("${lqip(id)}")` }}
       aria-hidden={false}
     >
-      {/* The dark layer carries the alt text: it is the one that exists
-          in every state, including when the mask is unsupported. */}
+      {/* The lit layer carries the alt text: it is the one that renders
+          in every state — no JS, reduced motion, or masked-and-lit — while
+          the dark layer only exists once `data-lamp="on"` is set. */}
       <picture>
         <source srcSet={srcset(id, "avif")} sizes="100vw" type="image/avif" />
         <source srcSet={srcset(id, "webp")} sizes="100vw" type="image/webp" />
-        <img className="plate-dark" src={fallback} alt={plate.alt} {...common} />
+        <img className="plate-lit" src={fallback} alt={plate.alt} {...common} />
       </picture>
       <picture>
         <source srcSet={srcset(id, "avif")} sizes="100vw" type="image/avif" />
         <source srcSet={srcset(id, "webp")} sizes="100vw" type="image/webp" />
-        <img className="plate-lit" src={fallback} alt="" aria-hidden="true" {...common} />
+        <img className="plate-dark" src={fallback} alt="" aria-hidden="true" {...common} />
       </picture>
     </div>
   );
