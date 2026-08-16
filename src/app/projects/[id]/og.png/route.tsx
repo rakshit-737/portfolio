@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { caseStudies, featuredProjects } from "@/content";
-import { OgBarField } from "@/lib/ogField";
+import { OG_BONE, OG_EMBER, OG_GROUND, OgChip } from "@/lib/ogField";
 import { ogFamily, ogFonts, ogText } from "@/lib/ogFonts";
 
 export const dynamic = "force-static";
@@ -11,7 +11,7 @@ export function generateStaticParams() {
     .map((p) => ({ id: p.id }));
 }
 
-/** Per-case-file OG card: the project's own field, name, and numbers. */
+/** Per-case-file OG card: ground, the project's name, and its numbers. */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -39,21 +39,11 @@ export async function GET(
           flexDirection: "column",
           justifyContent: "space-between",
           padding: 64,
-          backgroundColor: "#000",
-          color: "#fff",
+          backgroundColor: OG_GROUND,
+          color: OG_BONE,
           fontFamily: mono,
-          position: "relative",
         }}
       >
-        <OgBarField
-          seed={`og-${id}`}
-          width={1200}
-          height={630}
-          density={1.1}
-          opacity={0.3}
-          style={{ position: "absolute", left: 0, top: 0 }}
-        />
-
         <div
           style={{
             display: "flex",
@@ -64,15 +54,7 @@ export async function GET(
             textTransform: "uppercase",
           }}
         >
-          <span
-            style={{
-              backgroundColor: "#fff",
-              color: "#000",
-              padding: "4px 10px",
-            }}
-          >
-            case file
-          </span>
+          <OgChip>case file</OgChip>
           <span>{strip}</span>
         </div>
 
@@ -105,7 +87,7 @@ export async function GET(
             display: "flex",
             alignItems: "flex-end",
             gap: 56,
-            borderTop: "1px solid rgba(255,255,255,0.35)",
+            borderTop: `2px solid ${OG_EMBER}`,
             paddingTop: 26,
           }}
         >

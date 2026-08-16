@@ -171,10 +171,7 @@ export default async function CaseStudyPage({
           </div>
         </div>
 
-        <section
-          aria-label="Case file header"
-          className="relative overflow-hidden"
-        >
+        <section aria-label="Case file header">
           <div
             className={`${SHELL} relative grid gap-x-10 gap-y-10 pt-14 pb-14 sm:pt-20 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_13rem]`}
           >
@@ -186,13 +183,7 @@ export default async function CaseStudyPage({
                 ])}
               />
               <div className="mt-7 min-w-0">
-                <p
-                  className="font-mono leading-[0.97] font-semibold tracking-[-0.03em]"
-                  style={{ fontSize: "clamp(1.9rem, 5.4vw, 3.5rem)" }}
-                >
-                  {project.name}
-                </p>
-                <p className="prose-field mt-6">{project.oneLiner}</p>
+                <p className="prose-field">{project.oneLiner}</p>
               </div>
 
               {project.headlineNumbers && (

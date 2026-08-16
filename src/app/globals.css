@@ -242,18 +242,8 @@ section[id] {
    the sine draws behind the name. Nothing else on this site animates on
    entry — no per-section reveal, no scattered hover motion.
 
-   Retained from the Datamatics Field design: SineLattice.tsx, BarField.tsx,
-   page.tsx and projects/[id]/page.tsx still render these classes. Remove
-   once those components are rebuilt for Lamplight. */
-
-@keyframes field-resolve {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
+   SineLattice.tsx (page.tsx and projects/[id]/page.tsx) still renders
+   sine-draw and node-in. */
 
 @keyframes sine-draw {
   from {
@@ -275,20 +265,6 @@ section[id] {
   }
 }
 
-@keyframes signal-in {
-  from {
-    opacity: 0;
-    transform: translateY(0.45em);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.field-resolve {
-  animation: field-resolve 1.15s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
 .sine-draw {
   stroke-dasharray: var(--len, 2400);
   animation: sine-draw 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
@@ -298,10 +274,6 @@ section[id] {
   transform-origin: center;
   animation: node-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: calc(0.9s + var(--i, 0) * 90ms);
-}
-.signal-in {
-  animation: signal-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: var(--d, 0s);
 }
 
 /* Benchmark bars measure a real quantity, so they grow from zero once. */
@@ -346,11 +318,9 @@ section[id] {
     min-height: 0 !important;
     break-inside: avoid-page;
   }
-  /* Retained: SineLattice.tsx and BarField.tsx still render these classes. */
-  .field-resolve,
+  /* Retained: SineLattice.tsx still renders these classes. */
   .sine-draw,
-  .node-in,
-  .signal-in {
+  .node-in {
     animation: none !important;
   }
   .bar-grow {
@@ -376,11 +346,9 @@ section[id] {
   .plate img {
     transform: none;
   }
-  /* Retained: SineLattice.tsx and BarField.tsx still render these classes. */
-  .field-resolve,
+  /* Retained: SineLattice.tsx still renders these classes. */
   .sine-draw,
-  .node-in,
-  .signal-in {
+  .node-in {
     animation: none !important;
   }
   .sine-draw {

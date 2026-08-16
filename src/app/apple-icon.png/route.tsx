@@ -1,8 +1,9 @@
 import { ImageResponse } from "next/og";
+import { OG_BONE, OG_GROUND } from "@/lib/ogField";
 
 export const dynamic = "force-static";
 
-/** The mark: a bar cluster on absolute black — the field, at icon size. */
+/** The mark: a bar cluster in bone on ground — the site's mark, at icon size. */
 const BARS: [number, number][] = [
   [28, 12],
   [47, 6],
@@ -22,7 +23,7 @@ export async function GET() {
           height: "100%",
           display: "flex",
           position: "relative",
-          backgroundColor: "#000",
+          backgroundColor: OG_GROUND,
         }}
       >
         {BARS.map(([x, w]) => (
@@ -34,7 +35,7 @@ export async function GET() {
               top: 34,
               width: w,
               height: 112,
-              backgroundColor: "#fff",
+              backgroundColor: OG_BONE,
             }}
           />
         ))}
