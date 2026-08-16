@@ -18,9 +18,7 @@ export default function Nav() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    // Sections observed but absent from the rail highlight their parent.
-    const spyAlias: Record<string, string> = { "more-projects": "projects" };
-    const ids = [...navSections.map((s) => s.id), ...Object.keys(spyAlias)];
+    const ids = navSections.map((s) => s.id);
     const sections = ids
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
@@ -29,7 +27,7 @@ export default function Nav() {
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            setActive(spyAlias[entry.target.id] ?? entry.target.id);
+            setActive(entry.target.id);
           }
         }
       },
@@ -70,6 +68,18 @@ export default function Nav() {
 
   const openPalette = () => window.dispatchEvent(new Event(OPEN_PALETTE_EVENT));
 
+  // scroll-behavior: smooth was dropped from <html> so it can't fight the
+  // lamp's own scroll mapping — restored per-call here instead.
+  const jumpTo = (id: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    document.getElementById(id)?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+    });
+    history.replaceState(null, "", `#${id}`);
+  };
+
   return (
     <header
       ref={headerRef}
@@ -93,6 +103,7 @@ export default function Nav() {
             <a
               key={s.id}
               href={`#${s.id}`}
+              onClick={jumpTo(s.id)}
               aria-current={active === s.id ? "location" : undefined}
               className={`label px-2.5 py-1.5 transition-colors ${
                 active === s.id
@@ -160,7 +171,10 @@ export default function Nav() {
                   className={`label border-b border-rule-soft px-2 py-3.5 last:border-b-0 ${
                     active === s.id ? "bg-signal text-ground" : ""
                   }`}
-                  onClick={() => setOpen(false)}
+                  onClick={(e) => {
+                    jumpTo(s.id)(e);
+                    setOpen(false);
+                  }}
                 >
                   {s.label}
                 </a>

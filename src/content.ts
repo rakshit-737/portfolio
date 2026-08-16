@@ -682,11 +682,11 @@ export const education: EducationEntry[] = [
 
 export const navSections = [
   { id: "about", label: "About" },
-  { id: "projects", label: "Projects" },
+  { id: "warden", label: "Warden" },
+  { id: "scheduler", label: "Scheduler" },
+  { id: "plantpal", label: "PlantPal+" },
   { id: "research", label: "Research" },
-  { id: "achievements", label: "Achievements" },
-  { id: "skills", label: "Skills" },
-  { id: "education", label: "Education" },
+  { id: "ledger", label: "Ledger" },
   { id: "contact", label: "Contact" },
 ] as const;
 

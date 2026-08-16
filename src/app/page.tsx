@@ -314,19 +314,22 @@ export default async function Home() {
           </div>
         </Act>
 
-        {/* ── Archive ───────────────────────────────────────────────── */}
-        <section
-          id="more-projects"
-          aria-labelledby="more-projects-title"
-          className="py-16 sm:py-24"
+        <Act
+          id="ledger"
+          label={acts.ledger.label}
+          lamp={plates[acts.ledger.plate].lamp}
+          className="!min-h-0"
         >
-          <div className={SHELL}>
-            <SectionHead
-              id="more-projects"
-              title="Archive"
-              meta={`${moreProjects.length} records`}
-            />
+          <div className="pointer-events-none absolute inset-0">
+            <div className="sticky top-0 h-[100svh]">
+              <Plate id={acts.ledger.plate} />
+            </div>
+          </div>
 
+          <div className={`${SHELL} scrim relative z-10 py-24`}>
+            <Statement id="ledger-title">{acts.ledger.statement}</Statement>
+
+            <h3 className="label mt-16 border-b border-rule pb-2">Archive</h3>
             <ul>
               {moreProjects.map((project, i) => (
                 <li
@@ -386,17 +389,8 @@ export default async function Home() {
                 </div>
               </li>
             </ul>
-          </div>
-        </section>
 
-        {/* ── Achievements ──────────────────────────────────────────── */}
-        <section
-          id="achievements"
-          aria-labelledby="achievements-title"
-          className="py-16 sm:py-24"
-        >
-          <div className={SHELL}>
-            <SectionHead id="achievements" title="Achievements" />
+            <h3 className="label mt-16 border-b border-rule pb-2">Achievements</h3>
             <ul>
               {achievements.map((a) => (
                 <li
@@ -424,13 +418,8 @@ export default async function Home() {
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
 
-        {/* ── Skills ────────────────────────────────────────────────── */}
-        <section id="skills" aria-labelledby="skills-title" className="py-16 sm:py-24">
-          <div className={SHELL}>
-            <SectionHead id="skills" title="Skills" />
+            <h3 className="label mt-16 border-b border-rule pb-2">Skills</h3>
             <dl className="mt-4">
               {skills.map(({ group, items }) => (
                 <div
@@ -453,17 +442,8 @@ export default async function Home() {
                 </div>
               ))}
             </dl>
-          </div>
-        </section>
 
-        {/* ── Education ─────────────────────────────────────────────── */}
-        <section
-          id="education"
-          aria-labelledby="education-title"
-          className="py-16 sm:py-24"
-        >
-          <div className={SHELL}>
-            <SectionHead id="education" title="Education" />
+            <h3 className="label mt-16 border-b border-rule pb-2">Education</h3>
             <ul>
               {education.map((e) => (
                 <li
@@ -483,8 +463,13 @@ export default async function Home() {
                 </li>
               ))}
             </ul>
+
+            <Provenance
+              className="mt-12"
+              segments={withCredit(acts.ledger.plate, [...archive.evidence])}
+            />
           </div>
-        </section>
+        </Act>
 
         {/* ── Contact: the close ────────────────────────────────────── */}
         <section

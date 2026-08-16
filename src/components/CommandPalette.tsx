@@ -91,11 +91,10 @@ export default function CommandPalette() {
 
   const commands = useMemo<Command[]>(() => {
     const jump = (id: string) => () => {
-      const reduced = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
       document.getElementById(id)?.scrollIntoView({
-        behavior: reduced ? "auto" : "smooth",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
         block: "start",
       });
       history.replaceState(null, "", `#${id}`);
@@ -113,12 +112,7 @@ export default function CommandPalette() {
         .map((p) => ({ name: p.name.split("—")[0].trim(), url: p.repoUrl! })),
     ];
 
-    // navSections omits the archive section (nav highlights its parent);
-    // the index lists it explicitly so every numbered section is reachable.
-    const sections = [
-      ...navSections.map((s) => ({ id: s.id, label: s.label })),
-      { id: "more-projects", label: "More Projects" },
-    ];
+    const sections = navSections.map((s) => ({ id: s.id, label: s.label }));
 
     return [
       ...sections.map((s) => ({

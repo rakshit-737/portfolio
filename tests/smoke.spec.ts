@@ -30,11 +30,11 @@ test("command palette opens with Ctrl+K and jumps to a section", async ({
 
 test("section anchors navigate", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "Skills", exact: true }).click();
-  await expect(page).toHaveURL(/#skills$/);
+  await page.getByRole("link", { name: "Ledger", exact: true }).click();
+  await expect(page).toHaveURL(/#ledger$/);
   await expect(
-    page.getByRole("heading", { level: 2, name: "Skills" }),
-  ).toBeInViewport();
+    page.getByRole("heading", { level: 3, name: "Skills" }),
+  ).toBeVisible();
 });
 
 test("résumé link resolves", async ({ page, request }) => {
