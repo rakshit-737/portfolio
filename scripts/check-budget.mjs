@@ -32,13 +32,27 @@ for (const pagePath of pages) {
 // This Next.js/React build renders the JSX `srcSet` prop verbatim as
 // `srcSet="…"` in the exported HTML rather than lowercasing it to the
 // standard `srcset` attribute — one of this version's breaking changes
-// from upstream React DOM. The match is case-insensitive so the gate
-// measures the real attribute either way.
+// from upstream React DOM. Matches below are case-insensitive so the
+// gate measures the real attribute either way.
+//
+// Each plate's <picture> (there are two, lit and dark, with identical
+// URLs — the `candidates` Set collapses that duplication) offers both an
+// AVIF and a WebP <source>. A browser only ever fetches ONE of them, so
+// counting both — as an earlier version of this script did by matching
+// every `srcset=` attribute independently — silently summed two
+// downloads that never both happen and inflated the measured weight by
+// roughly 80%. AVIF is listed first and wins in every browser that
+// supports it, so it is the honest worst case; a WebP-only browser
+// downloads strictly less than what is measured here.
 const IMAGE_BUDGET_KB = 3000;
 const html = readFileSync("out/index.html", "utf8");
 const candidates = new Set();
-for (const m of html.matchAll(/srcset="([^"]+)"/gi)) {
-  const entries = m[1]
+for (const m of html.matchAll(/<source\b[^>]*>/gi)) {
+  const tag = m[0];
+  if (!/type="image\/avif"/i.test(tag)) continue;
+  const srcsetMatch = tag.match(/srcset="([^"]+)"/i);
+  if (!srcsetMatch) continue;
+  const entries = srcsetMatch[1]
     .split(",")
     .map((s) => s.trim().split(/\s+/))
     .map(([url, w]) => ({ url, w: parseInt(w, 10) || 0 }));

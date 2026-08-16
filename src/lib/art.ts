@@ -33,18 +33,6 @@ export interface Plate {
   crop: { x: number; y: number; w: number; h: number };
   lamp: { x: number; y: number };
   alt: string;
-  /** Ceiling on emitted width tiers, independent of what the crop could
-   *  support. Unset means "ship every tier the crop doesn't upscale" —
-   *  the default, and correct for most plates. Only the landing page's
-   *  image-weight budget (scripts/check-budget.mjs) justifies setting
-   *  this lower: only the hero plate (the one rendered `priority` on
-   *  first paint) needs 2560, the rest are capped at 1920, and `kitten`
-   *  is capped further at 1280 because its candlelit grain compresses
-   *  far worse than the other plates' — its 1920 tier alone ran ~584 kB
-   *  across both formats, more than double any other plate's, and left
-   *  the landing page over budget even after every other plate had
-   *  already lost its 2560 tier. */
-  maxTier?: number;
 }
 
 /** Widths emitted per plate. A variant is skipped when it would upscale. */
@@ -69,9 +57,6 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0, w: 1, h: 0.9 },
     lamp: { x: 0.5, y: 0.62 },
     alt: "A candlelit room of onlookers watching a demonstrator withdraw the air from a glass globe containing a bird, their faces caught between fascination and dread.",
-    // The hero act's plate — the one shown `priority` on first paint of
-    // the landing page. It alone keeps the full 2560 tier.
-    maxTier: 2560,
   },
   alchemist: {
     id: "alchemist",
@@ -85,7 +70,6 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.16, w: 1, h: 0.62 },
     lamp: { x: 0.46, y: 0.55 },
     alt: "An alchemist kneeling alone at night in a vaulted room, hands raised before a flask that has begun to glow.",
-    maxTier: 1920,
   },
   forge: {
     id: "forge",
@@ -101,7 +85,6 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.06, w: 1, h: 0.84 },
     lamp: { x: 0.44, y: 0.58 },
     alt: "A working forge at night, a white-hot ingot on the anvil throwing hard light across the smith, his family, and the timber frame of the shop.",
-    maxTier: 1920,
   },
   orrery: {
     id: "orrery",
@@ -115,7 +98,6 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0, w: 1, h: 0.94 },
     lamp: { x: 0.52, y: 0.54 },
     alt: "A philosopher lecturing on a brass orrery, a lamp standing in for the sun at its centre and lighting the listening faces from below.",
-    maxTier: 1920,
   },
   kitten: {
     id: "kitten",
@@ -132,9 +114,6 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.2, w: 1, h: 0.58 },
     lamp: { x: 0.5, y: 0.6 },
     alt: "Two girls bent over a kitten by candlelight, absorbed in a small domestic ritual repeated night after night.",
-    // See the note on `maxTier` above — this plate's grain compresses
-    // unusually poorly, so it is capped a tier lower than its peers.
-    maxTier: 1280,
   },
   anatomy: {
     id: "anatomy",
@@ -150,7 +129,6 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0, w: 1, h: 0.95 },
     lamp: { x: 0.42, y: 0.6 },
     alt: "Surgeons crowded around a dissection table as Dr Tulp lifts the tendons of a forearm with forceps, everyone watching the evidence rather than the body.",
-    maxTier: 1920,
   },
   dovedale: {
     id: "dovedale",
@@ -167,7 +145,6 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.08, w: 1, h: 0.8 },
     lamp: { x: 0.62, y: 0.36 },
     alt: "A river valley under a full moon, the water carrying a cold band of reflected light between dark banks.",
-    maxTier: 1920,
   },
   academy: {
     id: "academy",
@@ -184,7 +161,6 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.18, w: 1, h: 0.6 },
     lamp: { x: 0.38, y: 0.44 },
     alt: "Students gathered close around a single lamp to draw a classical statue, the light falling hardest on the work in front of them.",
-    maxTier: 1920,
   },
 };
 

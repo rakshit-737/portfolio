@@ -32,12 +32,6 @@ function record(name, buf, width, height) {
 }
 
 for (const plate of Object.values(plates)) {
-  // `maxTier` (src/lib/art.ts) caps emitted widths below whatever the crop
-  // itself would allow — a distribution-weight decision for the landing
-  // page's image budget, not a fact about the painting. See the field's
-  // doc comment for why each plate's value is what it is.
-  const widths = PLATE_WIDTHS.filter((w) => w <= (plate.maxTier ?? Infinity));
-
   console.log(`${plate.id}: fetching`);
   const res = await fetch(originalUrl(plate.commonsFile), {
     headers: { "User-Agent": UA },
@@ -62,7 +56,7 @@ for (const plate of Object.values(plates)) {
     height: Math.round(meta.height * plate.crop.h),
   };
 
-  for (const width of widths) {
+  for (const width of PLATE_WIDTHS) {
     // Never upscale. A plate whose crop is narrower than a tier simply
     // does not get that tier.
     if (width > box.width) {

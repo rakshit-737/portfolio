@@ -50,12 +50,10 @@ test("lamp rest positions are inside the frame", () => {
   }
 });
 
-test("the locked variants are exactly the tiers that do not upscale, capped by maxTier", () => {
+test("the locked variants are exactly the tiers that do not upscale", () => {
   for (const p of Object.values(plates)) {
     const cropWidthPx = Math.round(p.native.w * p.crop.w);
-    const expected = PLATE_WIDTHS.filter(
-      (w) => w <= cropWidthPx && w <= (p.maxTier ?? Infinity),
-    );
+    const expected = PLATE_WIDTHS.filter((w) => w <= cropWidthPx);
     const emitted = PLATE_WIDTHS.filter((w) => `${p.id}-${w}.avif` in lock);
     expect(emitted, `${p.id} avif tiers`).toEqual(expected);
     const emittedWebp = PLATE_WIDTHS.filter((w) => `${p.id}-${w}.webp` in lock);
