@@ -29,14 +29,27 @@ test("crop boxes stay inside the native frame", () => {
   }
 });
 
-test("no variant would upscale its source", () => {
+test("every plate can serve at least the smallest tier without upscaling", () => {
   for (const p of Object.values(plates)) {
     const cropWidthPx = Math.round(p.native.w * p.crop.w);
-    const largest = Math.max(
-      ...PLATE_WIDTHS.filter((w) => w <= cropWidthPx),
+    // A plate whose crop is narrower than the smallest tier could only be
+    // delivered by upscaling it — which the fetch script refuses to do.
+    expect(cropWidthPx, `${p.id} crop is ${cropWidthPx}px`).toBeGreaterThanOrEqual(
       PLATE_WIDTHS[0],
     );
-    expect(largest).toBeLessThanOrEqual(Math.max(cropWidthPx, PLATE_WIDTHS[0]));
+  }
+});
+
+test("the tiers a plate can serve are exactly those no wider than its crop", () => {
+  for (const p of Object.values(plates)) {
+    const cropWidthPx = Math.round(p.native.w * p.crop.w);
+    const servable = PLATE_WIDTHS.filter((w) => w <= cropWidthPx);
+    expect(servable.length, `${p.id} serves no tier`).toBeGreaterThan(0);
+    for (const w of servable) {
+      expect(w, `${p.id} would upscale to ${w}px from ${cropWidthPx}px`).toBeLessThanOrEqual(
+        cropWidthPx,
+      );
+    }
   }
 });
 
