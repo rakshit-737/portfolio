@@ -489,3 +489,46 @@ for (const id of ACTS) {
     ).toBeLessThan(CONTRAST_LUMINANCE_CEILING);
   });
 }
+
+// Task 14b: scroll-scrubbed plate motion. The hero act always ships motion
+// (it survives both the full eight-plate spread and the four-plate fallback
+// spread), so it's the fixed point these tests scrub against.
+test("the hero plate scrubs its video with scroll", async ({ page }) => {
+  await page.goto("/");
+  const video = page.locator("#hero video").first();
+  await expect(video).toHaveCount(1);
+  // The video must be inert on its own — scroll is the only clock.
+  expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
+  expect(await video.evaluate((v: HTMLVideoElement) => v.autoplay)).toBe(false);
+
+  const at = () => video.evaluate((v: HTMLVideoElement) => v.currentTime);
+  await page.waitForFunction(
+    () => (document.querySelector("#hero video") as HTMLVideoElement)?.readyState >= 1,
+  );
+  const before = await at();
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 0.7));
+  await page.waitForTimeout(200);
+  expect(await at()).not.toBe(before);
+});
+
+test("reduced motion renders the still plate and no video", async ({ browser }) => {
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.locator("video")).toHaveCount(0);
+  await expect(page.locator(".plate-lit").first()).toBeVisible();
+  await ctx.close();
+});
+
+test("without JavaScript no video is requested", async ({ browser }) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  const requested: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().endsWith(".webm")) requested.push(r.url());
+  });
+  await page.goto("/");
+  await expect(page.locator(".plate-lit").first()).toBeVisible();
+  expect(requested).toEqual([]);
+  await ctx.close();
+});

@@ -26,8 +26,10 @@ for (const pagePath of pages) {
   if (!ok) failed = true;
 }
 
-// Image weight on the landing page. Counts the largest srcset candidate
-// per plate — the worst case a wide viewport actually downloads.
+// Media weight on the landing page: stills plus the scroll-scrubbed motion
+// clips (Task 14b). Counts the largest srcset candidate per plate — the
+// worst case a wide viewport actually downloads — plus one motion webm per
+// plate that has one.
 //
 // This Next.js/React build renders the JSX `srcSet` prop verbatim as
 // `srcSet="…"` in the exported HTML rather than lowercasing it to the
@@ -44,11 +46,22 @@ for (const pagePath of pages) {
 // roughly 80%. AVIF is listed first and wins in every browser that
 // supports it, so it is the honest worst case; a WebP-only browser
 // downloads strictly less than what is measured here.
-const IMAGE_BUDGET_KB = 3000;
+//
+// Task 14b (narrow crops) adds a second kind of alternative: some plates
+// carry a `<source media="(max-width: 48rem)">` serving a narrow crop
+// ahead of the landscape one. A narrow and a wide source are exactly as
+// mutually exclusive as AVIF and WebP — a given viewport matches one media
+// query or the other, never both — so a `media`-gated `<source>` is
+// skipped here entirely. That never under-counts the true worst case: the
+// narrow variants are strictly smaller (640/960w) than the wide ones they
+// sit beside, and the viewport that skips them (anything wider than
+// 48rem) is, by construction, the one that downloads the most.
+const MEDIA_BUDGET_KB = 3500; // raised from 3000 when scrubbed motion landed
 const html = readFileSync("out/index.html", "utf8");
 const candidates = new Set();
 for (const m of html.matchAll(/<source\b[^>]*>/gi)) {
   const tag = m[0];
+  if (/\bmedia="/i.test(tag)) continue;
   if (!/type="image\/avif"/i.test(tag)) continue;
   const srcsetMatch = tag.match(/srcset="([^"]+)"/i);
   if (!srcsetMatch) continue;
@@ -59,19 +72,26 @@ for (const m of html.matchAll(/<source\b[^>]*>/gi)) {
   const widest = entries.sort((a, b) => b.w - a.w)[0];
   if (widest) candidates.add(widest.url);
 }
-let imageBytes = 0;
+// One motion clip per plate, if it has one. Rendered as `data-src` (not
+// `src`) so no browser ever fetches it without JavaScript promoting it —
+// see Plate.tsx / Lamp.tsx — but a visitor whose lamp does turn on
+// downloads exactly this file, once, so it counts toward the real ceiling.
+for (const m of html.matchAll(/data-src="([^"]+\.webm)"/gi)) {
+  candidates.add(m[1]);
+}
+let mediaBytes = 0;
 for (const url of candidates) {
   const rel = url.replace(/^\/+/, "").split("/");
   // Strip a basePath prefix if one was baked in.
   const artIndex = rel.indexOf("art");
   const path = join("out", ...(artIndex >= 0 ? rel.slice(artIndex) : rel));
-  imageBytes += readFileSync(path).length;
+  mediaBytes += readFileSync(path).length;
 }
-const imageKb = imageBytes / 1024;
-const imagesOk = imageKb <= IMAGE_BUDGET_KB;
+const mediaKb = mediaBytes / 1024;
+const mediaOk = mediaKb <= MEDIA_BUDGET_KB;
 console.log(
-  `${imagesOk ? "OK  " : "FAIL"} out/index.html: ${imageKb.toFixed(0)} kB images (budget ${IMAGE_BUDGET_KB} kB)`,
+  `${mediaOk ? "OK  " : "FAIL"} out/index.html: ${mediaKb.toFixed(0)} kB media (budget ${MEDIA_BUDGET_KB} kB)`,
 );
-if (!imagesOk) failed = true;
+if (!mediaOk) failed = true;
 
 process.exit(failed ? 1 : 0);

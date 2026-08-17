@@ -154,8 +154,10 @@ section[id] {
   /* Per-plate framing (src/lib/art.ts) — keeps the painting's subject
      clear of the text column instead of defaulting to dead centre. */
   object-position: var(--framing-wide, 50% 50%);
-  /* Scroll pushes the frame in, very slightly. Free — no layout. */
-  transform: scale(calc(1.04 + var(--p, 0) * 0.06));
+  /* Scroll pushes the frame in, very slightly. Free — no layout. Eased
+     (--pe), not linear (--p), so the push-in starts and stops gently
+     instead of snapping at the act boundary. */
+  transform: scale(calc(1.04 + var(--pe, 0) * 0.06));
   transform-origin: center;
 }
 @media (max-width: 48rem) {
@@ -167,6 +169,40 @@ section[id] {
   display: none;
 }
 
+/* Acts meet in the dark. Each plate fades into ground at its own top and
+   bottom edges, so scrolling from one painting into the next reads as a
+   dissolve rather than a hard cut. Static — not gated on `data-lamp` —
+   because it's a plain gradient, not motion. */
+.plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--color-ground) 0%,
+    transparent 14%,
+    transparent 86%,
+    var(--color-ground) 100%
+  );
+}
+
+/* The scroll-scrubbed motion layer. Absent from the DOM entirely (not
+   merely hidden) with no JavaScript and under reduced motion — see
+   Lamp.tsx and Plate.tsx. When present, it stays display:none until the
+   lamp is actually on, the same gate the mask itself uses. */
+.plate-motion {
+  display: none;
+}
+[data-lamp="on"] .plate-motion {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 [data-lamp="on"] .plate-dark {
   display: block;
   /* A Wright of Derby is already mostly black. 0.18 erased it; this keeps
@@ -174,7 +210,15 @@ section[id] {
      as a painting. */
   filter: brightness(0.32) saturate(0.85);
 }
-[data-lamp="on"] .plate-lit {
+/* `.plate-motion` paints above `.plate-lit` (document order), so it MUST
+   carry the identical mask or it would show the video at full brightness
+   across the whole frame — burying the dimmed `.plate-dark` layer beneath
+   it and erasing the lamp's reveal entirely. That is the same class of bug
+   the paint-order tests in tests/lamplight.spec.ts already guard against
+   for the two <picture> layers; this keeps the video inside that same
+   guarantee rather than sitting outside it. */
+[data-lamp="on"] .plate-lit,
+[data-lamp="on"] .plate-motion {
   /* A pool, not a spot — the lit region has to be big enough to carry a
      subject, not just graze it. */
   --lamp-r: calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax);
