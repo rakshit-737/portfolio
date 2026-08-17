@@ -119,6 +119,10 @@ export default function Lamp() {
             if (!el.hasAttribute("data-seen")) el.setAttribute("data-seen", "");
           } else {
             visible.delete(el);
+            const igniteEls = igniteByAct.get(el);
+            if (igniteEls) {
+              for (const item of igniteEls) item.classList.remove("is-lit");
+            }
           }
         }
       },

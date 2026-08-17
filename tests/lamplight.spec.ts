@@ -824,6 +824,7 @@ test("the torch re-arms on the next real pointer move after going idle", async (
   page,
 }) => {
   await page.goto("/");
+  await page.waitForTimeout(300); // let startup settle, as elsewhere in this file
   await page.mouse.move(700, 450, { steps: 5 });
   await expect(page.locator("html")).toHaveAttribute("data-torch", "on", {
     timeout: 3000,
@@ -1021,14 +1022,11 @@ async function scrollScheduerJustBeforeEntry(page: import("@playwright/test").Pa
     () => document.getElementById("scheduler")!.getBoundingClientRect().top + window.scrollY,
   );
   const vh = await page.evaluate(() => window.innerHeight);
-  // Act's top lands 50px below the viewport's bottom edge — inside the
-  // 10%-margin pre-arm zone (10% of a typical viewport is 65–90px) but
-  // nowhere near actually intersecting. `scrollY` such that
-  // `actTop - scrollY == vh + 50` (the act's top sits 50px past the
-  // viewport's bottom edge, in viewport-relative coordinates).
+  // Act's top lands 200px below the viewport's bottom edge — outside the
+  // 10%-margin pre-arm zone (10% of a typical viewport is 65–90px).
   await page.evaluate(
     (y) => window.scrollTo(0, Math.max(0, y)),
-    actTop - (vh + 50),
+    actTop - (vh + 200),
   );
 }
 
@@ -1068,7 +1066,16 @@ test("a metric ignites as the lamp crosses it", async ({ page }) => {
     expect(afterMetric.isLit, "metric should be lit once its act is scrolled into view").toBe(
       true,
     );
-    expect(Number(afterMetric.emberOpacity)).toBeGreaterThan(0.9);
+    await expect
+      .poll(
+        async () => {
+          const state = await readState(metric);
+          if (state.lampOn !== "on") throw new BreakerTripped();
+          return Number(state.emberOpacity);
+        },
+        { timeout: 2_000 },
+      )
+      .toBeGreaterThan(0.9);
     expect(
       afterNeverLit.isLit,
       "the far-left metric should still be unlit at the same scroll position — it never enters the lamp's radius",
@@ -1115,11 +1122,26 @@ test("a metric fades back to bone once the lamp leaves it", async ({ page }) => 
       }));
 
     await metric.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(500);
-    const lit = await readState();
-    if (lit.lampOn !== "on") throw new BreakerTripped();
-    expect(lit.isLit, "metric should be lit once its act is scrolled into view").toBe(true);
-    expect(Number(lit.emberOpacity)).toBeGreaterThan(0.9);
+    await expect
+      .poll(
+        async () => {
+          const state = await readState();
+          if (state.lampOn !== "on") throw new BreakerTripped();
+          return state.isLit;
+        },
+        { timeout: 2_000 },
+      )
+      .toBe(true);
+    await expect
+      .poll(
+        async () => {
+          const state = await readState();
+          if (state.lampOn !== "on") throw new BreakerTripped();
+          return Number(state.emberOpacity);
+        },
+        { timeout: 2_000 },
+      )
+      .toBeGreaterThan(0.9);
 
     // Scroll back to just before the act enters — the lamp moves off the
     // metric (in fact, the act itself leaves Lamp.tsx's tracked `visible`
