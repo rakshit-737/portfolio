@@ -100,8 +100,10 @@ section[id] {
   text-wrap: balance;
 }
 
-/* A metric inside a bullet. Mono, never dimmed, ignites under the lamp
-   via the ::after layer in the materials block below. */
+/* A metric inside a bullet — the single strongest number in a `**bold**`
+   run, rendered by Metric.tsx. Mono and semibold, never dimmed; body copy
+   has no contrast headroom for an ember ::after layer, so this does not
+   ignite. */
 .metric {
   position: relative;
   display: inline-block;
@@ -117,50 +119,6 @@ section[id] {
 }
 .stroke-mark {
   stroke: var(--color-signal);
-}
-
-/* Retained from the Datamatics Field design: BarField.tsx, page.tsx and
-   projects/[id]/page.tsx still render these masks. Remove once those
-   components are rebuilt for Lamplight. */
-.field-mask {
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 12%,
-    #000 40%,
-    #000 76%,
-    rgb(0 0 0 / 0.22) 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 12%,
-    #000 40%,
-    #000 76%,
-    rgb(0 0 0 / 0.22) 100%
-  );
-}
-.field-mask-wide {
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 34%,
-    #000 68%,
-    #000 88%,
-    rgb(0 0 0 / 0.25) 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 34%,
-    #000 68%,
-    #000 88%,
-    rgb(0 0 0 / 0.25) 100%
-  );
-}
-.field-mask-soft {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 68%);
-  mask-image: linear-gradient(to right, transparent, #000 68%);
 }
 
 /* Barcode end-caps on controls. */
@@ -195,31 +153,101 @@ section[id] {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Scroll pushes the frame in, very slightly. Free — no layout. */
-  transform: scale(calc(1.04 + var(--p, 0) * 0.06));
+  /* Scroll pushes the frame in, very slightly. Free — no layout. Eased
+     (--pe), not linear (--p), so the push-in starts and stops gently
+     instead of snapping at the act boundary. The motion video doesn't get
+     this: its own push-in is already baked into the encoded clip
+     (src/lib/art.ts `motion.from/to`), so an extra CSS scale here would
+     double it. */
+  transform: scale(calc(1.04 + var(--pe, 0) * 0.06));
   transform-origin: center;
+}
+/* Per-plate framing (src/lib/art.ts) — keeps the painting's subject clear
+   of the text column instead of defaulting to dead centre. Shared with
+   `.plate-motion` (fix round, Task 14b) rather than duplicated: the
+   encoded WebM's aspect ratio equals its crop's, so on any container whose
+   aspect differs, `object-fit: cover` alone crops toward centre — exactly
+   the defect this descriptor exists to prevent for the stills. Widening
+   this selector (instead of writing a second rule) also means any future
+   element added to `.plate` inherits the framing for free. */
+.plate img,
+.plate-motion {
+  object-position: var(--framing-wide, 50% 50%);
+}
+@media (max-width: 48rem) {
+  .plate img,
+  .plate-motion {
+    object-position: var(--framing-narrow, 50% 50%);
+  }
 }
 .plate-dark {
   display: none;
 }
 
+/* Acts meet in the dark. Each plate fades into ground at its own top and
+   bottom edges, so scrolling from one painting into the next reads as a
+   dissolve rather than a hard cut. Static — not gated on `data-lamp` —
+   because it's a plain gradient, not motion. */
+.plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--color-ground) 0%,
+    transparent 14%,
+    transparent 86%,
+    var(--color-ground) 100%
+  );
+}
+
+/* The scroll-scrubbed motion layer. Absent from the DOM entirely (not
+   merely hidden) with no JavaScript and under reduced motion — see
+   Lamp.tsx and Plate.tsx. When present, it stays display:none until the
+   lamp is actually on, the same gate the mask itself uses. */
+.plate-motion {
+  display: none;
+}
+[data-lamp="on"] .plate-motion {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 [data-lamp="on"] .plate-dark {
   display: block;
-  filter: brightness(0.18) saturate(0.7);
+  /* A Wright of Derby is already mostly black. 0.18 erased it; this keeps
+     the unlit field clearly subordinate while leaving the painting legible
+     as a painting. */
+  filter: brightness(0.32) saturate(0.85);
 }
-[data-lamp="on"] .plate-lit {
-  --lamp-r: calc(18vmax + min(var(--p, 0), 1 - var(--p, 0)) * 32vmax);
+/* `.plate-motion` paints above `.plate-lit` (document order), so it MUST
+   carry the identical mask or it would show the video at full brightness
+   across the whole frame — burying the dimmed `.plate-dark` layer beneath
+   it and erasing the lamp's reveal entirely. That is the same class of bug
+   the paint-order tests in tests/lamplight.spec.ts already guard against
+   for the two <picture> layers; this keeps the video inside that same
+   guarantee rather than sitting outside it. */
+[data-lamp="on"] .plate-lit,
+[data-lamp="on"] .plate-motion {
+  /* A pool, not a spot — the lit region has to be big enough to carry a
+     subject, not just graze it. */
+  --lamp-r: calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax);
   -webkit-mask-image: radial-gradient(
     circle var(--lamp-r) at var(--lamp-x, 50%) var(--lamp-y, 50%),
     #000 0%,
-    #000 38%,
-    transparent 78%
+    #000 46%,
+    transparent 88%
   );
   mask-image: radial-gradient(
     circle var(--lamp-r) at var(--lamp-x, 50%) var(--lamp-y, 50%),
     #000 0%,
-    #000 38%,
-    transparent 78%
+    #000 46%,
+    transparent 88%
   );
 }
 
@@ -236,20 +264,96 @@ section[id] {
   background: linear-gradient(
     to right,
     var(--color-ground) 0%,
-    var(--color-ground) 42%,
-    transparent 100%
+    color-mix(in srgb, var(--color-ground) 92%, transparent) 30%,
+    transparent 62%
   );
   pointer-events: none;
 }
 @media (max-width: 48rem) {
   .scrim::before {
+    /* Fixed viewport-relative stops, not percentages of the box: a few
+       acts (about, research) run 1.5-1.8x taller than one mobile screen,
+       and a percentage-based gradient stretches its "solid" and "open"
+       bands across the *whole* box — over-protecting the long tail below
+       the fold and under-protecting whatever's actually on screen. vh
+       units keep the band roughly one-viewport-scale regardless of how
+       tall the act's content grows. */
     background: linear-gradient(
       to top,
-      var(--color-ground) 0%,
-      var(--color-ground) 62%,
-      transparent 100%
+      var(--color-ground) 0,
+      color-mix(in srgb, var(--color-ground) 90%, transparent) 34vh,
+      transparent 66vh
     );
   }
+}
+
+/* The ledger act's own reading column is wider than every other act's:
+   its archive rows are a two-column grid (name, then a `minmax(0,1fr)`
+   description column) rather than a single narrow statement/prose block,
+   so the description text's right edge lands at ~74% of a 1440px
+   viewport — well past the standard `.scrim`'s 62% transparent point.
+   Measured directly against the rendered page: with the standard scrim,
+   the description text over `dovedale` (Dovedale by Moonlight, whose
+   bright moonlit sky/river sits in that region) measured luminance 0.188,
+   comfortably over the 0.12 AA ceiling. `.scrim-wide` extends the same
+   three-stop shape further right — protect the actual column, not a
+   fixed fraction of the frame tuned for a different, narrower layout. */
+.scrim-wide::before {
+  background: linear-gradient(
+    to right,
+    var(--color-ground) 0%,
+    color-mix(in srgb, var(--color-ground) 92%, transparent) 45%,
+    transparent 85%
+  );
+}
+@media (max-width: 48rem) {
+  /* This query's own 48rem cutoff is narrower than the ledger grid's
+     `lg` breakpoint (64rem) — the grid has already collapsed to a single
+     stacked column by then, running the same narrow width as every other
+     act's mobile column, so the standard narrow-viewport band already
+     covers it. Between 48rem and 64rem the wide gradient stays active
+     over that single column; it only ever protects more of the box than
+     the narrow one, never less, so this is not a contrast regression. */
+  .scrim-wide::before {
+    background: linear-gradient(
+      to top,
+      var(--color-ground) 0,
+      color-mix(in srgb, var(--color-ground) 90%, transparent) 34vh,
+      transparent 66vh
+    );
+  }
+}
+
+/* The copy resolves once, when its act first arrives. One authored beat,
+   never replayed — Lamp.tsx sets `data-seen` on an act's first
+   intersection and never removes it, so scrolling back past an act does
+   not re-hide or re-fade its copy.
+
+   The hidden state exists only once `data-lamp="on"` is set — the exact
+   same gate the mask itself uses. No JS, or reduced motion, means this
+   block never applies and the copy is simply present from first paint. */
+[data-lamp="on"] [data-act] .scrim > * {
+  opacity: 0;
+  transform: translateY(0.6rem);
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > * {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(2) {
+  transition-delay: 0.06s;
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(3) {
+  transition-delay: 0.12s;
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(4) {
+  transition-delay: 0.18s;
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(5) {
+  transition-delay: 0.24s;
 }
 
 /* A number ignites when the light reaches it. The ember copy is a
@@ -281,23 +385,80 @@ section[id] {
   );
 }
 
+/* ── The torch ───────────────────────────────────────────────────────
+   A page-wide flashlight, one light with the lamp above rather than a
+   second, independent one. The same pointer drives both (Torch.tsx):
+   the lamp reveals a painting inside its act; the torch dims everything
+   — nav, copy, chart, footer — outside a soft pool around the cursor.
+
+   The overlay is twice the viewport in each direction, centred at rest,
+   and follows the pointer via `transform` rather than by moving the
+   gradient's own centre. A gradient repainted from a changing `at x y`
+   costs a full-viewport paint every frame; a transform costs a
+   composite. Being 2x oversized means a full sweep to any edge of the
+   viewport never uncovers a corner. `--torch-r`, which does change the
+   gradient's own definition, is written by Torch.tsx only while it is
+   actually easing toward a new value (hover in/out) — most frames touch
+   nothing but the transform.
+
+   Default is fully transparent: with no JavaScript, or under reduced
+   motion, or on a touch device, `.torch` renders but never dims anything.
+   `data-torch="on"` is only ever set once a real pointer has moved. */
+
+.torch {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 60;
+  width: 200vw;
+  height: 200vh;
+  margin: -100vh 0 0 -100vw;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform;
+  transform: translate3d(var(--torch-x, 0px), var(--torch-y, 0px), 0);
+  transition: opacity 0.6s ease;
+  background: radial-gradient(
+    circle var(--torch-r, 240px) at 50% 50%,
+    transparent 0%,
+    transparent 35%,
+    color-mix(in srgb, var(--color-ground) 12%, transparent) 60%,
+    color-mix(in srgb, var(--color-ground) 22%, transparent) 80%,
+    color-mix(in srgb, var(--color-ground) 30%, transparent) 100%
+  );
+}
+[data-torch="on"] .torch {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .torch {
+    display: none;
+  }
+}
+
+/* One light, not two: the torch's page-wide wash would otherwise stack on
+   top of the plate's own unlit floor and compound into a darker painting
+   than existed before the torch shipped. Raising the floor here keeps a
+   plate under the torch's dim region reading the same as it always has.
+
+   Both attributes land on the same node (`<html>` — Lamp.tsx sets
+   data-lamp, Torch.tsx sets data-torch), so this MUST be a compound
+   selector with no space. `[data-torch="on"] [data-lamp="on"]` is a
+   descendant combinator that requires data-lamp on a DIFFERENT element
+   nested inside one carrying data-torch — html has no ancestor, so that
+   selector can never match, in any state. */
+[data-torch="on"][data-lamp="on"] .plate-dark {
+  filter: brightness(0.56) saturate(0.85);
+}
+
 /* ── The authored moment ────────────────────────────────────────────────
    One event, once, on load: the hero field resolves left to right and
    the sine draws behind the name. Nothing else on this site animates on
    entry — no per-section reveal, no scattered hover motion.
 
-   Retained from the Datamatics Field design: SineLattice.tsx, BarField.tsx,
-   page.tsx and projects/[id]/page.tsx still render these classes. Remove
-   once those components are rebuilt for Lamplight. */
-
-@keyframes field-resolve {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
+   SineLattice.tsx (page.tsx and projects/[id]/page.tsx) still renders
+   sine-draw and node-in. */
 
 @keyframes sine-draw {
   from {
@@ -319,20 +480,6 @@ section[id] {
   }
 }
 
-@keyframes signal-in {
-  from {
-    opacity: 0;
-    transform: translateY(0.45em);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.field-resolve {
-  animation: field-resolve 1.15s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
 .sine-draw {
   stroke-dasharray: var(--len, 2400);
   animation: sine-draw 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
@@ -342,10 +489,6 @@ section[id] {
   transform-origin: center;
   animation: node-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: calc(0.9s + var(--i, 0) * 90ms);
-}
-.signal-in {
-  animation: signal-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: var(--d, 0s);
 }
 
 /* Benchmark bars measure a real quantity, so they grow from zero once. */
@@ -373,16 +516,13 @@ section[id] {
     background: #fff;
     color: #08070a;
   }
-  .negative {
-    --color-ground: #ffffff;
-    --color-signal: #08070a;
-  }
   /* Full-bleed paintings cost a cartridge and prove nothing on paper. */
   .plate,
   .scrim::before,
   .print-drop,
   header[data-chrome],
-  .print-hidden {
+  .print-hidden,
+  .torch {
     display: none !important;
   }
   .ignite::after {
@@ -394,11 +534,16 @@ section[id] {
     min-height: 0 !important;
     break-inside: avoid-page;
   }
-  /* Retained: SineLattice.tsx and BarField.tsx still render these classes. */
-  .field-resolve,
+  /* An act below the fold may never have intersected — and so never
+     earned `data-seen` — before the page was printed. Paper has no
+     scroll, so nothing here should be waiting on one. */
+  [data-act] .scrim > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  /* Retained: SineLattice.tsx still renders these classes. */
   .sine-draw,
-  .node-in,
-  .signal-in {
+  .node-in {
     animation: none !important;
   }
   .bar-grow {
@@ -424,11 +569,12 @@ section[id] {
   .plate img {
     transform: none;
   }
-  /* Retained: SineLattice.tsx and BarField.tsx still render these classes. */
-  .field-resolve,
+  .torch {
+    display: none;
+  }
+  /* Retained: SineLattice.tsx still renders these classes. */
   .sine-draw,
-  .node-in,
-  .signal-in {
+  .node-in {
     animation: none !important;
   }
   .sine-draw {
@@ -446,14 +592,4 @@ section[id] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* Temporary: removed in Task 9 when the last .negative region is rewritten. */
-.negative {
-  --color-ground: #f2ede3;
-  --color-signal: #08070a;
-  --color-rule: rgb(8 7 10 / 0.3);
-  --color-rule-soft: rgb(8 7 10 / 0.13);
-  background: var(--color-ground);
-  color: var(--color-signal);
 }

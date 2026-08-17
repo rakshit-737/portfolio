@@ -2,7 +2,7 @@
 // sha256 matches the lockfile — the export stays byte-stable and CI never
 // has to contact Wikimedia.
 import { createHash } from "node:crypto";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const lockPath = "src/lib/art.lock.json";
@@ -35,6 +35,22 @@ for (const name of names) {
   } else if (buf.length !== lock[name].bytes) {
     console.error(`FAIL size mismatch ${path}`);
     failed = true;
+  }
+}
+
+// Reverse direction: every file actually sitting in public/art/ must be
+// a lockfile entry. A crop edit that shrinks a plate's tier set can orphan
+// files there — nothing else would ever flag them.
+const artDir = join("public", "art");
+if (existsSync(artDir)) {
+  const onDisk = readdirSync(artDir).filter(
+    (f) => !f.startsWith("."),
+  );
+  for (const file of onDisk) {
+    if (!(file in lock)) {
+      console.error(`FAIL orphaned file not in lockfile: ${join(artDir, file)}`);
+      failed = true;
+    }
   }
 }
 

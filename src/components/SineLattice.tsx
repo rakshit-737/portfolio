@@ -3,6 +3,10 @@ import { sineNodes, sinePath } from "@/lib/field";
 /**
  * A single sine traced across a field with square node markers — the
  * world's one curve. It draws once as part of the page-load moment.
+ *
+ * `mode="constellation"` repurposes the same seeded nodes as a static
+ * field of points with a faint connecting line — no curve, no draw
+ * animation. It reads the sky over the closing plate.
  */
 export default function SineLattice({
   width = 1000,
@@ -11,6 +15,7 @@ export default function SineLattice({
   phase = 0,
   nodes = 4,
   animate = false,
+  mode = "curve",
   className = "",
 }: {
   width?: number;
@@ -19,10 +24,38 @@ export default function SineLattice({
   phase?: number;
   nodes?: number;
   animate?: boolean;
+  mode?: "curve" | "constellation";
   className?: string;
 }) {
-  const d = sinePath(width, height, cycles, 120, phase);
   const marks = nodes ? sineNodes(width, height, cycles, nodes, phase) : [];
+
+  if (mode === "constellation") {
+    const points = marks.map((m) => `${m.x},${m.y}`).join(" ");
+
+    return (
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+        className={className}
+      >
+        <polyline
+          points={points}
+          fill="none"
+          strokeWidth="1.25"
+          strokeOpacity={0.25}
+          vectorEffect="non-scaling-stroke"
+          className="stroke-mark"
+        />
+        {marks.map((m, i) => (
+          <circle key={i} cx={m.x} cy={m.y} r="3" className="mark" />
+        ))}
+      </svg>
+    );
+  }
+
+  const d = sinePath(width, height, cycles, 120, phase);
   // Rough arc length, only ever used to seed the draw animation.
   const len = Math.round(width * 1.35 * cycles);
 

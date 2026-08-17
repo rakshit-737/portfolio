@@ -1,16 +1,17 @@
 import { ImageResponse } from "next/og";
 import { hero, heroStats } from "@/content";
-import { OgBarField } from "@/lib/ogField";
+import { OG_BONE, OG_EMBER, OG_GROUND, OgChip } from "@/lib/ogField";
 import { ogFamily, ogFonts, ogText } from "@/lib/ogFonts";
 
 export const dynamic = "force-static";
 
 /**
- * Open Graph card in the field's own grammar: absolute black, one bar
- * field, the name at display scale, and real measurements along the
- * bottom rule. Emitted at build time as a real .png path so static hosts
- * (GitHub Pages) serve it with an image/png content type — the
- * extensionless opengraph-image convention breaks scrapers there.
+ * Open Graph card in the lit site's own grammar: ground, bone type, one
+ * ember rule, and real measurements along it. Satori cannot render the
+ * lamp mask, so the card is flat rather than an unmasked painting. Emitted
+ * at build time as a real .png path so static hosts (GitHub Pages) serve
+ * it with an image/png content type — the extensionless opengraph-image
+ * convention breaks scrapers there.
  */
 export async function GET() {
   const fonts = await ogFonts();
@@ -26,21 +27,11 @@ export async function GET() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: 64,
-          backgroundColor: "#000",
-          color: "#fff",
+          backgroundColor: OG_GROUND,
+          color: OG_BONE,
           fontFamily: mono,
-          position: "relative",
         }}
       >
-        <OgBarField
-          seed="og-index"
-          width={1200}
-          height={630}
-          density={1.2}
-          opacity={0.32}
-          style={{ position: "absolute", left: 0, top: 0 }}
-        />
-
         <div
           style={{
             display: "flex",
@@ -51,15 +42,7 @@ export async function GET() {
             textTransform: "uppercase",
           }}
         >
-          <span
-            style={{
-              backgroundColor: "#fff",
-              color: "#000",
-              padding: "4px 10px",
-            }}
-          >
-            {hero.provenance.prefix}
-          </span>
+          <OgChip>{hero.provenance.prefix}</OgChip>
           <span>{hero.provenance.text}</span>
         </div>
 
@@ -85,7 +68,7 @@ export async function GET() {
             display: "flex",
             alignItems: "flex-end",
             gap: 56,
-            borderTop: "1px solid rgba(255,255,255,0.35)",
+            borderTop: `2px solid ${OG_EMBER}`,
             paddingTop: 26,
           }}
         >

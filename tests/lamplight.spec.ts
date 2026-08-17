@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import sharp from "sharp";
 
 /** Relative luminance per WCAG 2.1. */
 function luminance([r, g, b]: number[]): number {
@@ -159,4 +160,572 @@ test("plates keep a non-empty accessible name under reduced motion and with no J
   expect(noJsAlt?.trim()).toBeTruthy();
   await expect(noJsPage.getByRole("img").first()).toHaveAccessibleName(/.+/);
   await noJsCtx.close();
+});
+
+const ACTS = [
+  "hero",
+  "about",
+  "warden",
+  "scheduler",
+  "plantpal",
+  "research",
+  "ledger",
+  "contact",
+];
+
+// Task 14c: the copy fades in once per act, gated on `[data-lamp="on"]` —
+// the exact same gate the mask itself uses. No JS, or reduced motion, means
+// `data-lamp` is never set, so the hidden (`opacity: 0`) state in
+// globals.css never applies and the copy is simply present from first
+// paint. Playwright's `toBeVisible()` does not inspect opacity, so these
+// assert the actual computed value rather than trusting visibility alone.
+test("with JavaScript disabled every act's copy is opaque from first paint", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.locator("html")).not.toHaveAttribute("data-lamp", "on");
+  for (const id of ACTS) {
+    const statement = page.locator(`#${id} .statement`).first();
+    const opacity = await statement.evaluate(
+      (el) => getComputedStyle(el).opacity,
+    );
+    expect(
+      Number(opacity),
+      `act ${id} statement is not opaque with JavaScript disabled`,
+    ).toBe(1);
+  }
+  await ctx.close();
+});
+
+test("reduced motion shows every act's copy immediately, with no beat to wait for", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.locator("html")).not.toHaveAttribute("data-lamp", "on");
+  for (const id of ACTS) {
+    const statement = page.locator(`#${id} .statement`).first();
+    const opacity = await statement.evaluate(
+      (el) => getComputedStyle(el).opacity,
+    );
+    expect(
+      Number(opacity),
+      `act ${id} statement is not opaque under reduced motion`,
+    ).toBe(1);
+  }
+  await ctx.close();
+});
+
+// One authored beat per act, on first arrival, never replayed. Lamp.tsx
+// sets `data-seen` in its existing IntersectionObserver callback and never
+// removes it, so scrolling an act out of view and back does not re-hide or
+// re-fade its copy.
+test("the copy reveal fires once and does not replay on scrolling back", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const act = page.locator("#warden");
+  const statement = act.locator(".statement").first();
+
+  await act.scrollIntoViewIfNeeded();
+  await expect(act).toHaveAttribute("data-seen", "");
+  await expect(statement).toHaveCSS("opacity", "1");
+
+  // Scroll back to the top, away from the act, then return to it.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(100);
+  // `data-seen` persists — the attribute is only ever added, never removed.
+  await expect(act).toHaveAttribute("data-seen", "");
+
+  await act.scrollIntoViewIfNeeded();
+  // Still opaque, immediately — no re-fade from opacity 0 on the return
+  // pass. (If the beat had replayed, this would still resolve to 1 once
+  // the transition finished, so the meaningful guard is `data-seen` above:
+  // its persistence is what proves the CSS gate can't re-fire.)
+  await expect(statement).toHaveCSS("opacity", "1");
+});
+
+for (const id of ACTS) {
+  // Layout guard, not a contrast measurement: confirms the `.scrim` rule
+  // is present and that the act's copy stays inside the band it covers.
+  // It proves nothing about what colour actually renders behind the
+  // text — see the "clears AA contrast" loop below for that.
+  test(`text in act ${id} stays inside the scrimmed band`, async ({ page }) => {
+    await page.goto("/");
+    const act = page.locator(`#${id}`);
+    await act.scrollIntoViewIfNeeded();
+    // The copy fades in on first arrival (Task 14c) — wait for the beat to
+    // resolve rather than sampling it mid-transition.
+    await expect(
+      act.locator(".statement, .prose-field, .label").first(),
+    ).toHaveCSS("opacity", "1");
+
+    const sample = await act.evaluate((el) => {
+      const text = el.querySelector<HTMLElement>(
+        ".statement, .prose-field, .label",
+      );
+      if (!text) return null;
+      const r = text.getBoundingClientRect();
+      const scrim = el.querySelector<HTMLElement>(".scrim");
+      if (!scrim) return null;
+      return {
+        hasScrim: getComputedStyle(scrim, "::before").backgroundImage !== "none",
+        left: r.left,
+        width: r.width,
+      };
+    });
+    expect(sample, `act ${id} has no text or no scrim`).not.toBeNull();
+    expect(sample!.hasScrim).toBe(true);
+    // Copy stays in the scrimmed left band, never out over open paint.
+    expect(sample!.left).toBeLessThan(page.viewportSize()!.width * 0.55);
+  });
+}
+
+// The real contrast gate. Screenshots each act clipped to its statement's
+// own bounding box and measures the mean rendered colour behind it, then
+// runs that mean through the same WCAG relative-luminance function used
+// above for the palette check — not axe, which returns "incomplete" (not
+// "fail") for text over an image and so never actually checks this.
+//
+// The sampled region includes the statement's own glyphs (bone-on-ground),
+// which pulls the mean lighter than the true background alone — so this is
+// a conservative test: it can only be harder to pass than measuring the
+// bare background would be, never easier.
+//
+// THRESHOLD (0.12) was set during the 14c fix round, after correcting the
+// bug the first 14c pass was unknowingly calibrated against: `Plate.tsx`
+// rendered `.plate-lit` before `.plate-dark` in the DOM, and with neither
+// layer carrying a `z-index`, the later (opaque, `brightness()`-dimmed)
+// element always painted over the masked one — the lamp's reveal was never
+// actually visible, on any build before this fix. Once the paint order was
+// corrected (`.plate-dark` first, `.plate-lit` second) the plate brightness
+// floor was re-tuned down (`.plate-dark` 0.42 → 0.32 — 0.42 was calibrated
+// against a reveal that did nothing, so it read as "fine" for the wrong
+// reason) and the narrow scrim was changed from percentage-of-box stops to
+// fixed vh stops (see the media query above) so a few long acts (about,
+// research) don't stretch the protected band across their whole,
+// content-driven height.
+//
+// Re-ran this over the corrected, re-tuned build four times back to back —
+// every act's real region measured byte-identical each run: 0.021
+// (research) to 0.099 (ledger). 0.12 is ~1.2x the worst real act, not the
+// ~8-10x headroom an under-tuned threshold would carry — deliberately
+// tight. Verified this threshold actually gates something: disabling
+// `.scrim::before`'s background (both the wide and narrow rules) and
+// rebuilding raised every act's measured luminance (e.g. ledger
+// 0.099 → 0.156, hero 0.050 → 0.065, scheduler 0.041 → 0.052) — with the
+// paint order fixed, the scrim is now doing real, measurable work, and at
+// 0.12 the break trips this gate (ledger's 0.156 fails; see
+// task-14c-report.md for the full break-and-restore log). A run-to-run
+// reproducibility note: the copy fades in once per act (Task 14c, gated on
+// `data-seen`); the tests above wait for `opacity: 1` before sampling, or a
+// statement caught mid-fade reads as noisy, occasionally spiking the
+// measured luminance well above its settled value — that mechanism, not
+// the plate itself, was the earlier source of run-to-run variance during
+// development.
+const CONTRAST_LUMINANCE_CEILING = 0.12;
+
+// Task 14c fix round (2): the paint order (`.plate-dark` beneath
+// `.plate-lit`) is the entire mechanism behind the lamp's reveal — both
+// layers are `position: absolute; inset: 0` with no `z-index`, so document
+// order IS paint order. This inverted once already (an accessibility fix
+// swapped the two elements' `className`s instead of just their `alt`/
+// `aria-hidden`), and nothing before this test would have caught it: the
+// contrast gate below measures luminance behind the *text*, and a
+// re-invert makes the whole visible field uniformly dim rather than
+// brighter, so it does not cross CONTRAST_LUMINANCE_CEILING either way (see
+// task-14c-report.md's fix-round-2 section for the measured proof). This
+// structural check is the direct, mechanical guard: it fails the instant
+// the DOM order regresses, independent of what shade of dim the images
+// happen to render as.
+//
+// Task 14b fix round: extended to cover the third layer, `.plate-motion`
+// (the scrubbed video), which Plate.tsx renders after both `<picture>`
+// blocks. The original assertion only inspected `img` elements, so a future
+// change that dropped the video between the two stills — or before
+// `.plate-dark` — would not have failed it. `.plate-motion` carries the
+// same mask as `.plate-lit` (see globals.css) and stands in for it inside
+// the lamp's pool, so it must paint after both stills or it either hides
+// beneath the dimmed layer or buries the reveal under an unmasked frame.
+test("every plate paints the dark layer beneath the lit one, and any motion video last", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const broken = await page.evaluate(() =>
+    [...document.querySelectorAll(".plate")]
+      .map((plate, i) => {
+        // Document order among the plate's media layers only — img and
+        // video are the only elements this ordering guarantee governs.
+        const layers = [...plate.querySelectorAll("img, video")];
+        const dark = layers.findIndex((n) => n.classList.contains("plate-dark"));
+        const lit = layers.findIndex((n) => n.classList.contains("plate-lit"));
+        const motion = layers.findIndex((n) => n.classList.contains("plate-motion"));
+        const darkAfterLit = dark > -1 && lit > -1 && dark > lit;
+        const motionNotLast = motion > -1 && (motion < dark || motion < lit);
+        return darkAfterLit || motionNotLast ? i : -1;
+      })
+      .filter((i) => i > -1),
+  );
+  // Both stills are position:absolute with no z-index, so document order IS
+  // paint order. Dark must come first or it covers the lamp's reveal
+  // entirely — the exact bug this task's second pass existed to fix. Where
+  // a motion video exists, it must be last of the three — after both
+  // stills — or it paints beneath one of them instead of standing in for
+  // the lit layer inside the lamp's pool.
+  expect(broken).toEqual([]);
+});
+
+// The behavioural counterpart to the structural check above: proves the
+// reveal is actually *visible*, not just correctly ordered in the DOM, so
+// this survives a refactor that changes how the layering is achieved (e.g.
+// a future z-index-based approach). Uses `warden`'s plate (Wright of
+// Derby's "An Iron Forge") because its subject — a white-hot ingot on the
+// anvil — is the single brightest, most unambiguous light source in the
+// set, giving the biggest possible signal for this measurement.
+//
+// Margin: measured four times back to back against the real build, the
+// lamp-centre patch and the far-corner patch are byte-identical each run —
+// L=0.0891 (centre) vs L=0.0042 (corner), a ~21x ratio. Re-inverting the two
+// `<picture>` blocks (simulating a regression of the bug this test guards)
+// drops that ratio to ~2.8x — the dark layer's own brightness(0.32) floor
+// still varies a little by location in the painting (centre happens to sit
+// on a lighter part of the room than the corner), so a broken build isn't
+// perfectly flat, but it is nowhere near a genuine reveal. The 6x threshold
+// sits well above the broken-build ratio (2.8x) and well below the working
+// one (21x), so it fails the regression with real margin rather than a
+// hairline, without being so tight that ordinary rendering jitter could
+// trip it.
+test("the lamp's reveal pool is measurably brighter than the frame's far edge", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+
+  const act = page.locator("#warden");
+  await act.scrollIntoViewIfNeeded();
+  // Let Lamp.tsx's rAF loop write fresh --lamp-x/--lamp-y/--p for the new
+  // scroll position before sampling.
+  await page.waitForTimeout(250);
+
+  const viewport = page.viewportSize()!;
+  // --lamp-x/--lamp-y are percentages of the act's own box (mask-image
+  // position resolves against the element it's applied to, which fills the
+  // act via inset: 0), so the on-screen point is the act's rect plus that
+  // fraction — not a fraction of the viewport.
+  const geometry = await act.evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    const style = getComputedStyle(el);
+    return {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+      lampX: parseFloat(style.getPropertyValue("--lamp-x")),
+      lampY: parseFloat(style.getPropertyValue("--lamp-y")),
+    };
+  });
+
+  const centerX = geometry.left + (geometry.lampX / 100) * geometry.width;
+  const centerY = geometry.top + (geometry.lampY / 100) * geometry.height;
+
+  // Far edge: the on-screen corner farthest from the lamp's centre.
+  // Restricted to the right-hand corners because the lamp's rest position
+  // is deliberately biased right of the text column on wide screens
+  // (Lamp.tsx: `restX = max(0.52, rawX)`), and the left-hand corners sit
+  // under the scrim's protected band — sampling there would measure the
+  // scrim's own gradient, not the plate.
+  const corners = [
+    { x: viewport.width - 16, y: 16 },
+    { x: viewport.width - 16, y: viewport.height - 16 },
+  ];
+  const farCorner = corners.reduce((best, c) => {
+    const d = (c.x - centerX) ** 2 + (c.y - centerY) ** 2;
+    const bestD = (best.x - centerX) ** 2 + (best.y - centerY) ** 2;
+    return d > bestD ? c : best;
+  });
+
+  const patch = 48;
+  const half = patch / 2;
+  const clamp = (v: number, max: number) => Math.min(Math.max(v, 0), max - patch);
+
+  const litClip = {
+    x: clamp(centerX - half, viewport.width),
+    y: clamp(centerY - half, viewport.height),
+    width: patch,
+    height: patch,
+  };
+  const edgeClip = {
+    x: clamp(farCorner.x - half, viewport.width),
+    y: clamp(farCorner.y - half, viewport.height),
+    width: patch,
+    height: patch,
+  };
+
+  const litBuf = await page.screenshot({ clip: litClip });
+  const edgeBuf = await page.screenshot({ clip: edgeClip });
+
+  const litLum = luminance(
+    (await sharp(litBuf).stats()).channels.map((c) => c.mean),
+  );
+  const edgeLum = luminance(
+    (await sharp(edgeBuf).stats()).channels.map((c) => c.mean),
+  );
+
+  const REVEAL_MARGIN = 6;
+  expect(
+    litLum,
+    `lamp pool (L=${litLum.toFixed(4)}) is not at least ${REVEAL_MARGIN}x brighter than the frame's far edge (L=${edgeLum.toFixed(4)}) — the reveal may not be visible`,
+  ).toBeGreaterThan(edgeLum * REVEAL_MARGIN);
+});
+
+for (const id of ACTS) {
+  test(`text in act ${id} clears AA contrast behind its statement`, async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const act = page.locator(`#${id}`);
+    const statement = act.locator(".statement").first();
+    await statement.scrollIntoViewIfNeeded();
+    // The copy fades in on first arrival (Task 14c) — wait for the beat to
+    // resolve fully before sampling, or the mid-transition, partially
+    // transparent glyphs make this measurement noisy and occasionally
+    // spike well above the settled value.
+    await expect(statement).toHaveCSS("opacity", "1");
+
+    const box = await statement.boundingBox();
+    expect(box, `act ${id} has no statement to sample`).not.toBeNull();
+
+    const buf = await page.screenshot({ clip: box! });
+    const { channels } = await sharp(buf).stats();
+    const lum = luminance(channels.map((c) => c.mean));
+
+    expect(
+      lum,
+      `act ${id} background too bright behind its statement (L=${lum.toFixed(3)})`,
+    ).toBeLessThan(CONTRAST_LUMINANCE_CEILING);
+  });
+}
+
+// Task 14d fix round (finding 3, from the reviewer's own screenshot): the
+// gate above only ever samples `.statement` — a heading, never what a
+// visitor actually reads. The ledger act's reading text is a long body
+// column (`.prose-field`, the archive list's description cells) the gate
+// never looked at, so it passed while real body copy sat on the bright
+// moonlit sky/river of `dovedale` at close to bone-on-light — measured
+// directly, L=0.188 against the same 0.12 ceiling, before the fix below.
+//
+// Every act except hero carries at least one `.prose-field` element
+// (hero has only the label/statement/stat rail — no body prose to
+// sample). Each one is scrolled into view individually rather than
+// relying on the statement's scroll position, since a long act's body
+// copy does not all fit in one viewport alongside its heading.
+for (const id of ACTS) {
+  test(`body copy in act ${id} clears AA contrast`, async ({ page }) => {
+    await page.goto("/");
+    const act = page.locator(`#${id}`);
+    const paras = act.locator(".prose-field");
+    const count = await paras.count();
+    if (count === 0) {
+      // hero: no body prose exists to sample. Not a skip — there is
+      // nothing this test could fail to check here.
+      return;
+    }
+    for (let i = 0; i < count; i++) {
+      const para = paras.nth(i);
+      await para.scrollIntoViewIfNeeded();
+      await expect(para).toHaveCSS("opacity", "1");
+
+      const box = await para.boundingBox();
+      if (!box || box.width < 1 || box.height < 1) continue;
+
+      const buf = await page.screenshot({ clip: box });
+      const { channels } = await sharp(buf).stats();
+      const lum = luminance(channels.map((c) => c.mean));
+
+      expect(
+        lum,
+        `act ${id} body copy #${i} background too bright (L=${lum.toFixed(3)})`,
+      ).toBeLessThan(CONTRAST_LUMINANCE_CEILING);
+    }
+  });
+}
+
+// Task 14b: scroll-scrubbed plate motion. The hero act always ships motion
+// (it survives both the full eight-plate spread and the four-plate fallback
+// spread), so it's the fixed point these tests scrub against.
+test("the hero plate scrubs its video with scroll", async ({ page }) => {
+  await page.goto("/");
+  const video = page.locator("#hero video").first();
+  await expect(video).toHaveCount(1);
+  // The video must be inert on its own — scroll is the only clock.
+  expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
+  expect(await video.evaluate((v: HTMLVideoElement) => v.autoplay)).toBe(false);
+
+  const at = () => video.evaluate((v: HTMLVideoElement) => v.currentTime);
+  await page.waitForFunction(
+    () => (document.querySelector("#hero video") as HTMLVideoElement)?.readyState >= 1,
+  );
+  const before = await at();
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 0.7));
+  // The rAF loop drives the seek and the actual media seek is async, so
+  // poll the condition itself rather than sleeping a fixed guess — under
+  // parallel workers a flat wait races the loop and flakes.
+  await page.waitForFunction(
+    (prev) =>
+      (document.querySelector("#hero video") as HTMLVideoElement)?.currentTime !== prev,
+    before,
+  );
+  expect(await at()).not.toBe(before);
+});
+
+test("reduced motion renders the still plate and no video", async ({ browser }) => {
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.locator("video")).toHaveCount(0);
+  await expect(page.locator(".plate-lit").first()).toBeVisible();
+  await ctx.close();
+});
+
+// Fix round: the other two skip conditions Lamp.tsx computes into
+// `motionAllowed` (a coarse pointer paired with a narrow viewport, and
+// `navigator.connection.saveData`) had no test coverage — only reduced
+// motion did. Unlike reduced motion, neither of these causes Plate.tsx's
+// `<video>` element to be removed from the DOM (Lamp.tsx's `promoteVideos`
+// just never runs), so the assertion here is narrower and more direct: the
+// element exists, but its `src` attribute is never set, so nothing is ever
+// requested.
+test("a coarse pointer on a narrow viewport never promotes the video's src", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await ctx.newPage();
+  // Sanity check on the emulation itself: `motionAllowed`'s condition reads
+  // `matchMedia("(pointer: coarse)")`, not `hasTouch` directly — confirm
+  // this context actually reports coarse before trusting a pass below.
+  await page.goto("/");
+  const coarse = await page.evaluate(() => window.matchMedia("(pointer: coarse)").matches);
+  expect(coarse, "this context did not emulate a coarse pointer — the test below proves nothing").toBe(true);
+
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+  const video = page.locator("#hero video").first();
+  await expect(video).toHaveCount(1);
+  await page.waitForTimeout(300);
+  expect(await video.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).toBeNull();
+  await ctx.close();
+});
+
+test("navigator.connection.saveData never promotes the video's src", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.addInitScript(() => {
+    Object.defineProperty(window.navigator, "connection", {
+      value: { saveData: true },
+      configurable: true,
+    });
+  });
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+  const video = page.locator("#hero video").first();
+  await expect(video).toHaveCount(1);
+  await page.waitForTimeout(300);
+  expect(await video.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).toBeNull();
+  await ctx.close();
+});
+
+test("without JavaScript no video is requested", async ({ browser }) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  const requested: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().endsWith(".webm")) requested.push(r.url());
+  });
+  await page.goto("/");
+  await expect(page.locator(".plate-lit").first()).toBeVisible();
+  expect(requested).toEqual([]);
+  await ctx.close();
+});
+
+// Task 14d: the torch — a page-wide flashlight, unified with the plate lamp
+// so the page never carries two uncorrelated light sources.
+test("the torch follows the pointer and never blocks interaction", async ({ page }) => {
+  await page.goto("/");
+  const overlay = page.locator(".torch");
+  await expect(overlay).toHaveCount(1);
+  expect(
+    await overlay.evaluate((el) => getComputedStyle(el).pointerEvents),
+  ).toBe("none");
+
+  const read = () =>
+    page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue("--torch-x"),
+    );
+  await page.mouse.move(200, 200);
+  await page.waitForTimeout(160);
+  const a = await read();
+  await page.mouse.move(900, 600);
+  await page.waitForTimeout(300);
+  expect(await read()).not.toBe(a);
+
+  // The overlay must not intercept clicks.
+  await page.getByRole("link", { name: /résumé/i }).first().click({ trial: true });
+});
+
+test("the torch stays off for touch, reduced motion, and no JS", async ({ browser }) => {
+  for (const opts of [
+    { reducedMotion: "reduce" as const },
+    { hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } },
+    { javaScriptEnabled: false },
+  ]) {
+    const ctx = await browser.newContext(opts);
+    const page = await ctx.newPage();
+    await page.goto("/");
+    await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on");
+    // Content is readable regardless.
+    await expect(page.locator(".statement").first()).toBeVisible();
+    await ctx.close();
+  }
+});
+
+// Regression guard: both attributes land on <html> (Lamp.tsx sets
+// data-lamp, Torch.tsx sets data-torch), so the rebalance rule MUST be a
+// compound selector (`[data-torch="on"][data-lamp="on"]`) rather than a
+// descendant combinator (`[data-torch="on"] [data-lamp="on"]`) — a
+// descendant combinator requires data-lamp on a different element nested
+// inside one carrying data-torch, and html has no ancestor, so it can
+// never match. No existing test caught this because none of them move
+// the pointer, which is the only thing that arms the torch.
+test("the plate's unlit floor rises once the torch arms", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // Let startup cost (hydration, image decode) settle before interacting.
+  // Torch.tsx shares Lamp.tsx's frame-budget circuit breaker, which counts
+  // any 10 consecutive frames slower than 32ms and locks the effect off —
+  // under heavy parallel-worker load, one-time page-load jank can trip it
+  // before the pointer ever gets a chance to move, which is a real
+  // characteristic of the shared circuit-breaker shape, not something this
+  // test is trying to verify. Settling first keeps that startup cost from
+  // being mistaken for "this device can't hold the torch".
+  await page.waitForTimeout(500);
+
+  const plateDark = page.locator(".plate-dark").first();
+
+  const baseFilter = await plateDark.evaluate((el) => getComputedStyle(el).filter);
+  await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on");
+
+  await page.mouse.move(700, 450, { steps: 5 });
+  await expect(page.locator("html")).toHaveAttribute("data-torch", "on", {
+    timeout: 3000,
+  });
+
+  const armedFilter = await plateDark.evaluate((el) => getComputedStyle(el).filter);
+  expect(armedFilter).not.toBe(baseFilter);
 });

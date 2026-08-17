@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
-import BarField from "@/components/BarField";
-import BitMatrix from "@/components/BitMatrix";
 import { BracketLink } from "@/components/Bracket";
 import DiagramFlow from "@/components/DiagramFlow";
 import Metric from "@/components/Metric";
+import Plate from "@/components/Plate";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
 import SineLattice from "@/components/SineLattice";
-import { caseStudies, featuredProjects, site } from "@/content";
+import { acts, type ActId, caseStudies, featuredProjects, site } from "@/content";
 import { withBase } from "@/lib/base";
+import { withCredit } from "@/lib/credit";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
 
 export const dynamicParams = false;
@@ -59,18 +59,16 @@ export async function generateMetadata({
 function CaseSection({
   slug,
   title,
-  invert = false,
   children,
 }: {
   slug: string;
   title: string;
-  invert?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <section
       aria-labelledby={`${slug}-title`}
-      className={`border-t border-rule py-12 sm:py-16 ${invert ? "negative" : ""}`}
+      className="border-t border-rule py-12 sm:py-16"
     >
       <div className={`${SHELL} ${GRID}`}>
         <h2
@@ -165,47 +163,27 @@ export default async function CaseStudyPage({
       </header>
 
       <main>
-        <section
-          aria-label="Case file header"
-          className="relative overflow-hidden"
-        >
-          <div
-            aria-hidden="true"
-            className="print-drop pointer-events-none absolute inset-0"
-          >
-            <BarField
-              seed={`case-${id}`}
-              density={1.45}
-              height={100}
-              animate
-              className="field-mask-wide absolute inset-y-0 right-0 h-full w-full opacity-50 sm:opacity-80"
-            />
+        <div className="relative isolate h-[60svh] overflow-hidden">
+          <Plate id={acts[study.id as ActId].plate} priority />
+          <div className={`${SHELL} scrim absolute inset-x-0 bottom-0 z-10 pb-12`}>
+            <p className="label">{project.timeframe}</p>
+            <h1 className="statement mt-4">{project.name}</h1>
           </div>
+        </div>
 
+        <section aria-label="Case file header">
           <div
             className={`${SHELL} relative grid gap-x-10 gap-y-10 pt-14 pb-14 sm:pt-20 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_13rem]`}
           >
             <div className="min-w-0">
               <Provenance
-                segments={[...project.evidence, ...liveSegments(live)]}
+                segments={withCredit(acts[study.id as ActId].plate, [
+                  ...project.evidence,
+                  ...liveSegments(live),
+                ])}
               />
-              <div className="mt-7 flex flex-col items-start gap-6 sm:flex-row sm:gap-7">
-                <BitMatrix
-                  source={live?.sha || project.id}
-                  cols={6}
-                  rows={8}
-                  cell={8}
-                  className="print-drop shrink-0 sm:mt-1"
-                />
-                <div className="min-w-0">
-                  <h1
-                    className="font-mono leading-[0.97] font-semibold tracking-[-0.03em]"
-                    style={{ fontSize: "clamp(1.9rem, 5.4vw, 3.5rem)" }}
-                  >
-                    {project.name}
-                  </h1>
-                  <p className="prose-field mt-6">{project.oneLiner}</p>
-                </div>
+              <div className="mt-7 min-w-0">
+                <p className="prose-field">{project.oneLiner}</p>
               </div>
 
               {project.headlineNumbers && (
@@ -292,8 +270,8 @@ export default async function CaseStudyPage({
           </dl>
         </CaseSection>
 
-        {/* The numbers, inverted out of the page — the case file's spine. */}
-        <CaseSection slug="evidence" title="Evidence" invert>
+        {/* The numbers — the case file's spine. */}
+        <CaseSection slug="evidence" title="Evidence">
           <table className="w-full border-collapse">
             <caption className="sr-only">
               Verifiable numbers for {project.name}

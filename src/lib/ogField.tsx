@@ -1,51 +1,30 @@
-import { barField, seedFrom } from "@/lib/field";
+/**
+ * Shared palette and marks for the OG cards. Satori (which powers
+ * `ImageResponse`) does not support CSS masks, so the social cards can
+ * never carry the lamp — they render flat instead: the ground colour,
+ * bone type, and a single ember rule, the same three tokens the lit site
+ * uses, minus the light.
+ */
+export const OG_GROUND = "#08070A";
+export const OG_BONE = "#F2EDE3";
+export const OG_EMBER = "#E8A33D";
 
 /**
- * A bar field for the OG cards. Satori has no SVG path support worth
- * relying on, so the same deterministic geometry is emitted as absolutely
- * positioned divs instead of rects.
+ * The provenance chip: bone ground, ground text — the same inversion
+ * `Provenance` draws for a passing chip on the live page. Ember is reserved
+ * for the card's single rule; a chip is prose, so it never carries it.
  */
-export function OgBarField({
-  seed,
-  width,
-  height,
-  density = 1,
-  opacity = 1,
-  style,
-}: {
-  seed: string;
-  width: number;
-  height: number;
-  density?: number;
-  opacity?: number;
-  style?: React.CSSProperties;
-}) {
-  const bars = barField(seedFrom(seed), 1000, density);
+export function OgChip({ children }: { children: React.ReactNode }) {
   return (
-    <div
+    <span
       style={{
         display: "flex",
-        position: "relative",
-        width,
-        height,
-        opacity,
-        ...style,
+        backgroundColor: OG_BONE,
+        color: OG_GROUND,
+        padding: "4px 10px",
       }}
     >
-      {bars.map((b, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            left: (b.x / 1000) * width,
-            top: 0,
-            width: Math.max(1, (b.w / 1000) * width),
-            height,
-            backgroundColor: "#fff",
-            opacity: b.o,
-          }}
-        />
-      ))}
-    </div>
+      {children}
+    </span>
   );
 }

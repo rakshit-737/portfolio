@@ -41,6 +41,12 @@
     "width": 24,
     "height": 24
   },
+  "airpump-motion.webm": {
+    "sha256": "68a754f38b65753399f6a5c14e7cdc6306e7ec8c884a41f5a2c9e9d140186bf6",
+    "bytes": 249344,
+    "width": 1280,
+    "height": 864
+  },
   "alchemist-1280.avif": {
     "sha256": "42102fa04c422207aa44b3afedcfed3acbae180246ad4dd669af6a2d07354a30",
     "bytes": 63100,
@@ -76,6 +82,30 @@
     "bytes": 219470,
     "width": 2560,
     "height": 2058
+  },
+  "alchemist-narrow-640.avif": {
+    "sha256": "0d492b04186e87e79516726a8f059e2800af8f029e7b682c5e9ef034daee81f0",
+    "bytes": 45683,
+    "width": 640,
+    "height": 930
+  },
+  "alchemist-narrow-640.webp": {
+    "sha256": "7ac540baebdd91b6cb63344fdc4130433f91512745eb80dab3180c7e72d29853",
+    "bytes": 42652,
+    "width": 640,
+    "height": 930
+  },
+  "alchemist-narrow-960.avif": {
+    "sha256": "2917d19c23d3c11aa5ccd50bc15dac4fc4ecd2e8e416937ca12991c8f281bb93",
+    "bytes": 104105,
+    "width": 960,
+    "height": 1394
+  },
+  "alchemist-narrow-960.webp": {
+    "sha256": "167056c833626f4eed2a3291fd2440ae79788eb39ee438c97be93f00b839a286",
+    "bytes": 96050,
+    "width": 960,
+    "height": 1394
   },
   "alchemist-lqip.txt": {
     "sha256": "3a5f208b394e140b3ba43108e6cfd2e8c67d86510eba3b1f22b87b2545460184",
@@ -125,6 +155,12 @@
     "width": 24,
     "height": 24
   },
+  "forge-motion.webm": {
+    "sha256": "2e4ed56b7ed847f276b25e66f719b27a29b641f977f57c382a692256814f1368",
+    "bytes": 193286,
+    "width": 1280,
+    "height": 988
+  },
   "orrery-1280.avif": {
     "sha256": "ace679a96f533dd19e174572cffd68106907261c550e08f368568711ee7a1a53",
     "bytes": 75960,
@@ -167,6 +203,12 @@
     "width": 24,
     "height": 24
   },
+  "orrery-motion.webm": {
+    "sha256": "a946c896e1a5a66ccdcf6a70df9c01e99246d180b0904906fa5efee75bdd5d7d",
+    "bytes": 244246,
+    "width": 1280,
+    "height": 844
+  },
   "kitten-1280.avif": {
     "sha256": "5c75b57925f1d941b0bd9564c4efaafbd25c2ae4d0126cb44c4acc9b32f43312",
     "bytes": 159698,
@@ -196,6 +238,12 @@
     "bytes": 255,
     "width": 24,
     "height": 24
+  },
+  "kitten-motion.webm": {
+    "sha256": "15d5c7ac77cf8688ffed0354b8622d0aa5a3ec912f5c9d7b9acb50ec1694b860",
+    "bytes": 184043,
+    "width": 1280,
+    "height": 980
   },
   "anatomy-1280.avif": {
     "sha256": "98a9fb2b1f8daa738d66c10ee7b7ae2a15729ec94443e869dd7edffc0cd0a1d6",

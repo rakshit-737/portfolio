@@ -2434,6 +2434,720 @@ git commit -m "test: contrast, image weight, and plate integrity gates"
 
 ---
 
+### Task 14b: Scroll-scrubbed plate motion
+
+**Added 2026-08-17 at the owner's request** — after seeing acts 1–8 assembled, the
+owner asked for the paintings to move "like a video," matching the reference
+site's scroll-scrubbed image sequences. This task adds that, and must run
+**after Task 14** (so the budget gate exists to measure against) and **before
+Task 15** (so the docs describe what shipped).
+
+**Files:**
+- Modify: `src/lib/art.ts` (per-plate `motion` descriptor), `scripts/fetch-art.mjs` (emit WebM), `scripts/check-art.mjs` + `src/lib/art.lock.json` (cover the new files), `src/components/Plate.tsx`, `src/components/Lamp.tsx`, `src/app/globals.css`, `scripts/check-budget.mjs`
+- Test: `tests/lamplight.spec.ts`
+
+**Interfaces:**
+- Consumes: `plates`, `PLATE_WIDTHS`, the lamp's `--p` act-progress property.
+- Produces: `public/art/<id>-motion.webm`; `Plate` renders a `<video>` layer when one exists; `Lamp` drives `video.currentTime` from `--p`.
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `tests/lamplight.spec.ts`:
+
+```ts
+test("the hero plate scrubs its video with scroll", async ({ page }) => {
+  await page.goto("/");
+  const video = page.locator("#hero video").first();
+  await expect(video).toHaveCount(1);
+  // The video must be inert on its own — scroll is the only clock.
+  expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
+  expect(await video.evaluate((v: HTMLVideoElement) => v.autoplay)).toBe(false);
+
+  const at = () => video.evaluate((v: HTMLVideoElement) => v.currentTime);
+  await page.waitForFunction(
+    () => (document.querySelector("#hero video") as HTMLVideoElement)?.readyState >= 1,
+  );
+  const before = await at();
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 0.7));
+  await page.waitForTimeout(200);
+  expect(await at()).not.toBe(before);
+});
+
+test("reduced motion renders the still plate and no video", async ({ browser }) => {
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page.locator("video")).toHaveCount(0);
+  await expect(page.locator(".plate-lit").first()).toBeVisible();
+  await ctx.close();
+});
+
+test("without JavaScript no video is requested", async ({ browser }) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  const requested: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().endsWith(".webm")) requested.push(r.url());
+  });
+  await page.goto("/");
+  await expect(page.locator(".plate-lit").first()).toBeVisible();
+  expect(requested).toEqual([]);
+  await ctx.close();
+});
+```
+
+- [ ] **Step 2: Run them to make sure they fail**
+
+```bash
+npm run build && npx playwright test tests/lamplight.spec.ts -g "scrubs|reduced motion renders the still|without JavaScript no video"
+```
+
+Expected: the scrub test FAILS (no `<video>` in the DOM). The other two PASS
+trivially — they are guards that must keep passing once video lands, not
+drivers. Say so in the report rather than treating their green as progress.
+
+- [ ] **Step 3: Describe the motion per plate**
+
+Each painting wants a different move — the Air Pump pushes toward the glass
+globe, Dovedale drifts across the valley. Add to each entry in `src/lib/art.ts`:
+
+```ts
+  /** How this plate moves when scrubbed. `from`/`to` are crop-relative
+   *  centres (0-1) and scales; the drift runs from one to the other across
+   *  the act's scroll. Chosen per painting, toward what it is about. */
+  motion?: {
+    from: { x: number; y: number; scale: number };
+    to: { x: number; y: number; scale: number };
+  };
+```
+
+Set `motion` for all eight, each drifting toward that painting's subject — for
+`airpump`, toward the globe at its centre; for `anatomy`, toward the forearm
+Dr Tulp is holding open. Keep the scale range modest (`1.0` → `1.12`); a
+painting is not a drone shot.
+
+- [ ] **Step 3b: Narrow crops, carried forward from Task 14c**
+
+**Added 2026-08-17.** Task 14c proved that the vertical half of every plate's
+`framing` descriptor is inert: all eight crops are landscape (aspect ~1.24–1.52)
+while every mobile act container is far more portrait, so `object-fit: cover` is
+height-bound and no `object-position` Y value can move the frame. The visible
+consequence is the `about` act — Wright's *Alchemist* — reading weak on mobile,
+because the flask that is the whole point of the painting sits outside the band
+a phone shows.
+
+The fix belongs to the art pipeline, and this task already re-runs it.
+
+Add an optional second crop to the registry in `src/lib/art.ts`:
+
+```ts
+  /** A portrait-friendly crop for narrow viewports. Optional: set it only
+   *  for plates whose subject falls outside the band a phone shows under
+   *  the landscape crop. Same coordinate space as `crop`. */
+  cropNarrow?: { x: number; y: number; w: number; h: number };
+```
+
+In `scripts/fetch-art.mjs`, emit `<id>-narrow-<width>.avif|webp` for any plate
+carrying `cropNarrow`, at 640 and 960 widths only (a phone never needs more),
+and lock them exactly like the others.
+
+In `Plate.tsx`, serve them first inside each `<picture>`:
+
+```tsx
+        <source
+          media="(max-width: 48rem)"
+          srcSet={narrowSrcset(id, "avif")}
+          type="image/avif"
+        />
+```
+
+with the landscape sources following, so a wide viewport never matches the
+narrow entry and a plate without `cropNarrow` behaves exactly as it does today.
+
+Set `cropNarrow` for `alchemist` first — frame it on the glowing flask and the
+kneeling figure. Then check the other seven on a 390×844 screenshot and set it
+for any whose subject is also cut. **Report which plates needed it and which did
+not, with the reasoning per plate** — this is per-painting judgement, not a
+blanket transform.
+
+Then re-verify: the narrow variants must appear in `art.lock.json`, the
+file→lock check must stay clean, and the image budget must still measure only
+what a given viewport actually downloads — a narrow variant and a wide variant
+are alternatives, never both fetched, so the gate must not sum them. If the
+budget script would double-count them, fix it the same way it was fixed for
+AVIF/WebP.
+
+- [ ] **Step 4: Emit the WebM**
+
+In `scripts/fetch-art.mjs`, after the still variants, render the drift with
+ffmpeg via the already-installed `sharp` crop plus ffmpeg's `zoompan`. Use
+`ffmpeg-static` as a devDependency (justification: build-time only, never
+shipped; it is the only practical way to emit VP9 from Node):
+
+```bash
+npm install --save-dev ffmpeg-static
+```
+
+Emit `<id>-motion.webm` at 1600w, 4 seconds, 25fps, VP9, `-crf 40 -b:v 0`,
+`-an` (no audio track at all), `-g 25` (a keyframe every second, so seeking is
+cheap), `-tile-columns 0 -row-mt 1`. Record each in the lockfile exactly like
+the stills so `check-art.mjs` covers them unchanged.
+
+Log each file's size. **If any single WebM exceeds 250KB, lower the resolution
+to 1280w before lowering quality** — these are slow drifts over a still image
+and should compress hard; a large file means the encode is wrong, not that the
+budget is tight.
+
+- [ ] **Step 5: Render the video layer**
+
+In `src/components/Plate.tsx`, when `plates[id].motion` exists and a lockfile
+entry for `<id>-motion.webm` is present, render a `<video>` **inside the same
+`.plate` wrapper, after both `<picture>` elements**:
+
+```tsx
+      {motionSrc && (
+        <video
+          className="plate-motion"
+          src={motionSrc}
+          preload="metadata"
+          muted
+          playsInline
+          aria-hidden="true"
+          tabIndex={-1}
+          disablePictureInPicture
+        />
+      )}
+```
+
+No `autoplay`, no `loop`, no `controls`. It never plays itself — scroll is its
+only clock. It is decorative and duplicates the still it covers, so it is
+`aria-hidden` and carries no accessible name.
+
+- [ ] **Step 6: Gate it, and scrub it**
+
+In `src/components/Lamp.tsx`, extend the existing rAF loop — do not add a
+second one. Inside the per-act work, after writing `--p`:
+
+```ts
+      const video = act.querySelector<HTMLVideoElement>("video.plate-motion");
+      if (video && video.readyState >= 1 && video.duration) {
+        // Scroll is the clock. Seeking costs nothing when the encode is
+        // keyframe-dense, and we never call play().
+        const t = p * video.duration;
+        if (Math.abs(video.currentTime - t) > 0.02) video.currentTime = t;
+      }
+```
+
+Gate the whole video layer the same way the mask is gated — it must exist only
+when the lamp is on. Since `Lamp` already returns early under
+`prefers-reduced-motion`, add a class to `<html>` alongside `data-lamp="on"`
+and hide `video.plate-motion` by default in CSS:
+
+```css
+.plate-motion {
+  display: none;
+}
+[data-lamp="on"] .plate-motion {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+```
+
+`display: none` on a `<video preload="metadata">` still fetches metadata, so
+also skip rendering the element server-side when it would never be used — the
+no-JS test asserts zero `.webm` requests, and `preload="metadata"` alone would
+fail it. Set `src` from JS on mount instead of in the markup: render the
+element with `data-src` and have `Lamp` promote it to `src` when it turns the
+lamp on. That is what makes the no-JS assertion pass honestly.
+
+Additionally, skip the promotion entirely when any of these hold:
+- `navigator.connection?.saveData` is true
+- the device is coarse-pointer **and** the viewport is under 700px wide
+- `matchMedia("(prefers-reduced-motion: reduce)")` matches (already handled by
+  the early return)
+
+Record in the report which conditions you implemented and how you tested each.
+
+- [ ] **Step 7: Measure, then decide the spread**
+
+```bash
+npm run art && npm run build && npm run budget
+```
+
+Add the WebM set to `scripts/check-budget.mjs`'s image assertion — the ceiling
+becomes total *media*, not just images:
+
+```js
+const MEDIA_BUDGET_KB = 3500; // raised from 3000 when scrubbed motion landed
+```
+
+Report the per-plate WebM sizes and the new total. **If total media exceeds
+3500 kB, keep `motion` on `airpump`, `forge`, `orrery` and `kitten` only** —
+the hero and the three project acts — and delete the `motion` descriptor from
+the other four so no WebM is emitted for them. Say plainly in the report which
+spread shipped and what the numbers were.
+
+- [ ] **Step 8: Smooth the transitions**
+
+**Added 2026-08-17 at the owner's request.** Right now every act cuts hard into
+the next and the scrub is linear, which reads mechanical. Three changes, all
+CSS or single-line JS, all inside the existing rAF loop:
+
+**8a — ease the scrub.** `--p` is currently linear act progress, so the drift
+starts and stops abruptly at the act boundary. In `Lamp.tsx`, keep `--p` linear
+(the mask and other consumers want it raw) and add a second property alongside
+it:
+
+```ts
+        // Eased progress for anything that should start and end gently —
+        // the video scrub and the plate push-in. Raw --p stays linear for
+        // the mask, which wants a constant-speed sweep.
+        const eased = p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2;
+        act.style.setProperty("--pe", eased.toFixed(4));
+```
+
+Drive `video.currentTime` from `eased` rather than `p`, and change the plate
+push-in in `globals.css` from `var(--p, 0)` to `var(--pe, 0)`.
+
+**8b — cross-fade the act boundary.** Each act currently ends flush against the
+next. Give every act a ground-coloured fade at both edges so one painting
+dissolves into the dark before the next resolves out of it. Add to
+`globals.css`, near the `.plate` rules:
+
+```css
+/* Acts meet in the dark. Each plate fades into ground at its own edges,
+   so scrolling between two paintings is a dissolve rather than a cut. */
+.plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--color-ground) 0%,
+    transparent 14%,
+    transparent 86%,
+    var(--color-ground) 100%
+  );
+}
+```
+
+**8c — settle the lamp.** The lamp currently jumps to the pointer. Low-pass it
+so it trails slightly, which reads as a held lantern rather than a cursor.
+In `Lamp.tsx`, keep a smoothed pointer alongside the raw one and lerp each
+frame:
+
+```ts
+      // The lamp has weight. It follows the pointer rather than snapping to
+      // it — a held lantern, not a cursor.
+      smooth.x += (pointer.x - smooth.x) * 0.08;
+      smooth.y += (pointer.y - smooth.y) * 0.08;
+```
+
+Read `smooth` instead of `pointer` when computing the lamp offset. Initialise
+`smooth` to `{x: 0.5, y: 0.5}` so the first frame does not lurch.
+
+All three must respect reduced motion — they already do, since `Lamp` returns
+early and `--pe` falls back to `0` in the CSS defaults. Verify that explicitly
+and say so in the report.
+
+- [ ] **Step 9: Run everything**
+
+```bash
+npm run lint && npm run typecheck && npm run build && npm run budget && npm run check:art && npm test
+```
+
+Expected: all green, axe zero violations, and the three new tests passing.
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add -A
+git commit -m "feat: scroll-scrubbed motion on the plates, eased and dissolving"
+```
+
+---
+
+### Task 14c: Make the plates read as paintings
+
+**Added 2026-08-17.** Screenshots of the built site at four viewports
+(1440×900, 390×844, 844×390, 834×1112) show the same defect in all eight acts:
+**the paintings are effectively invisible.** Each act renders as a black page
+with a faint smudge. The typography and the chart are excellent; the ground the
+whole design rests on is not delivering.
+
+Three causes compound:
+
+1. `.plate-dark` sits at `filter: brightness(0.18)` — far below what a dark
+   oil painting can survive. Wright's blacks are already near-black; multiplying
+   them by 0.18 leaves nothing.
+2. The lamp reveals a relatively small circle, and its rest position comes from
+   each plate's `lamp` descriptor — which points at the painting's own light
+   source, usually near centre.
+3. The `.scrim` runs `ground 0% → ground 42% → transparent 100%`, so the left
+   42% of every act is solid ground. The lamp's rest position sits under it.
+   The light is landing behind the blackout.
+
+This task also carries the owner's request for **text that fades in on scroll**.
+
+**Files:**
+- Modify: `src/app/globals.css`, `src/lib/art.ts` (per-plate framing), `src/components/Lamp.tsx`, `src/components/Act.tsx`
+- Test: `tests/lamplight.spec.ts`
+
+- [ ] **Step 1: Capture the evidence**
+
+Before changing anything, reproduce the screenshots so the before/after is real
+rather than asserted. Build, serve `./out`, and capture each act at
+1440×900 and 390×844. Keep them; the report references them.
+
+- [ ] **Step 2: Let the paintings breathe**
+
+In `globals.css`:
+
+```css
+[data-lamp="on"] .plate-dark {
+  display: block;
+  /* A Wright of Derby is already mostly black. 0.18 erased it; this keeps
+     the unlit field clearly subordinate while leaving the painting legible
+     as a painting. */
+  filter: brightness(0.42) saturate(0.85);
+}
+```
+
+and widen the reveal so the lit region is a pool rather than a spot:
+
+```css
+[data-lamp="on"] .plate-lit {
+  --lamp-r: calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax);
+  /* …gradient stops become #000 0%, #000 46%, transparent 88% */
+}
+```
+
+- [ ] **Step 3: Pull the scrim back and move the light out from under it**
+
+The scrim must protect the text and nothing more. In `globals.css`:
+
+```css
+.scrim::before {
+  background: linear-gradient(
+    to right,
+    var(--color-ground) 0%,
+    color-mix(in srgb, var(--color-ground) 92%, transparent) 30%,
+    transparent 62%
+  );
+}
+```
+
+and on narrow screens:
+
+```css
+@media (max-width: 48rem) {
+  .scrim::before {
+    background: linear-gradient(
+      to top,
+      var(--color-ground) 0%,
+      color-mix(in srgb, var(--color-ground) 90%, transparent) 42%,
+      transparent 78%
+    );
+  }
+}
+```
+
+**Re-verify contrast after this change.** The existing per-act contrast test
+must still pass; if a scrim this light drops any text below AA, tighten the
+scrim rather than dimming the painting, and say so in the report.
+
+- [ ] **Step 4: Frame each painting against its text**
+
+This is the "orientation" fix. Each plate's subject must sit in the **open**
+half of the frame, not behind the text column. Add to each entry in
+`src/lib/art.ts`:
+
+```ts
+  /** Where the painting sits inside the act box, per axis, as a CSS
+   *  object-position. Chosen so the subject lands clear of the text
+   *  column — right-of-centre on wide screens, upper half on narrow. */
+  framing: { wide: string; narrow: string };
+```
+
+For example `airpump` takes `{ wide: "62% 50%", narrow: "50% 38%" }` so the
+glass globe and the lit faces clear the copy. Set all eight by eye against the
+Step 1 screenshots — this is a judgement call per painting, and the report must
+show the before/after for each.
+
+Consume it in `Plate.tsx` via a CSS custom property on the `.plate` wrapper,
+with the narrow value applied under the same `48rem` breakpoint the scrim uses.
+
+- [ ] **Step 5: Move the lamp's rest position out of the text column**
+
+In `Lamp.tsx`, bias the resting `x` toward the open half rather than using the
+plate's own `lamp.x` unmodified:
+
+```ts
+        // The painting's light source is where the lamp *wants* to sit, but
+        // the text column owns the left of the frame. Push the rest position
+        // into the open half so the reveal lands where it can be seen.
+        const restX = Math.max(0.52, Number(act.dataset.lampX ?? 0.5));
+```
+
+On narrow screens the text sits at the bottom, so bias `y` upward instead —
+gate this on a `matchMedia("(max-width: 48rem)")` check captured once on mount.
+
+- [ ] **Step 6: Text that resolves on scroll**
+
+The owner asked for the copy to fade in as it arrives. One authored beat per
+act, not a carnival: the eyebrow, statement, body and provenance resolve in
+sequence, once, when the act first enters view — never re-firing on scroll back.
+
+`Act.tsx` already has an `IntersectionObserver` gate via `Lamp`. Add a
+`data-seen` attribute set once when an act first intersects, then in CSS:
+
+```css
+/* One beat per act, on first arrival. Never replayed — a page that
+   re-animates every time you scroll past is a page you cannot read. */
+[data-act] .scrim > * {
+  opacity: 0;
+  transform: translateY(0.6rem);
+}
+[data-act][data-seen] .scrim > * {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-act][data-seen] .scrim > :nth-child(2) { transition-delay: 0.06s; }
+[data-act][data-seen] .scrim > :nth-child(3) { transition-delay: 0.12s; }
+[data-act][data-seen] .scrim > :nth-child(4) { transition-delay: 0.18s; }
+[data-act][data-seen] .scrim > :nth-child(5) { transition-delay: 0.24s; }
+```
+
+**The no-JS and reduced-motion states must show the text.** Since the hidden
+state is the default, gate the whole block on `[data-lamp="on"]` exactly as the
+mask is gated — no lamp, no hiding. Add a test asserting that with JavaScript
+disabled every act's statement is visible, and another under
+`reducedMotion: "reduce"`.
+
+Set `data-seen` in `Lamp.tsx`'s existing observer callback — do not add a
+second observer.
+
+- [ ] **Step 7: Re-shoot and compare**
+
+Recapture the Step 1 viewports and put before/after pairs in the report. The
+bar to clear is plain: **a reader should be able to tell what each painting
+depicts.** If they still cannot, raise `brightness` further and say what you
+landed on.
+
+- [ ] **Step 8: Run everything**
+
+```bash
+npm run lint && npm run typecheck && npm run build && npm run budget && npm run check:art && npm test
+```
+
+Expected: all green, axe zero violations, contrast test still passing.
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add -A
+git commit -m "feat: let the paintings read, and resolve the copy on arrival"
+```
+
+---
+
+### Task 14d: The torch — a page-wide flashlight
+
+**Added 2026-08-17 at the owner's request**, from a detailed specification. Must
+run **after Task 14c**, which sets the plates' brightness floor — the two
+interact directly and tuning 14d against unfixed plates would waste the pass.
+
+**The unification ruling.** The site already has a light: the per-act lamp that
+reveals each painting. A second, independent global dimmer would mean two
+uncorrelated light sources and a compounding darkness the paintings cannot
+afford. So the torch and the plate lamp are **one light**: the same pointer
+drives both, and the plate's own unlit floor rises to compensate for the
+overlay's dimming. The reader sees a single flashlight moving over a dark
+archive, which is exactly what the concept asks for.
+
+**Files:**
+- Create: `src/components/Torch.tsx`
+- Modify: `src/components/Lamp.tsx`, `src/app/globals.css`, `src/app/layout.tsx`
+- Test: `tests/lamplight.spec.ts`
+
+**Interfaces:**
+- Consumes: nothing new.
+- Produces: `--torch-x`, `--torch-y`, `--torch-r` on `<html>`; `data-torch="on"` once the pointer has entered.
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `tests/lamplight.spec.ts`:
+
+```ts
+test("the torch follows the pointer and never blocks interaction", async ({ page }) => {
+  await page.goto("/");
+  const overlay = page.locator(".torch");
+  await expect(overlay).toHaveCount(1);
+  expect(
+    await overlay.evaluate((el) => getComputedStyle(el).pointerEvents),
+  ).toBe("none");
+
+  const read = () =>
+    page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue("--torch-x"),
+    );
+  await page.mouse.move(200, 200);
+  await page.waitForTimeout(160);
+  const a = await read();
+  await page.mouse.move(900, 600);
+  await page.waitForTimeout(300);
+  expect(await read()).not.toBe(a);
+
+  // The overlay must not intercept clicks.
+  await page.getByRole("link", { name: /résumé/i }).first().click({ trial: true });
+});
+
+test("the torch stays off for touch, reduced motion, and no JS", async ({ browser }) => {
+  for (const opts of [
+    { reducedMotion: "reduce" as const },
+    { hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } },
+    { javaScriptEnabled: false },
+  ]) {
+    const ctx = await browser.newContext(opts);
+    const page = await ctx.newPage();
+    await page.goto("/");
+    await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on");
+    // Content is readable regardless.
+    await expect(page.locator(".statement").first()).toBeVisible();
+    await ctx.close();
+  }
+});
+```
+
+- [ ] **Step 2: Run them to make sure they fail**
+
+```bash
+npm run build && npx playwright test tests/lamplight.spec.ts -g "torch"
+```
+
+Expected: the first FAILS (no `.torch` element). The second passes trivially —
+it is a guard, not a driver.
+
+- [ ] **Step 3: Build the torch**
+
+Create `src/components/Torch.tsx` as a client component mounted once in
+`layout.tsx`, beside `Lamp`.
+
+Behaviour, following the owner's specification:
+
+- A **fixed-position overlay above all content**, `pointer-events: none`,
+  covering the viewport. It dims the page by **20–35%** outside the beam and
+  leaves it fully visible inside. The page must stay readable everywhere —
+  this creates contrast, it does not hide content.
+- The beam is a **soft radial gradient** with no hard edge:
+  `transparent 0%, transparent 35%, slight 60%, stronger 80%, full 100%`.
+- Radius: **240px desktop, 200px tablet**, via `--torch-r`. Read the breakpoint
+  once on mount and on resize — never per frame.
+- **Smoothing:** the beam trails the pointer with slight inertia. Lerp toward
+  the raw pointer at ~0.14 per frame — physical, but with no perceptible lag.
+  Reuse the pattern Task 14b's Step 8c introduces for the lamp.
+- **Entrance:** on load the overlay is only slightly dark and the beam is
+  absent. When the pointer first enters, `data-torch="on"` goes on `<html>` and
+  the beam fades in over ~600ms. It must never look broken before first move.
+- **Interactive elements:** when the pointer is over an `a`, `button`, or
+  `[role="button"]`, the radius eases from 240px to ~260px. Detect with a
+  single delegated `pointerover`/`pointerout` on `document`, not per-element
+  listeners, and never pulse or repeat.
+
+Write it exactly like `Lamp`: **one rAF loop, passive listeners, CSS custom
+properties only.** No React state per pointer event, no re-renders, no canvas,
+no animation library, no filters on scrolling content. Only compositor-friendly
+properties.
+
+- [ ] **Step 4: Gate it hard**
+
+The torch is desktop-only and must be absent — not merely invisible — in every
+other case:
+
+```css
+@media (hover: none) {
+  .torch { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .torch { display: none; }
+}
+```
+
+and in JS, return early from the effect (registering no listeners at all) when
+`matchMedia("(hover: none)")` or `matchMedia("(prefers-reduced-motion: reduce)")`
+matches. With no JavaScript the element renders inert and undimmed.
+
+Keyboard users must get the normal page: focus, selection, scrolling and link
+activation are untouched, and nothing about the torch is required to read or
+operate the site.
+
+- [ ] **Step 5: Rebalance against the plates**
+
+Because the overlay now supplies the page-wide darkness, the plates must not
+double-dim. In `globals.css`, raise the unlit floor set by Task 14c whenever the
+torch is active:
+
+```css
+[data-torch="on"] [data-lamp="on"] .plate-dark {
+  filter: brightness(0.56) saturate(0.9);
+}
+```
+
+Tune this number against the rendered page — the target is that a plate under
+the torch's dim region looks the same as it did before the torch existed.
+
+- [ ] **Step 6: Optional grain**
+
+Add a very low-opacity film-grain texture to the overlay only if it improves it:
+an inline base64 noise tile at ≤3% opacity, `background-repeat: repeat`, no
+animation. Archival paper and darkroom, not digital noise. **If it looks worse,
+delete it** and say so in the report — a rejected option honestly reported is a
+better outcome than a mediocre one shipped.
+
+- [ ] **Step 7: Inspect the real thing**
+
+This step is not optional and is not satisfied by tests passing. Build, serve
+`./out`, and drive a real browser: move the pointer slowly across the hero, the
+nav, each project act, the research chart, the ledger and the footer, then move
+it fast across the whole page. Capture screenshots at 1440×900 with the pointer
+at three positions and attach them to the report.
+
+Check and report on each: the beam follows smoothly; no visible lag; no
+flicker; no layout shift; no text made unreadable; no click interception; no
+frame drops. **Tune radius and opacity until it reads as premium** — the target
+feeling is a flashlight in an engineering archive, not a glowing cursor.
+
+Explicitly confirm none of these appear: a glowing or replaced cursor, a neon
+or RGB edge, a particle or cursor trail, lens flare, pulsing, flashing,
+excessive blur, or full-page darkness.
+
+- [ ] **Step 8: Run everything**
+
+```bash
+npm run lint && npm run typecheck && npm run build && npm run budget && npm run check:art && npm test
+```
+
+Expected: all green, axe zero violations, contrast test still passing. The
+budget must absorb the torch within the existing JS ceiling — report its
+gzipped cost.
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add -A
+git commit -m "feat: the torch — a page-wide flashlight over the archive"
+```
+
+---
+
 ### Task 15: Documentation and the finish
 
 **Files:**

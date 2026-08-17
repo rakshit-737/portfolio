@@ -1,7 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/icons";
 import Act from "@/components/Act";
-import BarField from "@/components/BarField";
 import BenchmarkChart from "@/components/BenchmarkChart";
 import { BracketLink } from "@/components/Bracket";
 import CommandPalette from "@/components/CommandPalette";
@@ -11,7 +10,7 @@ import Nav from "@/components/Nav";
 import Plate from "@/components/Plate";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
-import SectionHead from "@/components/SectionHead";
+import SineLattice from "@/components/SineLattice";
 import Statement from "@/components/Statement";
 import {
   about,
@@ -326,7 +325,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className={`${SHELL} scrim relative z-10 py-24`}>
+          <div className={`${SHELL} scrim scrim-wide relative z-10 py-24`}>
             <Statement id="ledger-title">{acts.ledger.statement}</Statement>
 
             <h3 className="label mt-16 border-b border-rule pb-2">Archive</h3>
@@ -471,66 +470,59 @@ export default async function Home() {
           </div>
         </Act>
 
-        {/* ── Contact: the close ────────────────────────────────────── */}
-        <section
+        <Act
           id="contact"
-          aria-labelledby="contact-title"
-          className="negative relative overflow-hidden py-16 sm:py-24"
+          label={acts.contact.label}
+          lamp={plates[acts.contact.plate].lamp}
+          className="flex items-center"
         >
-          <BarField
-            seed="contact-field"
-            density={0.8}
-            height={60}
-            className="print-drop pointer-events-none absolute inset-x-0 bottom-0 h-24 w-full opacity-35"
+          <Plate id={acts.contact.plate} />
+          <SineLattice
+            width={1000}
+            height={300}
+            cycles={1.4}
+            nodes={6}
+            mode="constellation"
+            className="pointer-events-none absolute inset-x-0 top-[14%] z-0 h-[40%] w-full opacity-70 print-drop"
           />
-          <div className={`${SHELL} relative`}>
-            <SectionHead id="contact" title="Contact" />
-            <div className="mt-10 grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
-              <div>
-                <p
-                  className="font-mono leading-[1.15] font-semibold tracking-[-0.04em]"
-                  style={{ fontSize: "clamp(1.7rem, 4.6vw, 3.25rem)" }}
-                >
-                  {contact.headline}
-                </p>
-                <p className="prose-field mt-6 text-sm">
-                  Based in {hero.location}. {contact.body}
-                </p>
-              </div>
 
-              <div className="lg:pt-2">
-                <div className="flex flex-wrap items-center gap-3">
-                  <a
-                    href={`mailto:${links.email}`}
-                    className="font-mono text-sm underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
-                  >
-                    {links.email}
-                  </a>
-                  <CopyEmailButton email={links.email} />
-                </div>
+          <div className={`${SHELL} scrim relative z-10 py-24`}>
+            <Statement id="contact-title">{acts.contact.statement}</Statement>
 
-                <div className="print-hidden mt-7 flex flex-wrap gap-3">
-                  <BracketLink
-                    href={withBase(links.resume)}
-                    weight="filled"
-                    small
-                    download
-                  >
-                    Download résumé
-                  </BracketLink>
-                  <BracketLink href={links.github.url} small external>
-                    <GithubIcon size={13} />
-                    GitHub
-                  </BracketLink>
-                  <BracketLink href={links.linkedin.url} small external>
-                    <LinkedinIcon size={13} />
-                    LinkedIn
-                  </BracketLink>
-                </div>
-              </div>
+            <p className="prose-field mt-8 text-sm">
+              Based in {hero.location}. {contact.body}
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <a
+                href={`mailto:${links.email}`}
+                className="font-mono text-sm underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+              >
+                {links.email}
+              </a>
+              <CopyEmailButton email={links.email} />
             </div>
+
+            <div className="print-hidden mt-8 flex flex-wrap gap-3">
+              <BracketLink href={withBase(links.resume)} weight="filled" small download>
+                Download résumé
+              </BracketLink>
+              <BracketLink href={links.github.url} small external>
+                <GithubIcon size={13} />
+                GitHub
+              </BracketLink>
+              <BracketLink href={links.linkedin.url} small external>
+                <LinkedinIcon size={13} />
+                LinkedIn
+              </BracketLink>
+            </div>
+
+            <Provenance
+              className="mt-10"
+              segments={withCredit(acts.contact.plate, [])}
+            />
           </div>
-        </section>
+        </Act>
       </main>
 
       <footer className="border-t border-rule">

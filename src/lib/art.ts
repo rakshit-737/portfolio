@@ -33,6 +33,30 @@ export interface Plate {
   crop: { x: number; y: number; w: number; h: number };
   lamp: { x: number; y: number };
   alt: string;
+  /** Where the painting sits inside the act box, as a CSS object-position,
+   *  one value per breakpoint (`wide` above 48rem, `narrow` at or below
+   *  it). On wide screens both axes matter: chosen so the subject lands
+   *  right-of-centre, clear of the text column. On narrow screens the
+   *  render is height-bound — every crop here is landscape (aspect ratio
+   *  ~1.24-1.52) against a far more portrait mobile act box, so
+   *  `object-fit: cover` always scales to the box's height with zero
+   *  vertical slack (confirmed by the `object-fit: cover` math for all
+   *  eight plates). Only `narrow`'s X component has any visible effect;
+   *  its Y component is inert today and is kept for forward-compatibility
+   *  — if a future crop or act geometry ever leaves vertical slack on a
+   *  narrow viewport, the Y value is already there to use. */
+  framing: { wide: string; narrow: string };
+  /** A portrait-friendly crop for narrow viewports. Optional: set it only
+   *  for plates whose subject falls outside the band a phone shows under
+   *  the landscape crop. Same coordinate space as `crop`. */
+  cropNarrow?: { x: number; y: number; w: number; h: number };
+  /** How this plate moves when scrubbed. `from`/`to` are crop-relative
+   *  centres (0-1) and scales; the drift runs from one to the other across
+   *  the act's scroll. Chosen per painting, toward what it is about. */
+  motion?: {
+    from: { x: number; y: number; scale: number };
+    to: { x: number; y: number; scale: number };
+  };
 }
 
 /** Widths emitted per plate. A variant is skipped when it would upscale. */
@@ -57,6 +81,11 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0, w: 1, h: 0.9 },
     lamp: { x: 0.5, y: 0.62 },
     alt: "A candlelit room of onlookers watching a demonstrator withdraw the air from a glass globe containing a bird, their faces caught between fascination and dread.",
+    framing: { wide: "62% 50%", narrow: "50% 38%" },
+    motion: {
+      from: { x: 0.5, y: 0.52, scale: 1.0 },
+      to: { x: 0.5, y: 0.62, scale: 1.12 },
+    },
   },
   alchemist: {
     id: "alchemist",
@@ -70,6 +99,18 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.16, w: 1, h: 0.62 },
     lamp: { x: 0.46, y: 0.55 },
     alt: "An alchemist kneeling alone at night in a vaulted room, hands raised before a flask that has begun to glow.",
+    framing: { wide: "62% 82%", narrow: "82% 50%" },
+    // The wide crop is a flat horizontal band (aspect ~1.24); on a phone,
+    // object-fit: cover is height-bound against that band and never shows
+    // enough of it to include both the kneeling figure and the flask above
+    // his hands. This is a genuinely taller, narrower window straight from
+    // the native frame — verified by eye against a 500px preview — running
+    // from just above his head to the floor.
+    cropNarrow: { x: 0.28, y: 0.42, w: 0.5, h: 0.56 },
+    // No `motion`: Step 7 measured total media at 4140 kB against the
+    // 3500 kB ceiling with all eight plates carrying motion, so the
+    // spread was cut back to the hero plus the three project acts
+    // (airpump, forge, orrery, kitten). See the Task 14b report.
   },
   forge: {
     id: "forge",
@@ -85,6 +126,11 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.06, w: 1, h: 0.84 },
     lamp: { x: 0.44, y: 0.58 },
     alt: "A working forge at night, a white-hot ingot on the anvil throwing hard light across the smith, his family, and the timber frame of the shop.",
+    framing: { wide: "72% 55%", narrow: "56% 24%" },
+    motion: {
+      from: { x: 0.44, y: 0.46, scale: 1.0 },
+      to: { x: 0.44, y: 0.58, scale: 1.12 },
+    },
   },
   orrery: {
     id: "orrery",
@@ -98,6 +144,11 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0, w: 1, h: 0.94 },
     lamp: { x: 0.52, y: 0.54 },
     alt: "A philosopher lecturing on a brass orrery, a lamp standing in for the sun at its centre and lighting the listening faces from below.",
+    framing: { wide: "58% 45%", narrow: "50% 26%" },
+    motion: {
+      from: { x: 0.52, y: 0.46, scale: 1.0 },
+      to: { x: 0.52, y: 0.54, scale: 1.1 },
+    },
   },
   kitten: {
     id: "kitten",
@@ -114,6 +165,11 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.2, w: 1, h: 0.58 },
     lamp: { x: 0.5, y: 0.6 },
     alt: "Two girls bent over a kitten by candlelight, absorbed in a small domestic ritual repeated night after night.",
+    framing: { wide: "64% 42%", narrow: "56% 30%" },
+    motion: {
+      from: { x: 0.5, y: 0.48, scale: 1.0 },
+      to: { x: 0.5, y: 0.6, scale: 1.1 },
+    },
   },
   anatomy: {
     id: "anatomy",
@@ -129,6 +185,8 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0, w: 1, h: 0.95 },
     lamp: { x: 0.42, y: 0.6 },
     alt: "Surgeons crowded around a dissection table as Dr Tulp lifts the tendons of a forearm with forceps, everyone watching the evidence rather than the body.",
+    framing: { wide: "68% 56%", narrow: "54% 28%" },
+    // No `motion` — see the note on `alchemist` above (Step 7 spread cut).
   },
   dovedale: {
     id: "dovedale",
@@ -145,6 +203,8 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.08, w: 1, h: 0.8 },
     lamp: { x: 0.62, y: 0.36 },
     alt: "A river valley under a full moon, the water carrying a cold band of reflected light between dark banks.",
+    framing: { wide: "64% 32%", narrow: "58% 18%" },
+    // No `motion` — see the note on `alchemist` above (Step 7 spread cut).
   },
   academy: {
     id: "academy",
@@ -161,6 +221,8 @@ export const plates: Record<PlateId, Plate> = {
     crop: { x: 0, y: 0.18, w: 1, h: 0.6 },
     lamp: { x: 0.38, y: 0.44 },
     alt: "Students gathered close around a single lamp to draw a classical statue, the light falling hardest on the work in front of them.",
+    framing: { wide: "56% 40%", narrow: "50% 22%" },
+    // No `motion` — see the note on `alchemist` above (Step 7 spread cut).
   },
 };
 
