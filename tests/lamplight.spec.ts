@@ -341,22 +341,41 @@ const CONTRAST_LUMINANCE_CEILING = 0.12;
 // structural check is the direct, mechanical guard: it fails the instant
 // the DOM order regresses, independent of what shade of dim the images
 // happen to render as.
-test("every plate paints the dark layer beneath the lit one", async ({ page }) => {
+//
+// Task 14b fix round: extended to cover the third layer, `.plate-motion`
+// (the scrubbed video), which Plate.tsx renders after both `<picture>`
+// blocks. The original assertion only inspected `img` elements, so a future
+// change that dropped the video between the two stills — or before
+// `.plate-dark` — would not have failed it. `.plate-motion` carries the
+// same mask as `.plate-lit` (see globals.css) and stands in for it inside
+// the lamp's pool, so it must paint after both stills or it either hides
+// beneath the dimmed layer or buries the reveal under an unmasked frame.
+test("every plate paints the dark layer beneath the lit one, and any motion video last", async ({
+  page,
+}) => {
   await page.goto("/");
-  const inverted = await page.evaluate(() =>
+  const broken = await page.evaluate(() =>
     [...document.querySelectorAll(".plate")]
       .map((plate, i) => {
-        const imgs = [...plate.querySelectorAll("img")];
-        const dark = imgs.findIndex((n) => n.classList.contains("plate-dark"));
-        const lit = imgs.findIndex((n) => n.classList.contains("plate-lit"));
-        return dark > -1 && lit > -1 && dark > lit ? i : -1;
+        // Document order among the plate's media layers only — img and
+        // video are the only elements this ordering guarantee governs.
+        const layers = [...plate.querySelectorAll("img, video")];
+        const dark = layers.findIndex((n) => n.classList.contains("plate-dark"));
+        const lit = layers.findIndex((n) => n.classList.contains("plate-lit"));
+        const motion = layers.findIndex((n) => n.classList.contains("plate-motion"));
+        const darkAfterLit = dark > -1 && lit > -1 && dark > lit;
+        const motionNotLast = motion > -1 && (motion < dark || motion < lit);
+        return darkAfterLit || motionNotLast ? i : -1;
       })
       .filter((i) => i > -1),
   );
-  // Both layers are position:absolute with no z-index, so document order IS
-  // paint order. Dark must come first or it covers the lamp's reveal entirely
-  // — the exact bug this task's second pass existed to fix.
-  expect(inverted).toEqual([]);
+  // Both stills are position:absolute with no z-index, so document order IS
+  // paint order. Dark must come first or it covers the lamp's reveal
+  // entirely — the exact bug this task's second pass existed to fix. Where
+  // a motion video exists, it must be last of the three — after both
+  // stills — or it paints beneath one of them instead of standing in for
+  // the lit layer inside the lamp's pool.
+  expect(broken).toEqual([]);
 });
 
 // The behavioural counterpart to the structural check above: proves the
@@ -517,6 +536,56 @@ test("reduced motion renders the still plate and no video", async ({ browser }) 
   await page.goto("/");
   await expect(page.locator("video")).toHaveCount(0);
   await expect(page.locator(".plate-lit").first()).toBeVisible();
+  await ctx.close();
+});
+
+// Fix round: the other two skip conditions Lamp.tsx computes into
+// `motionAllowed` (a coarse pointer paired with a narrow viewport, and
+// `navigator.connection.saveData`) had no test coverage — only reduced
+// motion did. Unlike reduced motion, neither of these causes Plate.tsx's
+// `<video>` element to be removed from the DOM (Lamp.tsx's `promoteVideos`
+// just never runs), so the assertion here is narrower and more direct: the
+// element exists, but its `src` attribute is never set, so nothing is ever
+// requested.
+test("a coarse pointer on a narrow viewport never promotes the video's src", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await ctx.newPage();
+  // Sanity check on the emulation itself: `motionAllowed`'s condition reads
+  // `matchMedia("(pointer: coarse)")`, not `hasTouch` directly — confirm
+  // this context actually reports coarse before trusting a pass below.
+  await page.goto("/");
+  const coarse = await page.evaluate(() => window.matchMedia("(pointer: coarse)").matches);
+  expect(coarse, "this context did not emulate a coarse pointer — the test below proves nothing").toBe(true);
+
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+  const video = page.locator("#hero video").first();
+  await expect(video).toHaveCount(1);
+  await page.waitForTimeout(300);
+  expect(await video.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).toBeNull();
+  await ctx.close();
+});
+
+test("navigator.connection.saveData never promotes the video's src", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.addInitScript(() => {
+    Object.defineProperty(window.navigator, "connection", {
+      value: { saveData: true },
+      configurable: true,
+    });
+  });
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+  const video = page.locator("#hero video").first();
+  await expect(video).toHaveCount(1);
+  await page.waitForTimeout(300);
+  expect(await video.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).toBeNull();
   await ctx.close();
 });
 

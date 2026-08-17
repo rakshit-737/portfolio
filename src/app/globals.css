@@ -151,17 +151,30 @@ section[id] {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Per-plate framing (src/lib/art.ts) — keeps the painting's subject
-     clear of the text column instead of defaulting to dead centre. */
-  object-position: var(--framing-wide, 50% 50%);
   /* Scroll pushes the frame in, very slightly. Free — no layout. Eased
      (--pe), not linear (--p), so the push-in starts and stops gently
-     instead of snapping at the act boundary. */
+     instead of snapping at the act boundary. The motion video doesn't get
+     this: its own push-in is already baked into the encoded clip
+     (src/lib/art.ts `motion.from/to`), so an extra CSS scale here would
+     double it. */
   transform: scale(calc(1.04 + var(--pe, 0) * 0.06));
   transform-origin: center;
 }
+/* Per-plate framing (src/lib/art.ts) — keeps the painting's subject clear
+   of the text column instead of defaulting to dead centre. Shared with
+   `.plate-motion` (fix round, Task 14b) rather than duplicated: the
+   encoded WebM's aspect ratio equals its crop's, so on any container whose
+   aspect differs, `object-fit: cover` alone crops toward centre — exactly
+   the defect this descriptor exists to prevent for the stills. Widening
+   this selector (instead of writing a second rule) also means any future
+   element added to `.plate` inherits the framing for free. */
+.plate img,
+.plate-motion {
+  object-position: var(--framing-wide, 50% 50%);
+}
 @media (max-width: 48rem) {
-  .plate img {
+  .plate img,
+  .plate-motion {
     object-position: var(--framing-narrow, 50% 50%);
   }
 }

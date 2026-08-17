@@ -75,15 +75,24 @@ export default function Plate({
       }
       aria-hidden={false}
     >
-      {/* Paint order matters as much as the alt split: both layers are
-          `position: absolute; inset: 0` with no `z-index`, so whichever
-          element is later in the DOM paints on top. `.plate-dark` MUST
-          come first and `.plate-lit` MUST come second — the masked lit
-          layer has to sit above the opaque dimmed one, or the lamp's
-          reveal is invisible underneath it (Task 14c's fix round; this
-          order inverted once already when an accessibility fix moved the
-          alt text by swapping the two elements' classNames instead of
-          just their alt/aria-hidden attributes — don't repeat that).
+      {/* The full stack, in paint order (four layers, all `position:
+          absolute; inset: 0`, no `z-index` — document order IS paint
+          order): 1. `.plate-dark`, the dimmed still; 2. `.plate-lit`, the
+          full-brightness still, masked to the lamp's pool; 3.
+          `.plate-motion`, the scrubbed video, masked identically, standing
+          in for `.plate-lit` inside the pool while it plays; 4.
+          `.plate::after`, the act-edge dissolve gradient, unconditional and
+          always last so it can fade every layer beneath it to ground at the
+          act's top and bottom edges regardless of what's playing.
+
+          Paint order matters as much as the alt split: whichever element is
+          later in the DOM paints on top. `.plate-dark` MUST come first and
+          `.plate-lit` MUST come second — the masked lit layer has to sit
+          above the opaque dimmed one, or the lamp's reveal is invisible
+          underneath it (Task 14c's fix round; this order inverted once
+          already when an accessibility fix moved the alt text by swapping
+          the two elements' classNames instead of just their alt/aria-hidden
+          attributes — don't repeat that).
 
           The lit layer carries the alt text: it is the one that renders
           in every state — no JS, reduced motion, or masked-and-lit —
