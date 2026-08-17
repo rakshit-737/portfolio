@@ -782,12 +782,12 @@ export const acts: Record<
   ActId,
   { label: string; statement: string; plate: PlateId }
 > = {
-  hero: { label: "act 01 — the record", statement: "Rakshit Rameshbabu", plate: "airpump" },
+  hero: { label: "act 01 — the record", statement: "Rakshit Rameshbabu", plate: "blacksmith" },
   about: { label: "act 02 — the work", statement: "End to end, from written requirements to CI-tested deployments.", plate: "alchemist" },
   warden: { label: "act 03 — warden", statement: "Judges what a package would actually do.", plate: "forge" },
   scheduler: { label: "act 04 — the scheduler", statement: "The answer is a proven negative result.", plate: "orrery" },
   plantpal: { label: "act 05 — plantpal+", statement: "No second implementation to drift.", plate: "kitten" },
   research: { label: "act 06 — the finding", statement: "The honest baseline is not FIFO.", plate: "anatomy" },
   ledger: { label: "act 07 — the ledger", statement: "Everything public lives on GitHub.", plate: "dovedale" },
-  contact: { label: "act 08 — the close", statement: "Open to internships and full-time roles in software and security engineering.", plate: "academy" },
+  contact: { label: "act 08 — the close", statement: "Open to internships and full-time roles in software and security engineering.", plate: "latour" },
 };

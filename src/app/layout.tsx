@@ -43,8 +43,8 @@ const CONTRACT = `
   measured quantity always reads as an instrument and never as a headline.
   STORY: this person measures things, publishes what the measurements say —
   including when they say no — and every claim here carries its proof.
-  FIRST VIEWPORT: Wright of Derby's Air Pump in near-darkness, a lamp finding
-  the statement line, the hero stat rail igniting as the light crosses it.
+  FIRST VIEWPORT: Wright of Derby's Blacksmith's Shop in near-darkness, a lamp
+  finding the statement line, the hero stat rail igniting as the light crosses it.
   FORM: Lamplight — scroll and cursor drive one radial mask across eight
   acts, none scroll-jacked; only the ledger's plate wrapper is sticky, inside
   an act taller than the viewport. case files stay dense and unhurried.

@@ -669,18 +669,18 @@ plate is licensed `PD-old-100` and its credit line
 
 | Act | Artist | Title | Year | Commons source |
 | --- | --- | --- | --- | --- |
-| hero | Joseph Wright of Derby | An Experiment on a Bird in the Air Pump | 1768 | https://commons.wikimedia.org/wiki/File:An%20Experiment%20on%20a%20Bird%20in%20an%20Air%20Pump%20by%20Joseph%20Wright%20of%20Derby%2C%201768.jpg |
+| hero | Joseph Wright of Derby | The Blacksmith's Shop | 1771 | https://commons.wikimedia.org/wiki/File:Joseph%20Wright%20of%20Derby%20-%20The%20Blacksmith%27s%20Shop%20-%20Google%20Art%20Project.jpg |
 | about | Joseph Wright of Derby | The Alchemist Discovering Phosphorus | 1771 | https://commons.wikimedia.org/wiki/File:Joseph%20Wright%20of%20Derby%20The%20Alchemist.jpg |
 | warden | Joseph Wright of Derby | An Iron Forge | 1772 | https://commons.wikimedia.org/wiki/File:Joseph%20Wright%20-%20An%20Iron%20Forge%20-%20Google%20Art%20Project.jpg |
 | scheduler | Joseph Wright of Derby | A Philosopher Lecturing on the Orrery | 1766 | https://commons.wikimedia.org/wiki/File:Wright%20of%20Derby%2C%20The%20Orrery.jpg |
 | plantpal | Joseph Wright of Derby | Two Girls Dressing a Kitten by Candlelight | c. 1768–70 | https://commons.wikimedia.org/wiki/File:Joseph%20Wright%20of%20Derby.%20Two%20Girls%20Dressing%20a%20Kitten%20by%20Candlelight.%20c.%201768-70.jpg |
 | research | Rembrandt van Rijn | The Anatomy Lesson of Dr Nicolaes Tulp | 1632 | https://commons.wikimedia.org/wiki/File:Rembrandt%20-%20The%20Anatomy%20Lesson%20of%20Dr%20Nicolaes%20Tulp.jpg |
 | ledger | Joseph Wright of Derby | Dovedale by Moonlight | 1784 | https://commons.wikimedia.org/wiki/File:Joseph%20Wright%20of%20Derby%20-%20Dovedale%20by%20Moonlight%20-%20Google%20Art%20Project.jpg |
-| contact | Joseph Wright of Derby | An Academy by Lamplight | c. 1769 | https://commons.wikimedia.org/wiki/File:Joseph%20Wright%20of%20Derby%20-%20Academy%20by%20Lamplight%20-%20Google%20Art%20Project.jpg |
+| contact | Georges de La Tour | The Education of the Virgin | c. 1650 | https://commons.wikimedia.org/wiki/File:Georges%20de%20La%20Tour%20L%27Education%20de%20la%20Vierge%20The%20Frick%20Collection.jpg |
 
 Each plate's `lamp` field in `src/lib/art.ts` is the light source's rest
 position as the painter actually placed it, so the CSS mask agrees with the
-paint. Four plates (hero/airpump, warden/forge, scheduler/orrery,
+paint. Four plates (hero/blacksmith, warden/forge, scheduler/orrery,
 plantpal/kitten) also carry a `motion` descriptor and a scrubbed video clip;
-the other four (alchemist, anatomy, dovedale, academy) ship stills only — a
+the other four (alchemist, anatomy, dovedale, latour) ship stills only — a
 deliberate cut to hold the media budget under its ceiling, not an oversight.

@@ -11,14 +11,14 @@
  */
 
 export type PlateId =
-  | "airpump"
+  | "blacksmith"
   | "alchemist"
   | "forge"
   | "orrery"
   | "kitten"
   | "anatomy"
   | "dovedale"
-  | "academy";
+  | "latour";
 
 export interface Plate {
   id: PlateId;
@@ -66,25 +66,35 @@ const commons = (file: string) =>
   `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file)}`;
 
 export const plates: Record<PlateId, Plate> = {
-  airpump: {
-    id: "airpump",
+  blacksmith: {
+    id: "blacksmith",
     artist: "Joseph Wright of Derby",
-    title: "An Experiment on a Bird in the Air Pump",
-    year: "1768",
-    commonsFile:
-      "An Experiment on a Bird in an Air Pump by Joseph Wright of Derby, 1768.jpg",
+    title: "The Blacksmith's Shop",
+    year: "1771",
+    commonsFile: "Joseph Wright of Derby - The Blacksmith's Shop - Google Art Project.jpg",
     license: "PD-old-100",
     sourceUrl: commons(
-      "An Experiment on a Bird in an Air Pump by Joseph Wright of Derby, 1768.jpg",
+      "Joseph Wright of Derby - The Blacksmith's Shop - Google Art Project.jpg",
     ),
-    native: { w: 5639, h: 4226 },
-    crop: { x: 0, y: 0, w: 1, h: 0.9 },
-    lamp: { x: 0.5, y: 0.62 },
-    alt: "A candlelit room of onlookers watching a demonstrator withdraw the air from a glass globe containing a bird, their faces caught between fascination and dread.",
-    framing: { wide: "62% 50%", narrow: "50% 38%" },
+    native: { w: 4688, h: 5975 },
+    // Native frame is portrait (4688×5975, taller than wide) — every other
+    // plate's crop box produces a landscape frame, so this one is chosen
+    // deliberately: a band through the lower-middle third holds the anvil,
+    // the white-hot iron, and the ring of lit figures around it while
+    // dropping the darker rafters above and floor below that a full-height
+    // crop would otherwise waste on a landscape act box.
+    crop: { x: 0, y: 0.3, w: 1, h: 0.45 },
+    // Narrow viewports are height-bound (object-fit: cover), so the wide
+    // crop's 1.74 aspect would push most of the smiths off both edges on a
+    // phone. This is a genuinely taller window straight from the native
+    // frame, centred on the anvil group.
+    cropNarrow: { x: 0.15, y: 0.28, w: 0.55, h: 0.52 },
+    lamp: { x: 0.48, y: 0.62 },
+    alt: "A blacksmith's shop at night, a bar of white-hot iron on the anvil the only source of light, throwing hard shadows across the smiths, apprentices, and the timber frame of the shop.",
+    framing: { wide: "58% 55%", narrow: "50% 40%" },
     motion: {
-      from: { x: 0.5, y: 0.52, scale: 1.0 },
-      to: { x: 0.5, y: 0.62, scale: 1.12 },
+      from: { x: 0.48, y: 0.5, scale: 1.0 },
+      to: { x: 0.48, y: 0.62, scale: 1.12 },
     },
   },
   alchemist: {
@@ -110,7 +120,7 @@ export const plates: Record<PlateId, Plate> = {
     // No `motion`: Step 7 measured total media at 4140 kB against the
     // 3500 kB ceiling with all eight plates carrying motion, so the
     // spread was cut back to the hero plus the three project acts
-    // (airpump, forge, orrery, kitten). See the Task 14b report.
+    // (blacksmith, forge, orrery, kitten). See the Task 14b report.
   },
   forge: {
     id: "forge",
@@ -206,23 +216,24 @@ export const plates: Record<PlateId, Plate> = {
     framing: { wide: "64% 32%", narrow: "58% 18%" },
     // No `motion` — see the note on `alchemist` above (Step 7 spread cut).
   },
-  academy: {
-    id: "academy",
-    artist: "Joseph Wright of Derby",
-    title: "An Academy by Lamplight",
-    year: "c. 1769",
-    commonsFile:
-      "Joseph Wright of Derby - Academy by Lamplight - Google Art Project.jpg",
+  latour: {
+    id: "latour",
+    artist: "Georges de La Tour",
+    title: "The Education of the Virgin",
+    year: "c. 1650",
+    commonsFile: "Georges de La Tour L'Education de la Vierge The Frick Collection.jpg",
     license: "PD-old-100",
     sourceUrl: commons(
-      "Joseph Wright of Derby - Academy by Lamplight - Google Art Project.jpg",
+      "Georges de La Tour L'Education de la Vierge The Frick Collection.jpg",
     ),
-    native: { w: 4926, h: 6268 },
-    crop: { x: 0, y: 0.18, w: 1, h: 0.6 },
-    lamp: { x: 0.38, y: 0.44 },
-    alt: "Students gathered close around a single lamp to draw a classical statue, the light falling hardest on the work in front of them.",
-    framing: { wide: "56% 40%", narrow: "50% 22%" },
+    native: { w: 3389, h: 2835 },
+    crop: { x: 0, y: 0.04, w: 1, h: 0.9 },
+    lamp: { x: 0.55, y: 0.45 },
+    alt: "A woman shields a single candle flame with her cupped hand as a young girl reads beside her, both faces lit by the flame alone.",
+    framing: { wide: "60% 45%", narrow: "50% 30%" },
     // No `motion` — see the note on `alchemist` above (Step 7 spread cut).
+    // The close keeps the same still-only treatment the plate it replaces
+    // (academy) had.
   },
 };
 

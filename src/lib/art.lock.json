@@ -1,51 +1,75 @@
 {
-  "airpump-1280.avif": {
-    "sha256": "49ea9dcc5c1ee301477cd9a1a6c6f4df8fff20664363d19cd88d0a4fb86deb40",
-    "bytes": 55808,
+  "blacksmith-1280.avif": {
+    "sha256": "0f77145455511ba9bf5f0992665d5d3030e05ec1c68ad10dd27e824299c1b9da",
+    "bytes": 46565,
     "width": 1280,
-    "height": 863
+    "height": 734
   },
-  "airpump-1280.webp": {
-    "sha256": "a8c559354e60ab8eb9c94dfff316bf786dfeff06ffe7eda98448fa078335fd80",
-    "bytes": 51462,
+  "blacksmith-1280.webp": {
+    "sha256": "e6b528079d23804f3287d391c99303cf04370febbd695332aa83ad64c45a3716",
+    "bytes": 36554,
     "width": 1280,
-    "height": 863
+    "height": 734
   },
-  "airpump-1920.avif": {
-    "sha256": "4c325ca578b7c5a0276137349a3db560f31c2cf047908b4b086a5b41a8b8b4f5",
-    "bytes": 110666,
+  "blacksmith-1920.avif": {
+    "sha256": "1f9943a93fd742a11c614558b973ba6bba9f5c1f1b209a9942b38cbda38c520c",
+    "bytes": 94496,
     "width": 1920,
-    "height": 1295
+    "height": 1101
   },
-  "airpump-1920.webp": {
-    "sha256": "a50c7397ca2b183c96651984002e20a02c66dd36c3088054345541d3655a1025",
-    "bytes": 98296,
+  "blacksmith-1920.webp": {
+    "sha256": "43814b13a4c59bd3524492766485f2a6c048c74f030e7862adda68d6dad7e37d",
+    "bytes": 66932,
     "width": 1920,
-    "height": 1295
+    "height": 1101
   },
-  "airpump-2560.avif": {
-    "sha256": "c5860ce2f01169ed724ef73248a5cf73deffbadb73b3491c5f40091ba45273a9",
-    "bytes": 193594,
+  "blacksmith-2560.avif": {
+    "sha256": "57e7f1621f888071e072c50e9a461a10733796183353b978001cde9731b8ca41",
+    "bytes": 152332,
     "width": 2560,
-    "height": 1726
+    "height": 1468
   },
-  "airpump-2560.webp": {
-    "sha256": "2945fb4107608e7303683ea1256531638bd8daf8e95c37d1142b472a442c6dab",
-    "bytes": 158102,
+  "blacksmith-2560.webp": {
+    "sha256": "7df1409388d3e09fd54e4730716da9829b4a07fccb521bcdf51d424d85e90645",
+    "bytes": 104880,
     "width": 2560,
-    "height": 1726
+    "height": 1468
   },
-  "airpump-lqip.txt": {
-    "sha256": "d56bcadbb39dc3f3b9501c7a65ff388048df3914ddb841d44888ec931e7377dc",
-    "bytes": 175,
+  "blacksmith-narrow-640.avif": {
+    "sha256": "518fd34d8c5ca5c913479e92448a5e7fbfd2c2b3420268dc8305c8728bfeb8a6",
+    "bytes": 26445,
+    "width": 640,
+    "height": 771
+  },
+  "blacksmith-narrow-640.webp": {
+    "sha256": "7657e642e5909609048ae5619d707b17b2c8f75ed35f6fbfb2ed895bdc7299f0",
+    "bytes": 21194,
+    "width": 640,
+    "height": 771
+  },
+  "blacksmith-narrow-960.avif": {
+    "sha256": "a7aaadd650b11771cbe75ef167d841c7d56ffc350a4c05b4707ac3662543aa97",
+    "bytes": 51963,
+    "width": 960,
+    "height": 1157
+  },
+  "blacksmith-narrow-960.webp": {
+    "sha256": "476755b13582865ee3467e9046d323a9520683cafdf2a8465ae5c3e305f641a0",
+    "bytes": 38838,
+    "width": 960,
+    "height": 1157
+  },
+  "blacksmith-lqip.txt": {
+    "sha256": "a16d235bbae7a763f612331b3701b7e0b2e9fb70ec054458f33da125ef6adb75",
+    "bytes": 151,
     "width": 24,
     "height": 24
   },
-  "airpump-motion.webm": {
-    "sha256": "68a754f38b65753399f6a5c14e7cdc6306e7ec8c884a41f5a2c9e9d140186bf6",
-    "bytes": 249344,
+  "blacksmith-motion.webm": {
+    "sha256": "e537e6f02d3d289864c87897a34288ca1a1ab8c8ca70a779e50722a41ac17149",
+    "bytes": 185818,
     "width": 1280,
-    "height": 864
+    "height": 734
   },
   "alchemist-1280.avif": {
     "sha256": "42102fa04c422207aa44b3afedcfed3acbae180246ad4dd669af6a2d07354a30",
@@ -156,7 +180,7 @@
     "height": 24
   },
   "forge-motion.webm": {
-    "sha256": "2e4ed56b7ed847f276b25e66f719b27a29b641f977f57c382a692256814f1368",
+    "sha256": "b401aef36461bebb231b264beff18e7265f7d00624b37ff50bbcdd0071e4cca1",
     "bytes": 193286,
     "width": 1280,
     "height": 988
@@ -204,7 +228,7 @@
     "height": 24
   },
   "orrery-motion.webm": {
-    "sha256": "a946c896e1a5a66ccdcf6a70df9c01e99246d180b0904906fa5efee75bdd5d7d",
+    "sha256": "c373f879cab3b517ce294696b3e4ca7a21dddec46e9a8c4e4e661423ca8905b7",
     "bytes": 244246,
     "width": 1280,
     "height": 844
@@ -240,7 +264,7 @@
     "height": 24
   },
   "kitten-motion.webm": {
-    "sha256": "15d5c7ac77cf8688ffed0354b8622d0aa5a3ec912f5c9d7b9acb50ec1694b860",
+    "sha256": "bdd125fbf946b6fd9e6e571351e396fdd9bb482a6759abdddb58d49bbe87bb98",
     "bytes": 184043,
     "width": 1280,
     "height": 980
@@ -317,45 +341,45 @@
     "width": 24,
     "height": 24
   },
-  "academy-1280.avif": {
-    "sha256": "03ae498c457d4d9c2cbf19986671197f3858e396cf6570dee648366757c0d3a9",
-    "bytes": 87317,
+  "latour-1280.avif": {
+    "sha256": "873a379e9eb158d7196a698d21138b666a90076e61448970104c816939ad85c4",
+    "bytes": 56253,
     "width": 1280,
-    "height": 977
+    "height": 964
   },
-  "academy-1280.webp": {
-    "sha256": "6cdc2cc6c80e57c1dac1aa60303e5d0b48054db4961ed3cf7e0ac2c4af1fd0da",
-    "bytes": 64058,
+  "latour-1280.webp": {
+    "sha256": "a42c125df62fb4be8cd5f7915927dffb71ad06f8ec8e1aa416eacefb95aab7c5",
+    "bytes": 45358,
     "width": 1280,
-    "height": 977
+    "height": 964
   },
-  "academy-1920.avif": {
-    "sha256": "2e350886170308d2b4aa734c094e5edb69894e430039f9f8e68bd230c99a0d30",
-    "bytes": 233959,
+  "latour-1920.avif": {
+    "sha256": "b691ff1cc16174637c29a2b154e045a727917a1b5933ea6c549c1fca805f7b5c",
+    "bytes": 135561,
     "width": 1920,
-    "height": 1466
+    "height": 1446
   },
-  "academy-1920.webp": {
-    "sha256": "e4f3a381315a2724bdfd4b558e31686ad7aed1b351d43e26fffa73eabc906bea",
-    "bytes": 166182,
+  "latour-1920.webp": {
+    "sha256": "7ac7e160718fd25a821f56d85154222681193a19cdcdb50b6ebc3d9adcdfa2fe",
+    "bytes": 97570,
     "width": 1920,
-    "height": 1466
+    "height": 1446
   },
-  "academy-2560.avif": {
-    "sha256": "27af955332f3476aeab5198f2ebddc0965accd8664f2084d558e24eefe5625e9",
-    "bytes": 420103,
+  "latour-2560.avif": {
+    "sha256": "36f7de39b22cca2075c3705499c67abfd1853c25fcb55e2c6553ae8e933a54a7",
+    "bytes": 234377,
     "width": 2560,
-    "height": 1955
+    "height": 1928
   },
-  "academy-2560.webp": {
-    "sha256": "3210afa0335a0270a0f81b5a86b78cafde3bac8aa7cfcd289b1559e186eb244f",
-    "bytes": 299238,
+  "latour-2560.webp": {
+    "sha256": "bc765d2e9e981abbe5774a3295960370adb522798231bd864c0987086947385c",
+    "bytes": 165562,
     "width": 2560,
-    "height": 1955
+    "height": 1928
   },
-  "academy-lqip.txt": {
-    "sha256": "1381f9f8cc403ed81fb0f485b2cf966e71935fb24078a73be1f0d038b0e34482",
-    "bytes": 167,
+  "latour-lqip.txt": {
+    "sha256": "c1de140c2612a3fd1622ff734d85de1ddb8d68d5ddf09473c4e923a3ef03c0a6",
+    "bytes": 199,
     "width": 24,
     "height": 24
   }
