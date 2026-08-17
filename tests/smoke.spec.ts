@@ -10,7 +10,7 @@ test("index renders with hero and evidence", async ({ page }) => {
   await expect(page.getByText("45,432").first()).toBeVisible();
 });
 
-test("command palette opens with Ctrl+K and jumps to a section", async ({
+test("command palette opens with Ctrl+K or / and jumps to a section", async ({
   page,
 }) => {
   await page.goto("/");
@@ -26,6 +26,13 @@ test("command palette opens with Ctrl+K and jumps to a section", async ({
   await page.keyboard.press("Control+k");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // Power user shortcut: '/' opens when not focused in an input
+  await page.keyboard.press("/");
+  await expect(input).toBeFocused();
+  await input.fill("Hero");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#top$/);
 });
 
 test("section anchors navigate", async ({ page }) => {
