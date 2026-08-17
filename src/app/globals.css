@@ -346,6 +346,66 @@ section[id] {
   );
 }
 
+/* ── The torch ───────────────────────────────────────────────────────
+   A page-wide flashlight, one light with the lamp above rather than a
+   second, independent one. The same pointer drives both (Torch.tsx):
+   the lamp reveals a painting inside its act; the torch dims everything
+   — nav, copy, chart, footer — outside a soft pool around the cursor.
+
+   The overlay is twice the viewport in each direction, centred at rest,
+   and follows the pointer via `transform` rather than by moving the
+   gradient's own centre. A gradient repainted from a changing `at x y`
+   costs a full-viewport paint every frame; a transform costs a
+   composite. Being 2x oversized means a full sweep to any edge of the
+   viewport never uncovers a corner. `--torch-r`, which does change the
+   gradient's own definition, is written by Torch.tsx only while it is
+   actually easing toward a new value (hover in/out) — most frames touch
+   nothing but the transform.
+
+   Default is fully transparent: with no JavaScript, or under reduced
+   motion, or on a touch device, `.torch` renders but never dims anything.
+   `data-torch="on"` is only ever set once a real pointer has moved. */
+
+.torch {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 60;
+  width: 200vw;
+  height: 200vh;
+  margin: -100vh 0 0 -100vw;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform;
+  transform: translate3d(var(--torch-x, 0px), var(--torch-y, 0px), 0);
+  transition: opacity 0.6s ease;
+  background: radial-gradient(
+    circle var(--torch-r, 240px) at 50% 50%,
+    transparent 0%,
+    transparent 35%,
+    color-mix(in srgb, var(--color-ground) 12%, transparent) 60%,
+    color-mix(in srgb, var(--color-ground) 22%, transparent) 80%,
+    color-mix(in srgb, var(--color-ground) 30%, transparent) 100%
+  );
+}
+[data-torch="on"] .torch {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .torch {
+    display: none;
+  }
+}
+
+/* One light, not two: the torch's page-wide wash would otherwise stack on
+   top of the plate's own unlit floor and compound into a darker painting
+   than existed before the torch shipped. Raising the floor here keeps a
+   plate under the torch's dim region reading the same as it always has. */
+[data-torch="on"] [data-lamp="on"] .plate-dark {
+  filter: brightness(0.46) saturate(0.85);
+}
+
 /* ── The authored moment ────────────────────────────────────────────────
    One event, once, on load: the hero field resolves left to right and
    the sine draws behind the name. Nothing else on this site animates on
@@ -415,7 +475,8 @@ section[id] {
   .scrim::before,
   .print-drop,
   header[data-chrome],
-  .print-hidden {
+  .print-hidden,
+  .torch {
     display: none !important;
   }
   .ignite::after {
@@ -461,6 +522,9 @@ section[id] {
   }
   .plate img {
     transform: none;
+  }
+  .torch {
+    display: none;
   }
   /* Retained: SineLattice.tsx still renders these classes. */
   .sine-draw,

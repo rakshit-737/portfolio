@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Chivo, Chivo_Mono, Newsreader } from "next/font/google";
 import { site } from "@/content";
 import Lamp from "@/components/Lamp";
+import Torch from "@/components/Torch";
 import "./globals.css";
 
 const chivoMono = Chivo_Mono({
@@ -93,6 +94,7 @@ export default function RootLayout({
       <body className="min-h-full bg-ground text-signal">
         <div hidden dangerouslySetInnerHTML={{ __html: `<!--${CONTRACT}-->` }} />
         <Lamp />
+        <Torch />
         {children}
       </body>
     </html>

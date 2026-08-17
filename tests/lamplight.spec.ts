@@ -526,7 +526,14 @@ test("the hero plate scrubs its video with scroll", async ({ page }) => {
   );
   const before = await at();
   await page.evaluate(() => window.scrollBy(0, window.innerHeight * 0.7));
-  await page.waitForTimeout(200);
+  // The rAF loop drives the seek and the actual media seek is async, so
+  // poll the condition itself rather than sleeping a fixed guess — under
+  // parallel workers a flat wait races the loop and flakes.
+  await page.waitForFunction(
+    (prev) =>
+      (document.querySelector("#hero video") as HTMLVideoElement)?.currentTime !== prev,
+    before,
+  );
   expect(await at()).not.toBe(before);
 });
 
@@ -600,4 +607,45 @@ test("without JavaScript no video is requested", async ({ browser }) => {
   await expect(page.locator(".plate-lit").first()).toBeVisible();
   expect(requested).toEqual([]);
   await ctx.close();
+});
+
+// Task 14d: the torch — a page-wide flashlight, unified with the plate lamp
+// so the page never carries two uncorrelated light sources.
+test("the torch follows the pointer and never blocks interaction", async ({ page }) => {
+  await page.goto("/");
+  const overlay = page.locator(".torch");
+  await expect(overlay).toHaveCount(1);
+  expect(
+    await overlay.evaluate((el) => getComputedStyle(el).pointerEvents),
+  ).toBe("none");
+
+  const read = () =>
+    page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue("--torch-x"),
+    );
+  await page.mouse.move(200, 200);
+  await page.waitForTimeout(160);
+  const a = await read();
+  await page.mouse.move(900, 600);
+  await page.waitForTimeout(300);
+  expect(await read()).not.toBe(a);
+
+  // The overlay must not intercept clicks.
+  await page.getByRole("link", { name: /résumé/i }).first().click({ trial: true });
+});
+
+test("the torch stays off for touch, reduced motion, and no JS", async ({ browser }) => {
+  for (const opts of [
+    { reducedMotion: "reduce" as const },
+    { hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } },
+    { javaScriptEnabled: false },
+  ]) {
+    const ctx = await browser.newContext(opts);
+    const page = await ctx.newPage();
+    await page.goto("/");
+    await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on");
+    // Content is readable regardless.
+    await expect(page.locator(".statement").first()).toBeVisible();
+    await ctx.close();
+  }
 });
