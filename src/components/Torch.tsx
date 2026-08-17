@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { POINTER_LERP } from "@/lib/motion";
 
 /**
  * A page-wide flashlight, layered above every act's own lamp.
@@ -75,9 +76,11 @@ export default function Torch() {
     // what the CSS transform below expects, matching `.torch`'s centred
     // rest position.
     const raw = { dx: 0, dy: 0 };
-    // The beam trails the pointer rather than snapping to it — the same
-    // lerp Lamp.tsx uses for the lantern, at a touch more inertia since
-    // the torch covers far more of the frame.
+    // The beam trails the pointer rather than snapping to it, using the
+    // exact same POINTER_LERP as Lamp.tsx's lantern — the lamp's pool and
+    // the torch's beam are one light, so they must converge on the cursor
+    // at the same relative rate or a viewer sees two pools drifting apart
+    // instead of one flashlight.
     const smooth = { dx: 0, dy: 0, r: baseRadius };
     // Forces one real write on the first frame — `--torch-r` should exist
     // as soon as the torch is on, not only once it first eases away from
@@ -118,10 +121,13 @@ export default function Torch() {
       last = now;
 
       if (active) {
-        smooth.dx += (raw.dx - smooth.dx) * 0.14;
-        smooth.dy += (raw.dy - smooth.dy) * 0.14;
+        smooth.dx += (raw.dx - smooth.dx) * POINTER_LERP;
+        smooth.dy += (raw.dy - smooth.dy) * POINTER_LERP;
       }
-      smooth.r += (targetRadius - smooth.r) * 0.14;
+      // The radius has no counterpart in Lamp.tsx to stay unified with —
+      // reusing the same constant here is just consistency, not a
+      // correctness requirement.
+      smooth.r += (targetRadius - smooth.r) * POINTER_LERP;
 
       // Cheap every frame: each variable only ever feeds `transform`,
       // which is composited, never painted.

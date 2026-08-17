@@ -325,7 +325,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className={`${SHELL} scrim relative z-10 py-24`}>
+          <div className={`${SHELL} scrim scrim-wide relative z-10 py-24`}>
             <Statement id="ledger-title">{acts.ledger.statement}</Statement>
 
             <h3 className="label mt-16 border-b border-rule pb-2">Archive</h3>

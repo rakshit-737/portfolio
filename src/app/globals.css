@@ -285,6 +285,41 @@ section[id] {
   }
 }
 
+/* The ledger act's own reading column is wider than every other act's:
+   its archive rows are a two-column grid (name, then a `minmax(0,1fr)`
+   description column) rather than a single narrow statement/prose block,
+   so the description text's right edge lands at ~74% of a 1440px
+   viewport — well past the standard `.scrim`'s 62% transparent point.
+   Measured directly against the rendered page: with the standard scrim,
+   the description text over `dovedale` (Dovedale by Moonlight, whose
+   bright moonlit sky/river sits in that region) measured luminance 0.188,
+   comfortably over the 0.12 AA ceiling. `.scrim-wide` extends the same
+   three-stop shape further right — protect the actual column, not a
+   fixed fraction of the frame tuned for a different, narrower layout. */
+.scrim-wide::before {
+  background: linear-gradient(
+    to right,
+    var(--color-ground) 0%,
+    color-mix(in srgb, var(--color-ground) 92%, transparent) 45%,
+    transparent 85%
+  );
+}
+@media (max-width: 48rem) {
+  /* Below `lg`, the ledger's grid collapses to a single stacked column
+     (Tailwind's `lg:grid-cols-[...]` has no effect under that breakpoint)
+     and its text runs the same narrow width as every other act's mobile
+     column, so the standard narrow-viewport band already covers it —
+     no widening needed here. */
+  .scrim-wide::before {
+    background: linear-gradient(
+      to top,
+      var(--color-ground) 0,
+      color-mix(in srgb, var(--color-ground) 90%, transparent) 34vh,
+      transparent 66vh
+    );
+  }
+}
+
 /* The copy resolves once, when its act first arrives. One authored beat,
    never replayed — Lamp.tsx sets `data-seen` on an act's first
    intersection and never removes it, so scrolling back past an act does
@@ -401,9 +436,16 @@ section[id] {
 /* One light, not two: the torch's page-wide wash would otherwise stack on
    top of the plate's own unlit floor and compound into a darker painting
    than existed before the torch shipped. Raising the floor here keeps a
-   plate under the torch's dim region reading the same as it always has. */
-[data-torch="on"] [data-lamp="on"] .plate-dark {
-  filter: brightness(0.46) saturate(0.85);
+   plate under the torch's dim region reading the same as it always has.
+
+   Both attributes land on the same node (`<html>` — Lamp.tsx sets
+   data-lamp, Torch.tsx sets data-torch), so this MUST be a compound
+   selector with no space. `[data-torch="on"] [data-lamp="on"]` is a
+   descendant combinator that requires data-lamp on a DIFFERENT element
+   nested inside one carrying data-torch — html has no ancestor, so that
+   selector can never match, in any state. */
+[data-torch="on"][data-lamp="on"] .plate-dark {
+  filter: brightness(0.56) saturate(0.85);
 }
 
 /* ── The authored moment ────────────────────────────────────────────────

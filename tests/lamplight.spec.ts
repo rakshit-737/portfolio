@@ -509,6 +509,50 @@ for (const id of ACTS) {
   });
 }
 
+// Task 14d fix round (finding 3, from the reviewer's own screenshot): the
+// gate above only ever samples `.statement` — a heading, never what a
+// visitor actually reads. The ledger act's reading text is a long body
+// column (`.prose-field`, the archive list's description cells) the gate
+// never looked at, so it passed while real body copy sat on the bright
+// moonlit sky/river of `dovedale` at close to bone-on-light — measured
+// directly, L=0.188 against the same 0.12 ceiling, before the fix below.
+//
+// Every act except hero carries at least one `.prose-field` element
+// (hero has only the label/statement/stat rail — no body prose to
+// sample). Each one is scrolled into view individually rather than
+// relying on the statement's scroll position, since a long act's body
+// copy does not all fit in one viewport alongside its heading.
+for (const id of ACTS) {
+  test(`body copy in act ${id} clears AA contrast`, async ({ page }) => {
+    await page.goto("/");
+    const act = page.locator(`#${id}`);
+    const paras = act.locator(".prose-field");
+    const count = await paras.count();
+    if (count === 0) {
+      // hero: no body prose exists to sample. Not a skip — there is
+      // nothing this test could fail to check here.
+      return;
+    }
+    for (let i = 0; i < count; i++) {
+      const para = paras.nth(i);
+      await para.scrollIntoViewIfNeeded();
+      await expect(para).toHaveCSS("opacity", "1");
+
+      const box = await para.boundingBox();
+      if (!box || box.width < 1 || box.height < 1) continue;
+
+      const buf = await page.screenshot({ clip: box });
+      const { channels } = await sharp(buf).stats();
+      const lum = luminance(channels.map((c) => c.mean));
+
+      expect(
+        lum,
+        `act ${id} body copy #${i} background too bright (L=${lum.toFixed(3)})`,
+      ).toBeLessThan(CONTRAST_LUMINANCE_CEILING);
+    }
+  });
+}
+
 // Task 14b: scroll-scrubbed plate motion. The hero act always ships motion
 // (it survives both the full eight-plate spread and the four-plate fallback
 // spread), so it's the fixed point these tests scrub against.
@@ -648,4 +692,40 @@ test("the torch stays off for touch, reduced motion, and no JS", async ({ browse
     await expect(page.locator(".statement").first()).toBeVisible();
     await ctx.close();
   }
+});
+
+// Regression guard: both attributes land on <html> (Lamp.tsx sets
+// data-lamp, Torch.tsx sets data-torch), so the rebalance rule MUST be a
+// compound selector (`[data-torch="on"][data-lamp="on"]`) rather than a
+// descendant combinator (`[data-torch="on"] [data-lamp="on"]`) — a
+// descendant combinator requires data-lamp on a different element nested
+// inside one carrying data-torch, and html has no ancestor, so it can
+// never match. No existing test caught this because none of them move
+// the pointer, which is the only thing that arms the torch.
+test("the plate's unlit floor rises once the torch arms", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // Let startup cost (hydration, image decode) settle before interacting.
+  // Torch.tsx shares Lamp.tsx's frame-budget circuit breaker, which counts
+  // any 10 consecutive frames slower than 32ms and locks the effect off —
+  // under heavy parallel-worker load, one-time page-load jank can trip it
+  // before the pointer ever gets a chance to move, which is a real
+  // characteristic of the shared circuit-breaker shape, not something this
+  // test is trying to verify. Settling first keeps that startup cost from
+  // being mistaken for "this device can't hold the torch".
+  await page.waitForTimeout(500);
+
+  const plateDark = page.locator(".plate-dark").first();
+
+  const baseFilter = await plateDark.evaluate((el) => getComputedStyle(el).filter);
+  await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on");
+
+  await page.mouse.move(700, 450, { steps: 5 });
+  await expect(page.locator("html")).toHaveAttribute("data-torch", "on", {
+    timeout: 3000,
+  });
+
+  const armedFilter = await plateDark.evaluate((el) => getComputedStyle(el).filter);
+  expect(armedFilter).not.toBe(baseFilter);
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { POINTER_LERP } from "@/lib/motion";
 
 /**
  * The one moving part on the site.
@@ -123,10 +124,13 @@ export default function Lamp() {
       last = now;
 
       // The lamp has weight. It follows the pointer rather than snapping
-      // to it — a held lantern, not a cursor.
+      // to it — a held lantern, not a cursor. Shares POINTER_LERP with
+      // Torch.tsx: the lamp's pool and the torch's beam are one light,
+      // and a different smoothing constant would make them visibly drift
+      // apart at different rates.
       if (fine && pointer.active) {
-        smooth.x += (pointer.x - smooth.x) * 0.08;
-        smooth.y += (pointer.y - smooth.y) * 0.08;
+        smooth.x += (pointer.x - smooth.x) * POINTER_LERP;
+        smooth.y += (pointer.y - smooth.y) * POINTER_LERP;
       }
 
       const vh = window.innerHeight;
