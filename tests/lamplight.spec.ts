@@ -696,7 +696,9 @@ test("reduced motion renders the still plate and no video", async ({ browser }) 
 // `<video>` element to be removed from the DOM (Lamp.tsx's `promoteVideos`
 // just never runs), so the assertion here is narrower and more direct: the
 // element exists, but its `src` attribute is never set, so nothing is ever
-// requested.
+// requested. `motionAllowed` gates `promoteVideo` per act now, not a single
+// `promoteVideos()` sweep, but the effect is the same: false means no act's
+// video is ever promoted.
 test("a coarse pointer on a narrow viewport never promotes the video's src", async ({
   browser,
 }) => {
@@ -737,6 +739,37 @@ test("navigator.connection.saveData never promotes the video's src", async ({ br
   await page.waitForTimeout(300);
   expect(await video.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).toBeNull();
   await ctx.close();
+});
+
+// Task 22: promoteVideos() used to set `src` on every plate's motion video
+// as soon as the lamp turned on, regardless of which act was actually on
+// screen — four clips (~750 kB) fetched on load for one act a reader could
+// see. Videos are now promoted per act, from the same IntersectionObserver
+// callback that already exists, the first time that act intersects. This
+// asserts the fix directly: on first load only the hero's video (the one
+// act visible) has a `src`; the later acts' videos stay unset until
+// scrolled into view. Reverting to the old eager promoteVideos() call fails
+// the second assertion — `#warden video` would already carry a `src` before
+// any scroll happens.
+test("a plate's motion video is promoted only when its own act arrives", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+
+  const heroVideo = page.locator("#hero video").first();
+  const wardenVideo = page.locator("#warden video").first();
+  await expect(heroVideo).toHaveCount(1);
+  await expect(wardenVideo).toHaveCount(1);
+
+  // Give the hero's own promotion a moment, then confirm the still-offscreen
+  // warden act has not been promoted alongside it.
+  await page.waitForTimeout(300);
+  expect(await heroVideo.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).not.toBeNull();
+  expect(await wardenVideo.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).toBeNull();
+
+  // Scroll the warden act into view; its video should now be promoted too.
+  await page.locator("#warden").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(300);
+  expect(await wardenVideo.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).not.toBeNull();
 });
 
 test("without JavaScript no video is requested", async ({ browser }) => {

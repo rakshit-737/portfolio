@@ -54,13 +54,19 @@ export default function Lamp() {
     // from "push the light right" to "push the light up".
     const narrow = window.matchMedia("(max-width: 48rem)").matches;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
+    // Lighthouse's mobile screen emulation doesn't reliably report
+    // `pointer: coarse` (see Torch.tsx, which already relies on this signal
+    // for the same reason), so a touch-class device that fails the coarse
+    // check is still caught here: no hover-capable pointer at all.
+    const noHover = window.matchMedia("(hover: none)").matches;
     // A metered connection, or a small touch device, is exactly where a
     // 4-second video loop per act costs the most and is seen the least —
     // skip promoting any video's `src` at all rather than fetch it unseen.
     const saveData =
       (navigator as unknown as { connection?: { saveData?: boolean } }).connection
         ?.saveData === true;
-    const motionAllowed = !saveData && !(coarse && window.innerWidth < 700);
+    const motionAllowed =
+      !saveData && !((coarse || noHover) && window.innerWidth < 700);
 
     let acts: HTMLElement[] = [];
     const visible = new Set<HTMLElement>();
@@ -93,18 +99,19 @@ export default function Lamp() {
       }
     };
 
-    // Promotes `data-src` to `src` on every plate's motion video, once —
-    // that is the entire difference between "no request happens without
+    // Promotes `data-src` to `src` on a single act's motion video — that is
+    // the entire difference between "no request happens without
     // JavaScript" (the markup carries no `src`) and "the video actually
-    // plays" (JS decides to fetch it). Guarded by `!v.src` so a later
-    // `collect()` call (e.g. on resize) never re-triggers a load.
-    const promoteVideos = () => {
+    // plays" (JS decides to fetch it). Called from the IntersectionObserver
+    // callback below when that act first arrives, not for every act at
+    // once: a reader sees one act at a time, so only one clip should ever
+    // be in flight, not all four. Guarded by `!v.src` so a later
+    // intersection of the same act (leaving and re-entering) never
+    // re-triggers a load.
+    const promoteVideo = (act: HTMLElement) => {
       if (!motionAllowed) return;
-      for (const v of document.querySelectorAll<HTMLVideoElement>(
-        "video.plate-motion[data-src]",
-      )) {
-        if (!v.src && v.dataset.src) v.src = v.dataset.src;
-      }
+      const v = act.querySelector<HTMLVideoElement>("video.plate-motion[data-src]");
+      if (v && !v.src && v.dataset.src) v.src = v.dataset.src;
     };
 
     const observer = new IntersectionObserver(
@@ -117,6 +124,10 @@ export default function Lamp() {
             // the attribute is only ever added, never removed, so the
             // copy-reveal CSS it gates never re-triggers on a later pass.
             if (!el.hasAttribute("data-seen")) el.setAttribute("data-seen", "");
+            // Same reasoning, but for the act's video: promote its `src`
+            // only once it actually arrives, using this observer that
+            // already exists rather than a second one.
+            promoteVideo(el);
           } else {
             visible.delete(el);
             // An act that stops intersecting also stops being ticked, so
@@ -279,7 +290,10 @@ export default function Lamp() {
 
     root.setAttribute("data-lamp", "on");
     collect();
-    promoteVideos();
+    // No eager promoteVideos() call here: each act's video is promoted by
+    // the IntersectionObserver callback above the first time that act
+    // actually intersects, including any act already visible on load
+    // (the observer fires for pre-existing intersections too).
     window.addEventListener("pointermove", onPointer, { passive: true });
     window.addEventListener("resize", collect, { passive: true });
     frame = requestAnimationFrame(tick);
