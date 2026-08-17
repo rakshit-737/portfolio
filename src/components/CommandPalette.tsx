@@ -75,7 +75,8 @@ export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
-  const [copied, setCopied] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
   const [recents, setRecents] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -85,7 +86,8 @@ export default function CommandPalette() {
     setOpen(false);
     setQuery("");
     setSelected(0);
-    setCopied(false);
+    setCopiedEmail(false);
+    setCopiedUrl(false);
     restoreFocusRef.current?.focus();
   }, []);
 
@@ -112,7 +114,10 @@ export default function CommandPalette() {
         .map((p) => ({ name: p.name.split("—")[0].trim(), url: p.repoUrl! })),
     ];
 
-    const sections = navSections.map((s) => ({ id: s.id, label: s.label }));
+    const sections = [
+      { id: "top", label: "Hero / Top of page" },
+      ...navSections.map((s) => ({ id: s.id, label: s.label })),
+    ];
 
     return [
       ...sections.map((s) => ({
@@ -137,7 +142,17 @@ export default function CommandPalette() {
         keywords: "contact mail",
         run: () => {
           navigator.clipboard?.writeText(links.email).catch(() => {});
-          setCopied(true);
+          setCopiedEmail(true);
+        },
+      },
+      {
+        id: "copy-url",
+        group: "actions" as const,
+        label: "Copy link to current section",
+        keywords: "share url link location",
+        run: () => {
+          navigator.clipboard?.writeText(window.location.href).catch(() => {});
+          setCopiedUrl(true);
         },
       },
       {
@@ -183,15 +198,28 @@ export default function CommandPalette() {
       .map((x) => x.c);
   }, [commands, query, recents]);
 
-  // Global shortcut: Ctrl/⌘+K toggles; external open event.
+  // Global shortcut: Ctrl/⌘+K toggles or '/' opens; external open event.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (
+      const isCmdK =
         (e.ctrlKey || e.metaKey) &&
         !e.shiftKey &&
         !e.altKey &&
-        e.key.toLowerCase() === "k"
-      ) {
+        e.key.toLowerCase() === "k";
+
+      const isSlash =
+        e.key === "/" &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey &&
+        !(
+          document.activeElement instanceof HTMLInputElement ||
+          document.activeElement instanceof HTMLTextAreaElement ||
+          (document.activeElement instanceof HTMLElement &&
+            document.activeElement.isContentEditable)
+        );
+
+      if (isCmdK) {
         e.preventDefault();
         if (open) {
           close();
@@ -200,6 +228,11 @@ export default function CommandPalette() {
           setRecents(readRecents());
           setOpen(true);
         }
+      } else if (isSlash && !open) {
+        e.preventDefault();
+        restoreFocusRef.current = document.activeElement as HTMLElement;
+        setRecents(readRecents());
+        setOpen(true);
       }
     };
     const onOpen = () => {
@@ -240,7 +273,7 @@ export default function CommandPalette() {
   const run = (c: Command) => {
     pushRecent(c.id.replace(/^recent-/, ""));
     c.run();
-    if (!c.id.endsWith("copy-email")) close();
+    if (!c.id.endsWith("copy-email") && !c.id.endsWith("copy-url")) close();
   };
 
   // Dialog-level keys: work wherever focus sits inside the dialog, and
@@ -350,8 +383,10 @@ export default function CommandPalette() {
                   }`}
                 >
                   <span className="truncate">
-                    {c.id.endsWith("copy-email") && copied
-                      ? "Copied to clipboard"
+                    {c.id.endsWith("copy-email") && copiedEmail
+                      ? "Copied email to clipboard"
+                      : c.id.endsWith("copy-url") && copiedUrl
+                      ? "Copied section link to clipboard"
                       : c.label}
                   </span>
                   <span className="label flex shrink-0 items-center gap-1.5 normal-case">
@@ -370,7 +405,11 @@ export default function CommandPalette() {
 
         {/* Announce copy success to screen readers. */}
         <span aria-live="polite" className="sr-only">
-          {copied ? `Email address ${links.email} copied to clipboard` : ""}
+          {copiedEmail
+            ? `Email address ${links.email} copied to clipboard`
+            : copiedUrl
+            ? "Link to current section copied to clipboard"
+            : ""}
         </span>
 
         <div className="label flex items-center gap-4 border-t border-rule px-4 py-2.5">
