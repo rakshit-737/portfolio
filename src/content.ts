@@ -22,7 +22,11 @@ export interface HeadlineNumber {
 }
 
 export interface FeaturedProject {
-  id: string;
+  /** One of the eight landing-page acts (`ActId`, declared below with
+   *  `acts`) — every featured project has its own act, so `acts[id]` and
+   *  `plates[acts[id].plate]` never need an unchecked cast at the call
+   *  site. Forward reference to `ActId` is fine within one module. */
+  id: ActId;
   name: string;
   timeframe: string;
   oneLiner: string;

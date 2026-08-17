@@ -21,12 +21,27 @@ test("every plate has meaningful alt text", () => {
   }
 });
 
+// Checks both crops a plate can carry — the default landscape `crop` and,
+// where present, the portrait `cropNarrow` (Task 14b) served to narrow
+// viewports ahead of it. The original version of this test only ever
+// looked at `p.crop`: every `cropNarrow` box in `src/lib/art.ts` (currently
+// just `alchemist`'s) went completely unchecked, and neither box's `x`/`y`
+// origin was checked against 0 — a negative origin is exactly as invalid
+// as one that pushes `x + w` past the native frame's far edge, since both
+// describe a crop that reaches outside the source image.
+function expectInsideFrame(box: { x: number; y: number; w: number; h: number }) {
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.y).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.w).toBeLessThanOrEqual(1.0001);
+  expect(box.y + box.h).toBeLessThanOrEqual(1.0001);
+  expect(box.w).toBeGreaterThan(0);
+  expect(box.h).toBeGreaterThan(0);
+}
+
 test("crop boxes stay inside the native frame", () => {
   for (const p of Object.values(plates)) {
-    expect(p.crop.x + p.crop.w).toBeLessThanOrEqual(1.0001);
-    expect(p.crop.y + p.crop.h).toBeLessThanOrEqual(1.0001);
-    expect(p.crop.w).toBeGreaterThan(0);
-    expect(p.crop.h).toBeGreaterThan(0);
+    expectInsideFrame(p.crop);
+    if (p.cropNarrow) expectInsideFrame(p.cropNarrow);
   }
 });
 

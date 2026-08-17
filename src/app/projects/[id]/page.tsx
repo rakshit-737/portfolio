@@ -8,7 +8,7 @@ import Plate from "@/components/Plate";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
 import SineLattice from "@/components/SineLattice";
-import { acts, type ActId, caseStudies, featuredProjects, site } from "@/content";
+import { acts, caseStudies, featuredProjects, site } from "@/content";
 import { withBase } from "@/lib/base";
 import { withCredit } from "@/lib/credit";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
@@ -164,7 +164,10 @@ export default async function CaseStudyPage({
 
       <main>
         <div className="relative isolate h-[60svh] overflow-hidden">
-          <Plate id={acts[study.id as ActId].plate} priority />
+          {/* No lamp, no scroll mechanics here (spec §5.2) — `motion={false}`
+              keeps this banner from ever emitting the scroll-scrubbed
+              <video> the landing-page act for the same plate carries. */}
+          <Plate id={acts[project.id].plate} priority motion={false} />
           <div className={`${SHELL} scrim absolute inset-x-0 bottom-0 z-10 pb-12`}>
             <p className="label">{project.timeframe}</p>
             <h1 className="statement mt-4">{project.name}</h1>
@@ -177,7 +180,7 @@ export default async function CaseStudyPage({
           >
             <div className="min-w-0">
               <Provenance
-                segments={withCredit(acts[study.id as ActId].plate, [
+                segments={withCredit(acts[project.id].plate, [
                   ...project.evidence,
                   ...liveSegments(live),
                 ])}

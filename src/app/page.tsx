@@ -137,7 +137,7 @@ export default async function Home() {
             <p className="label">{hero.role}</p>
 
             <h1 id="hero-title" className="statement mt-6">
-              {hero.name}
+              {acts.hero.statement}
             </h1>
 
             <p className="label mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 normal-case">
@@ -213,7 +213,7 @@ export default async function Home() {
         </Act>
 
         {featuredProjects.map((project, i) => {
-          const act = acts[project.id as "warden" | "scheduler" | "plantpal"];
+          const act = acts[project.id];
           const live = featuredLive[i];
           return (
             <Act
@@ -225,7 +225,31 @@ export default async function Home() {
             >
               <Plate id={act.plate} />
 
-              <div className={`${SHELL} scrim relative z-10 py-24`}>
+              {/* `.scrim-wide` on `scheduler` only, not the standard
+                  `.scrim`: `headlineNumbers` renders as an unconstrained
+                  `flex flex-wrap` row (no max-width), so its rightmost
+                  value's x-position is content-driven. Measured directly:
+                  scheduler's third value ("p = 2.6×10⁻¹⁶", the widest label
+                  of any featured project) centres at ~43% of a 1280px
+                  viewport and extends to ~53% — inside the standard
+                  scrim's fading band (30%–62%), not its protected one. Lit,
+                  it measured L=0.086 against the ember contrast gate's
+                  L≤0.058 ceiling (`IGNITE_LUMINANCE_CEILING`,
+                  tests/lamplight.spec.ts) — below AA.
+                  Scoped to `scheduler` specifically, not applied to warden
+                  and plantpal too: `.scrim-wide` widens the *whole* scrim
+                  box's protected band, which also covers part of where
+                  each act's own lamp rests (warden's sits at x≈52%, which
+                  the wide band's fade only clears by 85% — tried widening
+                  all three first, and it measurably dimmed warden's own
+                  reveal pool, `L 0.089 → 0.015`, enough to fail "the
+                  lamp's reveal pool is measurably brighter than the
+                  frame's far edge"). Widening only the one act whose
+                  copy actually needs it avoids trading a real fix for a
+                  new regression in a plate this doesn't concern. */}
+              <div
+                className={`${SHELL} scrim ${project.id === "scheduler" ? "scrim-wide" : ""} relative z-10 py-24`}
+              >
                 <p className="label">{project.timeframe}</p>
                 <Statement id={`${project.id}-title`}>{act.statement}</Statement>
 
@@ -318,6 +342,7 @@ export default async function Home() {
           label={acts.ledger.label}
           lamp={plates[acts.ledger.plate].lamp}
           className="!min-h-0"
+          overflow="visible"
         >
           <div className="pointer-events-none absolute inset-0">
             <div className="sticky top-0 h-[100svh]">

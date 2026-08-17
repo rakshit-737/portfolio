@@ -110,8 +110,11 @@ all eight paintings with their Commons sources; tokens live in
 - Emphasis is light, not inversion. The previous design's page-wide
   `.negative` flip is gone; a control like `Bracket` or a nav link swaps its
   own two colours on hover, but nothing swaps a whole region's ground and
-  mark anymore. A number "ignites" — bone signal becomes ember — only when
-  the lamp's radial mask sweeps across it.
+  mark anymore. A number "ignites" — bone signal becomes ember — only once
+  the lamp's pool actually reaches it: `Lamp.tsx` compares each metric's
+  real screen position against the lamp's, every rAF tick, and toggles the
+  ember state directly, rather than masking the metric the way the
+  painting itself is masked.
 - Eight full-bleed acts (`Act.tsx`), each set in a painting fetched from
   Wikimedia Commons, cropped, and committed to `public/art/` with a sha256
   lockfile so CI never touches the network. They sit in normal document

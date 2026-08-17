@@ -152,8 +152,8 @@ on four of the eight acts.
 
 **Key Characteristics:**
 - Three values — ground, bone signal, ember — no grey, no other hue.
-- Emphasis is light: a number ignites under the lamp's mask; nothing
-  inverts a whole region anymore.
+- Emphasis is light: a number ignites once the lamp's pool actually
+  reaches it; nothing inverts a whole region anymore.
 - Newsreader for eight display statements; Chivo Mono everywhere else,
   including all numbers; Chivo only for reading passages.
 - Eight full-bleed acts, each set in a credited public-domain painting, in
@@ -171,12 +171,11 @@ dark room, not a scheme.
 ### Primary
 - **Signal Bone** (`{colors.signal}`, `#F2EDE3`): every mark of language on
   the page — type, strokes, rules, control borders, the sine's nodes. It is
-  also what a lit number looks like immediately before ember takes over the
-  lamp's radial mask.
+  also what a lit number looks like before the lamp's pool reaches it.
 - **Ember** (`{colors.ember}`, `#E8A33D`): the light itself. It appears in
   exactly two places — the pseudo-element that lights an `.ignite` number
-  when the lamp's mask crosses it, and nowhere else. It never touches prose,
-  never touches a graphic, never fills a control.
+  once the lamp's pool actually reaches it, and nowhere else. It never
+  touches prose, never touches a graphic, never fills a control.
 
 ### Neutral
 - **Ground** (`{colors.ground}`, `#08070A`): the dark a candlelit painting
@@ -298,7 +297,11 @@ inside the viewport-height section, with 6rem of vertical padding
 just above the fold. Each act's content sits inside `.scrim`, a gradient
 that guards text from the painted midtone behind it — a left-to-right guard
 on wide screens, top-to-bottom on narrow ones (`≤48rem`), widened
-(`.scrim-wide`) for the ledger's broader reading column.
+(`.scrim-wide`) for a reading column that runs wider than the standard
+band: the ledger's two-column archive grid, and the scheduler act, whose
+widest headline number ("p = 2.6×10⁻¹⁶") pushes its `headlineNumbers` row
+past the standard scrim's protected zone (measured directly: L=0.086 lit,
+against the ember contrast gate's L≤0.058 ceiling, before `.scrim-wide`).
 
 **Case files.** A static, non-interactive plate (`Plate` at `h-[60svh]`, no
 lamp mask, no scroll-scrubbing) opens each case study as a fixed painted
@@ -445,8 +448,8 @@ way code is, on the same line as the rest of the evidence.
 ### Rail
 A `<dl>` of measurements, unchanged in structure. Optionally `ignite`: the
 value renders through the ember pseudo-element (`data-value` + `.ignite`),
-so it lights when the lamp's mask reaches it and simply reads as bone signal
-under reduced motion or no JS.
+so it lights once the lamp's pool actually reaches it and simply reads as
+bone signal under reduced motion or no JS.
 
 ### Sine Lattice
 The world's one curve, unchanged: a single stroke sampled at 96 points with
@@ -500,7 +503,13 @@ loop, one `IntersectionObserver`, one passive pointermove listener. Writes
 `--p` (linear act progress), `--pe` (eased, for the plate's push-in and the
 motion video's scrub), `--lamp-x`, `--lamp-y` onto every visible act. Sets
 `data-lamp="on"` on `<html>` — the mask CSS is entirely gated on that
-attribute, so the unstyled default is fully lit. A circuit breaker locks the
+attribute, so the unstyled default is fully lit. The same tick also drives
+ignition: each visible act's `.ignite` elements are gathered once (not
+re-queried every frame), and every tick compares each one's real screen
+centre against the lamp's own pixel position, toggling `.is-lit` — not a
+second `mask-image`, since a mask's percentages resolve against the masked
+element's own box, which is right for `.plate-lit` (which fills the act)
+and meaningless for a few-character-wide metric. A circuit breaker locks the
 lamp lit (removes `data-lamp`) if the device can't hold frame budget for ten
 consecutive frames.
 

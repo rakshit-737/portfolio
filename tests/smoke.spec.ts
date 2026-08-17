@@ -99,10 +99,14 @@ test("no failed requests on the index (prefetch, assets)", async ({
 
 test("card links navigate to the case file", async ({ page }) => {
   await page.goto("/");
-  // Cards below the fold are visibility:hidden until revealed on scroll.
-  await page.evaluate(() =>
-    document.getElementById("projects")?.scrollIntoView(),
-  );
+  // The warden act — the first of the three featured-project acts, and
+  // where "Read the case file" first appears in document order — sits
+  // below the fold. `#projects` is not an id anything in this design
+  // renders (there's no single "projects" section; each project is its
+  // own full-bleed act, `#warden`/`#scheduler`/`#plantpal`), so scroll to
+  // the act itself rather than a selector that has never matched anything
+  // since the Lamplight rewrite.
+  await page.locator("#warden").scrollIntoViewIfNeeded();
   await page
     .getByRole("link", { name: "Read the case file" })
     .first()

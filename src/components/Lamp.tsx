@@ -16,6 +16,18 @@ import { POINTER_LERP } from "@/lib/motion";
  * motion video, if it has one: `video.currentTime` is set from `--pe`, so
  * scroll — not time — is the video's only clock; it is never played.
  *
+ * The same tick also ignites `.ignite` metrics: a CSS `mask-image` can't do
+ * this (a mask's `at var(--lamp-x) var(--lamp-y)` percentages resolve
+ * against the masked element's OWN box, and a metric's box is nothing like
+ * the act's — see the comment on `.ignite` in globals.css for the bug that
+ * produced. So it's done here in real pixels instead: each visible act's
+ * `.ignite` elements are enumerated once per `collect()` (the set is small
+ * and stable — this is not a per-frame query), and every tick compares each
+ * one's `getBoundingClientRect()` centre against the lamp's own pixel
+ * position (the act's rect plus the same fractional `x`/`y` this tick
+ * already computes for `--lamp-x`/`--lamp-y`), toggling `.is-lit` — spec
+ * §4.1: "no per-element observers".
+ *
  * The default, JS-free state is "fully lit", with no video at all. This
  * component switches the page into masked mode by setting `data-lamp="on"`,
  * so a no-JS visitor and a reduced-motion visitor both get a handsome
@@ -60,6 +72,9 @@ export default function Lamp() {
     let frame = 0;
     let slowFrames = 0;
     let last = 0;
+    // Each act's `.ignite` elements, gathered once per collect() rather
+    // than queried inside the per-frame loop — see the class doc comment.
+    const igniteByAct = new Map<HTMLElement, HTMLElement[]>();
 
     const collect = () => {
       // disconnect() fires no final "not intersecting" callback, so any
@@ -68,7 +83,11 @@ export default function Lamp() {
       visible.clear();
       acts = Array.from(document.querySelectorAll<HTMLElement>("[data-act]"));
       observer.disconnect();
-      for (const act of acts) observer.observe(act);
+      igniteByAct.clear();
+      for (const act of acts) {
+        observer.observe(act);
+        igniteByAct.set(act, Array.from(act.querySelectorAll<HTMLElement>(".ignite")));
+      }
     };
 
     // Promotes `data-src` to `src` on every plate's motion video, once —
@@ -134,6 +153,11 @@ export default function Lamp() {
       }
 
       const vh = window.innerHeight;
+      // 1vmax in px — used to turn the plate mask's `--lamp-r` formula
+      // (globals.css: `26vmax + min(p, 1-p) * 30vmax`) into a real pixel
+      // radius for the ignite comparison below. Computed once per tick,
+      // not per act — window size doesn't change mid-frame.
+      const vmax = Math.max(window.innerWidth, vh) / 100;
       for (const act of visible) {
         const r = act.getBoundingClientRect();
         // 0 when the act's top hits the viewport bottom, 1 when its
@@ -167,6 +191,37 @@ export default function Lamp() {
         act.style.setProperty("--pe", eased.toFixed(4));
         act.style.setProperty("--lamp-x", `${(x * 100).toFixed(2)}%`);
         act.style.setProperty("--lamp-y", `${(y * 100).toFixed(2)}%`);
+
+        // Critical 1: the lamp's real pixel position — `x`/`y` above are
+        // fractions of THIS act's box (that's what `--lamp-x`/`--lamp-y`
+        // need to be, since `.plate-lit`'s mask resolves against the same
+        // box), so converting to a viewport pixel point takes the act's own
+        // rect, not the viewport's. Matches the mask's own radius formula
+        // (globals.css `--lamp-r`) so the ignite pool and the plate's lit
+        // pool agree on how big the light is.
+        const igniteEls = igniteByAct.get(act);
+        if (igniteEls && igniteEls.length > 0) {
+          const lampPxX = r.left + x * r.width;
+          const lampPxY = r.top + y * r.height;
+          const lampR = (26 + Math.min(p, 1 - p) * 30) * vmax;
+          // The plate mask is fully opaque out to 46% of `--lamp-r` and
+          // fades to nothing by 88%; a metric either reads as bone or as
+          // ember, not fractionally in between, so it ignites at a single
+          // radius rather than reproducing that whole falloff — picked at
+          // the middle of the fade band so a metric lights up roughly when
+          // the plate under it is roughly half-revealed, not only once
+          // it's fully in the opaque core.
+          const litRadius = lampR * 0.67;
+          const litRadiusSq = litRadius * litRadius;
+          for (const el of igniteEls) {
+            const er = el.getBoundingClientRect();
+            const ex = er.left + er.width / 2;
+            const ey = er.top + er.height / 2;
+            const dx = ex - lampPxX;
+            const dy = ey - lampPxY;
+            el.classList.toggle("is-lit", dx * dx + dy * dy <= litRadiusSq);
+          }
+        }
 
         // Scroll is the video's only clock — it is never played. Seeking
         // is cheap because the encode is keyframe-dense (Task 14b).

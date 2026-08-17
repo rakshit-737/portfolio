@@ -678,6 +678,16 @@ test("the torch follows the pointer and never blocks interaction", async ({ page
   await page.getByRole("link", { name: /résumé/i }).first().click({ trial: true });
 });
 
+// Important 6 fix round: the original version of this loop never moved the
+// pointer, and `data-torch="on"` is only ever set inside Torch.tsx's
+// `onPointer` handler — so the assertion held in every context it ran in,
+// including a plain desktop one with a fully working torch, because
+// nothing here ever gave the torch a chance to arm. Deleting Torch.tsx's
+// `reduce.matches || hover.matches` early-return left this test green.
+// `page.mouse.move` gives every context a real chance to arm the torch;
+// the three contexts below must still suppress it — reduced motion and
+// no-JS never run Torch.tsx at all, and Playwright's touch emulation
+// reports `(hover: none)`, which Torch.tsx's own guard checks.
 test("the torch stays off for touch, reduced motion, and no JS", async ({ browser }) => {
   for (const opts of [
     { reducedMotion: "reduce" as const },
@@ -687,6 +697,8 @@ test("the torch stays off for touch, reduced motion, and no JS", async ({ browse
     const ctx = await browser.newContext(opts);
     const page = await ctx.newPage();
     await page.goto("/");
+    await page.mouse.move(400, 400, { steps: 5 });
+    await page.waitForTimeout(200);
     await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on");
     // Content is readable regardless.
     await expect(page.locator(".statement").first()).toBeVisible();
@@ -729,3 +741,296 @@ test("the plate's unlit floor rises once the torch arms", async ({
   const armedFilter = await plateDark.evaluate((el) => getComputedStyle(el).filter);
   expect(armedFilter).not.toBe(baseFilter);
 });
+
+// Critical 1 fix: `.ignite`'s CSS mask used to read `--lamp-x`/`--lamp-y`
+// exactly like `.plate-lit` does, but those percentages resolve against
+// the masked element's OWN box — correct for `.plate-lit` (which fills the
+// act) and meaningless for a few-character-wide metric, whose ignition
+// therefore tracked its own layout width, never the lamp. The two tests
+// below prove the fix the way the task asked: a real metric's rendered
+// colour, sampled with `getComputedStyle` and a pixel screenshot, changes
+// as the lamp crosses it — not just that a class toggles with no visible
+// effect.
+//
+// Deliberately scroll-only, no pointer: `--lamp-x` moves by a *smoothed*
+// pointer term (`POINTER_LERP`, Lamp.tsx), which only reaches a given
+// target after enough animation frames actually run. Under this suite's
+// default parallelism that convergence is not guaranteed within any fixed
+// wait — an earlier version of this test drove the lamp by computing a
+// pointer position and waiting for it to arrive, and intermittently caught
+// the lerp mid-flight (see task-17-report.md for the measured pattern).
+// `--p` (scroll progress), by contrast, is read directly from
+// `getBoundingClientRect()` every tick with no smoothing at all, so a
+// given scroll position always produces the same lamp position on the
+// first frame after it — deterministic, not just probabilistically likely.
+//
+// Break-and-restore: reverting `.ignite::after` to the original
+// `mask-image` rule (and removing Lamp.tsx's per-element comparison) with
+// these tests left in place fails the first one — the metric that should
+// be lit never turns ember, because the mask centres on the metric's own
+// ~90×32px box, not the lamp's actual, much larger position. See
+// task-17-report.md for the captured failure output.
+
+/** Thrown when Lamp.tsx's frame-budget circuit breaker (10 consecutive
+ *  frames over 32ms locks `data-lamp` off — see the comment above "the
+ *  plate's unlit floor rises once the torch arms") trips mid-test, which
+ *  is this sandboxed CI environment stalling for a beat, not the ignition
+ *  mechanism failing. `withLampRetry` below is the only place that catches
+ *  this; a genuine assertion failure (a real `expect(...)` mismatch) is a
+ *  different error type and always propagates immediately, un-retried. */
+class BreakerTripped extends Error {}
+
+/** Retries `attempt` up to 3 times, only for `BreakerTripped` — any other
+ *  thrown error (a real failed assertion) fails the test immediately on
+ *  the first try, exactly as an unwrapped test body would. */
+async function withLampRetry(fn: (attempt: number) => Promise<void>) {
+  for (let i = 0; i < 3; i++) {
+    try {
+      await fn(i);
+      return;
+    } catch (e) {
+      if (!(e instanceof BreakerTripped) || i === 2) throw e;
+    }
+  }
+}
+
+/** The scheduler act's headline numbers (`dl.flex.flex-wrap`): three
+ *  `.ignite` values in one row, at increasing x — "0" (far left), "45,432"
+ *  (middle), and "p = 2.6×10⁻¹⁶" (the widest label, pushed furthest
+ *  right by the two items ahead of it in the flex row). The lamp's rest
+ *  x (`restX`, Lamp.tsx) sits at 52% of the act's width; the third item's
+ *  centre lands close enough to that (~43%) to fall inside the lamp's
+ *  radius once the act is scrolled to roughly its own mid-point, while
+ *  the first item (~10%) never does, at any scroll position — its
+ *  distance from `restX` alone exceeds the radius's maximum. That
+ *  asymmetry, verified directly against the built site rather than
+ *  assumed, is what makes items 0 and 2 a reliable always-differs pair
+ *  for the pixel comparison below, with no pointer involved on either
+ *  side. */
+async function schedulerHeadlineNumbers(page: import("@playwright/test").Page) {
+  const act = page.locator("#scheduler");
+  return {
+    act,
+    // Item 0: the metric that should never ignite — the reference for
+    // "still bone" in the pixel comparison.
+    neverLit: act.locator(".ignite").nth(0),
+    // Item 2: the metric this pair of tests exercises.
+    metric: act.locator(".ignite").nth(2),
+  };
+}
+
+/** Scrolls so the scheduler act is not yet intersecting the viewport, but
+ *  is still just inside the `10% 0px` `IntersectionObserver` margin
+ *  Lamp.tsx uses to pre-arm acts — so it *is* in Lamp.tsx's `visible` set
+ *  and genuinely being evaluated every tick, not simply never reached.
+ *  `--p`'s formula (`(vh - top) / (height + vh)`, clamped to `[0, 1]`)
+ *  is negative before the act's top reaches the viewport's bottom edge,
+ *  so it clamps to exactly `0` across that whole pre-entry range — not a
+ *  single hair-trigger scroll offset, a wide, stable plateau, confirmed
+ *  directly against the built site: every scroll position with the act's
+ *  top 0–90px below the viewport bottom reads `--p: 0` and the metric
+ *  unlit, byte-identical (`opacity: "0"`), not a near-miss float. */
+async function scrollScheduerJustBeforeEntry(page: import("@playwright/test").Page) {
+  const actTop = await page.evaluate(
+    () => document.getElementById("scheduler")!.getBoundingClientRect().top + window.scrollY,
+  );
+  const vh = await page.evaluate(() => window.innerHeight);
+  // Act's top lands 50px below the viewport's bottom edge — inside the
+  // 10%-margin pre-arm zone (10% of a typical viewport is 65–90px) but
+  // nowhere near actually intersecting. `scrollY` such that
+  // `actTop - scrollY == vh + 50` (the act's top sits 50px past the
+  // viewport's bottom edge, in viewport-relative coordinates).
+  await page.evaluate(
+    (y) => window.scrollTo(0, Math.max(0, y)),
+    actTop - (vh + 50),
+  );
+}
+
+test("a metric ignites as the lamp crosses it", async ({ page }) => {
+  await withLampRetry(async () => {
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+
+    const { neverLit, metric } = await schedulerHeadlineNumbers(page);
+    const readState = (el: import("@playwright/test").Locator) =>
+      el.evaluate((e) => ({
+        lampOn: document.documentElement.getAttribute("data-lamp"),
+        isLit: e.classList.contains("is-lit"),
+        emberOpacity: getComputedStyle(e, "::after").opacity,
+      }));
+
+    // Before the act has ever been on screen: both metrics are stone-cold
+    // — never observed, never evaluated, exactly the no-JS/reduced-motion
+    // default (bone, `opacity: 0` on the ember layer).
+    await scrollScheduerJustBeforeEntry(page);
+    await page.waitForTimeout(300);
+    const before = await readState(metric);
+    if (before.lampOn !== "on") throw new BreakerTripped();
+    expect(before.isLit, "metric should not be lit before the act has ever been in view").toBe(
+      false,
+    );
+    expect(Number(before.emberOpacity)).toBeLessThan(0.05);
+
+    // Scroll the act into its natural view — its own scroll progress
+    // (`--p`) now sits mid-act, where the lamp's radius is largest and
+    // the third headline number falls inside it.
+    await metric.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    const afterNeverLit = await readState(neverLit);
+    const afterMetric = await readState(metric);
+    if (afterMetric.lampOn !== "on") throw new BreakerTripped();
+    expect(afterMetric.isLit, "metric should be lit once its act is scrolled into view").toBe(
+      true,
+    );
+    expect(Number(afterMetric.emberOpacity)).toBeGreaterThan(0.9);
+    expect(
+      afterNeverLit.isLit,
+      "the far-left metric should still be unlit at the same scroll position — it never enters the lamp's radius",
+    ).toBe(false);
+
+    // The rendered colour itself, not just the class or the opacity:
+    // screenshot both metrics in the same frame and confirm the lit one
+    // reads meaningfully more ember (red-heavy relative to blue) than the
+    // one that never ignites — a spatial comparison, not a before/after
+    // of one element, so it needs no particular lerp state to be
+    // meaningful; both are sampled at the exact same instant.
+    const sample = async (el: import("@playwright/test").Locator) => {
+      const box = (await el.boundingBox())!;
+      const buf = await page.screenshot({ clip: box });
+      const { channels } = await sharp(buf).stats();
+      return channels.map((c) => c.mean); // [R, G, B]
+    };
+    const [litR, , litB] = await sample(metric);
+    const [darkR, , darkB] = await sample(neverLit);
+    const litGap = litR - litB;
+    const darkGap = darkR - darkB;
+    expect(
+      litGap,
+      `lit metric's rendered colour is not meaningfully more ember than the never-lit one (lit R-B=${litGap.toFixed(1)}, never-lit R-B=${darkGap.toFixed(1)})`,
+    ).toBeGreaterThan(darkGap + 15);
+  });
+});
+
+// The reverse direction: the same element, scrolled back out. Its own
+// test (a fresh page) rather than a third scroll tacked onto the one
+// above, matching the shape "the plate's unlit floor rises once the
+// torch arms" already uses — keeps each test's own retry loop cheap.
+test("a metric fades back to bone once the lamp leaves it", async ({ page }) => {
+  await withLampRetry(async () => {
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+
+    const { metric } = await schedulerHeadlineNumbers(page);
+    const readState = () =>
+      metric.evaluate((el) => ({
+        lampOn: document.documentElement.getAttribute("data-lamp"),
+        isLit: el.classList.contains("is-lit"),
+        emberOpacity: getComputedStyle(el, "::after").opacity,
+      }));
+
+    await metric.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    const lit = await readState();
+    if (lit.lampOn !== "on") throw new BreakerTripped();
+    expect(lit.isLit, "metric should be lit once its act is scrolled into view").toBe(true);
+    expect(Number(lit.emberOpacity)).toBeGreaterThan(0.9);
+
+    // Scroll back to just before the act enters — the lamp moves off the
+    // metric (in fact, the act itself leaves Lamp.tsx's tracked `visible`
+    // set for a moment on the way past, then re-enters at `--p: 0`, which
+    // is genuinely the pre-entry state, not a frozen leftover of the lit
+    // one).
+    await scrollScheduerJustBeforeEntry(page);
+    await page.waitForTimeout(500);
+    const faded = await readState();
+    if (faded.lampOn !== "on") throw new BreakerTripped();
+    expect(
+      faded.isLit,
+      "metric should fade back to bone once the lamp scrolls away from it",
+    ).toBe(false);
+    expect(Number(faded.emberOpacity)).toBeLessThan(0.05);
+  });
+});
+
+// Important 3 fix: the contrast gate above only ever sampled `.statement`
+// and `.prose-field` — never `.ignite`, the one colour on the site with
+// the least contrast headroom (ember on ground is ≈9.2:1 against bone's
+// ≈17:1). At the existing CONTRAST_LUMINANCE_CEILING (0.12), bone still
+// clears 4.5:1 but ember would already have dropped to ≈2.9:1 — below AA.
+// Solving `(ratio·(Lg+0.05))/(1) - 0.05 = Lbg` for ratio=4.5 with ember's
+// own luminance (~0.43) folded in the way this gate already mixes glyph
+// and background pixels together gives a background ceiling of ~0.058,
+// roughly half of the bone ceiling — the same shape of number the file's
+// own CONTRAST_LUMINANCE_CEILING comment derives, just for the tighter
+// colour.
+//
+// The torch is armed first (`page.mouse.move`) because that's the
+// worst-case brightness for the *unlit* plate floor: `.plate-dark`'s
+// filter rises from brightness(0.32) to brightness(0.56) once
+// `[data-torch="on"][data-lamp="on"]` — see globals.css — so sampling
+// with it armed catches the brightest background a `.ignite` element can
+// ever actually sit on, independent of whether that particular element
+// happens to be lit at the moment of the screenshot.
+const IGNITE_LUMINANCE_CEILING = 0.058;
+
+/** Navigates fresh and arms the torch, retrying (fresh navigation, not
+ *  just another pointer move — a page that already dropped `data-torch`
+ *  via the frame-budget circuit breaker won't pick it back up) up to 3
+ *  times before giving up. Shares the same underlying cause and shape as
+ *  `BreakerTripped`/`withLampRetry` above (Torch.tsx runs the identical
+ *  circuit breaker Lamp.tsx does), pulled into its own small helper here
+ *  because every test below needs "start armed", not "recover mid-test". */
+async function gotoWithTorchArmed(page: import("@playwright/test").Page) {
+  for (let i = 0; i < 3; i++) {
+    await page.goto("/");
+    await page.mouse.move(900, 500, { steps: 5 });
+    try {
+      await expect(page.locator("html")).toHaveAttribute("data-torch", "on", {
+        timeout: 2000,
+      });
+      return;
+    } catch (e) {
+      if (i === 2) throw e;
+    }
+  }
+}
+
+test("ember contrast: arming the torch first", async ({ page }) => {
+  await gotoWithTorchArmed(page);
+});
+
+for (const id of ACTS) {
+  test(`ignite metrics in act ${id} clear ember-appropriate AA contrast`, async ({
+    page,
+  }) => {
+    // Arm the torch once per test — the worst-case brightness floor
+    // described above — before scrolling to and sampling this act.
+    await gotoWithTorchArmed(page);
+
+    const act = page.locator(`#${id}`);
+    const metrics = act.locator(".ignite");
+    const count = await metrics.count();
+    if (count === 0) {
+      // about, ledger, and contact carry no `.ignite` metric — nothing
+      // this test could fail to check there.
+      return;
+    }
+    for (let i = 0; i < count; i++) {
+      const metric = metrics.nth(i);
+      await metric.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(100);
+
+      const box = await metric.boundingBox();
+      if (!box || box.width < 1 || box.height < 1) continue;
+
+      const buf = await page.screenshot({ clip: box });
+      const { channels } = await sharp(buf).stats();
+      const lum = luminance(channels.map((c) => c.mean));
+
+      expect(
+        lum,
+        `act ${id} ignite metric #${i} background too bright for ember (L=${lum.toFixed(3)})`,
+      ).toBeLessThan(IGNITE_LUMINANCE_CEILING);
+    }
+  });
+}

@@ -45,9 +45,22 @@ function motionSrc(id: PlateId): string | null {
 export default function Plate({
   id,
   priority = false,
+  motion: motionEnabled = true,
 }: {
   id: PlateId;
   priority?: boolean;
+  /** Whether this instance may render its scroll-scrubbed video, if the
+   *  plate has one. Defaults `true` because every landing-page act wants
+   *  it when the plate has one — Lamp.tsx scrubs `video.currentTime` from
+   *  scroll there. The case-file banner (`projects/[id]/page.tsx`) passes
+   *  `false` explicitly: it has no lamp and no scroll mechanics (spec
+   *  §5.2), so a clip there would only ever paint one static frame
+   *  identical to the still beneath it — a real download (180–239kB per
+   *  case file) that nothing ever plays. Gating in `Plate` itself, rather
+   *  than filtering `promoteVideos()` by ancestor, means the banner never
+   *  emits a `<video>` element at all — there is nothing for any query to
+   *  find. */
+  motion?: boolean;
 }) {
   const plate = plates[id];
   const widest = Math.max(...tiers(id, "avif"));
@@ -61,7 +74,7 @@ export default function Plate({
     fetchPriority: priority ? ("high" as const) : ("auto" as const),
   };
   const hasNarrow = narrowTiers(id, "avif").length > 0;
-  const motion = motionSrc(id);
+  const motion = motionEnabled ? motionSrc(id) : null;
 
   return (
     <div
@@ -73,7 +86,6 @@ export default function Plate({
           "--framing-narrow": plate.framing.narrow,
         } as React.CSSProperties
       }
-      aria-hidden={false}
     >
       {/* The full stack, in paint order (four layers, all `position:
           absolute; inset: 0`, no `z-index` — document order IS paint
