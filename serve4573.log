@@ -1,0 +1,781 @@
+ INFO  Accepting connections at http://localhost:4573
+ HTTP  8/17/2026 12:55:54 PM ::1 GET /
+ HTTP  8/17/2026 12:55:54 PM ::1 Returned 200 in 32 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 15 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /art/airpump-1280.avif
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 22 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 23 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 23 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 33 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 17 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 13 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 11 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 24 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 24 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 16 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /_next/static/chunks/0jqvgi9n857nb.js
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 9 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 7 ms
+ HTTP  8/17/2026 12:55:55 PM ::1 GET /favicon.ico
+ HTTP  8/17/2026 12:55:55 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:55:56 PM ::1 GET /art/alchemist-narrow-960.avif
+ HTTP  8/17/2026 12:55:56 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:55:56 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:55:56 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:55:56 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:55:56 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:55:56 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:55:56 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:56:01 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:56:01 PM ::1 Returned 304 in 1 ms
+ HTTP  8/17/2026 12:56:02 PM ::1 GET /robots.txt
+ HTTP  8/17/2026 12:56:02 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:05 PM ::1 GET /art/alchemist-narrow-640.avif
+ HTTP  8/17/2026 12:56:05 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /art/airpump-1920.avif
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 12 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /_next/static/chunks/0jqvgi9n857nb.js
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /art/alchemist-1920.avif
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /art/forge-1920.avif
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /art/orrery-1920.avif
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /art/kitten-1920.avif
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 9 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 9 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 26 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 24 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /favicon.ico
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 206 in 4 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /art/forge-motion.webm
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 206 in 4 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:56:13 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 206 in 5 ms
+ HTTP  8/17/2026 12:56:13 PM ::1 Returned 206 in 3 ms
+ HTTP  8/17/2026 12:56:17 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:56:17 PM ::1 Returned 304 in 1 ms
+ HTTP  8/17/2026 12:56:18 PM ::1 GET /robots.txt
+ HTTP  8/17/2026 12:56:18 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /art/airpump-1280.avif
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /_next/static/chunks/0jqvgi9n857nb.js
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 9 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /art/alchemist-narrow-960.avif
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:56:53 PM ::1 GET /favicon.ico
+ HTTP  8/17/2026 12:56:53 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:56:56 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:56:56 PM ::1 Returned 304 in 1 ms
+ HTTP  8/17/2026 12:56:59 PM ::1 GET /art/alchemist-narrow-640.avif
+ HTTP  8/17/2026 12:56:59 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:28 PM ::1 GET /
+ HTTP  8/17/2026 12:58:28 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:28 PM ::1 GET /
+ HTTP  8/17/2026 12:58:28 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 11 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/airpump-1280.avif
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 7 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 11 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 12 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 13 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 21 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/airpump-1280.avif
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 29 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 13 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 13 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 14 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 15 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 27 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 27 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 36 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/0l6z1_0xcj791.js
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 23 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 24 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /_next/static/chunks/0l6z1_0xcj791.js
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 58 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 24 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 14 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/alchemist-1280.avif
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 8 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 13 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 14 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 16 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/alchemist-1280.avif
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/forge-motion.webm
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:29 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 206 in 4 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 206 in 8 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 206 in 6 ms
+ HTTP  8/17/2026 12:58:29 PM ::1 Returned 206 in 5 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/forge-motion.webm
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 206 in 14 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 206 in 2 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/airpump-1280.avif
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 7 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 20 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 18 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 12 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/chunks/0l6z1_0xcj791.js
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/alchemist-1280.avif
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/anatomy-1280.avif
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 9 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/forge-motion.webm
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 206 in 4 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 206 in 4 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 206 in 2 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 206 in 4 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:30 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:30 PM ::1 Returned 200 in 0 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/airpump-1280.avif
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 22 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 20 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 21 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 12 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/0l6z1_0xcj791.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/alchemist-1280.avif
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /projects/warden/
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/forge-motion.webm
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 11 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 10 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 10 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /resume.pdf
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /projects/scheduler/
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 9 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 15 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 14 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 9 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 9 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 8 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /projects/plantpal/
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:31 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 7 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:58:31 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /llms.txt
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /sitemap.xml
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /favicon.ico
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /favicon.ico
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/airpump-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 0 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/0l6z1_0xcj791.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/airpump-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/0l6z1_0xcj791.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/alchemist-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/alchemist-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/forge-motion.webm
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/forge-motion.webm
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 206 in 0 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /resume.pdf
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /projects/warden/
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /projects/scheduler/
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /projects/plantpal/
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /certificates/cyber-secure-360-2025.png
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 8 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 7 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /art/airpump-1280.avif
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 7 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:32 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 8 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 8 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 7 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 8 ms
+ HTTP  8/17/2026 12:58:32 PM ::1 Returned 200 in 10 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /_next/static/chunks/0l6z1_0xcj791.js
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/alchemist-1280.avif
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/forge-motion.webm
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 206 in 0 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 206 in 2 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/anatomy-1280.avif
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/dovedale-1280.avif
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 200 in 13 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/anatomy-1280.avif
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:33 PM ::1 GET /art/forge-motion.webm
+ HTTP  8/17/2026 12:58:33 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /projects/warden/
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 2 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 5 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 5 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 4 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 5 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 5 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 2 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 304 in 5 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/dovedale-1280.avif
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 206 in 4 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/airpump-1280.avif
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 11 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /_next/static/chunks/0l6z1_0xcj791.js
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 206 in 4 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/alchemist-1280.avif
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 206 in 4 ms
+ HTTP  8/17/2026 12:58:34 PM ::1 GET /certificates/cyber-secure-360-2025-thumb.avif
+ HTTP  8/17/2026 12:58:34 PM ::1 Returned 200 in 9 ms
+ HTTP  8/17/2026 12:58:35 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:35 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:35 PM ::1 GET /art/forge-motion.webm
+ HTTP  8/17/2026 12:58:35 PM ::1 GET /art/orrery-motion.webm
+ HTTP  8/17/2026 12:58:35 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:35 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:35 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:35 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:35 PM ::1 GET /art/anatomy-1280.avif
+ HTTP  8/17/2026 12:58:35 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:35 PM ::1 GET /art/academy-1280.avif
+ HTTP  8/17/2026 12:58:35 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:35 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:35 PM ::1 Returned 200 in 7 ms
+ HTTP  8/17/2026 12:58:35 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:35 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:35 PM ::1 GET /art/dovedale-1280.avif
+ HTTP  8/17/2026 12:58:35 PM ::1 Returned 200 in 11 ms
+ HTTP  8/17/2026 12:58:36 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:36 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:36 PM ::1 GET /certificates/cyber-secure-360-2025-thumb.avif
+ HTTP  8/17/2026 12:58:36 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:36 PM ::1 GET /art/kitten-motion.webm
+ HTTP  8/17/2026 12:58:36 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:36 PM ::1 GET /art/academy-1280.avif
+ HTTP  8/17/2026 12:58:36 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /projects/warden/
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /art/forge-1280.avif
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 15 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 15 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:37 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:37 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:38 PM ::1 GET /art/airpump-motion.webm
+ HTTP  8/17/2026 12:58:38 PM ::1 Returned 206 in 1 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /projects/scheduler/
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /art/orrery-1280.avif
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 3 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:39 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:39 PM ::1 Returned 200 in 11 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /projects/plantpal/
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/media/2b7d3311b69a4dca-s.p.1elj1f4z6aq4a.woff2
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/chunks/31lbg1stgvlg0.css
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/media/387ee14c0e0fe675-s.p.3-lut242jvm36.woff2
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/media/74f465119297d0e6-s.p.3b6-7wz_5l3s6.woff2
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/media/d38f3bca7db33566-s.p.0op912u62qdhl.woff2
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /art/kitten-1280.avif
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 1 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/chunks/0_a3f2s3xcdlr.js
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 2 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/chunks/3bvs1nl3bjmpb.js
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/chunks/25o46h8mdjlrg.js
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/chunks/turbopack-2y2yf5yk86k3y.js
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/chunks/28k5eyl17p7q8.js
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/chunks/158myu8e_yme3.js
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 4 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 6 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 5 ms
+ HTTP  8/17/2026 12:58:40 PM ::1 GET /_next/static/chunks/2pxy1yul5cfk-.js
+ HTTP  8/17/2026 12:58:40 PM ::1 Returned 200 in 3 ms

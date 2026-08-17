@@ -752,6 +752,13 @@ export const education: EducationEntry[] = [
   },
 ];
 
+export const commandPaletteLabels = {
+  heroLabel: "Hero / Top of page",
+  copySectionUrlLabel: "Copy link to current section",
+  copiedSectionUrl: "Copied section link to clipboard",
+  copiedEmail: "Copied email to clipboard",
+} as const;
+
 export const navSections = [
   { id: "about", label: "About" },
   { id: "warden", label: "Warden" },

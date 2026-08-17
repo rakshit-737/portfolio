@@ -8,7 +8,13 @@ import {
   CornerDownLeft,
   Search,
 } from "lucide-react";
-import { featuredProjects, links, moreProjects, navSections } from "@/content";
+import {
+  commandPaletteLabels,
+  featuredProjects,
+  links,
+  moreProjects,
+  navSections,
+} from "@/content";
 import { withBase } from "@/lib/base";
 
 /** Nav (or anything else) can open the palette by dispatching this event. */
@@ -115,7 +121,7 @@ export default function CommandPalette() {
     ];
 
     const sections = [
-      { id: "top", label: "Hero / Top of page" },
+      { id: "top", label: commandPaletteLabels.heroLabel },
       ...navSections.map((s) => ({ id: s.id, label: s.label })),
     ];
 
@@ -148,7 +154,7 @@ export default function CommandPalette() {
       {
         id: "copy-url",
         group: "actions" as const,
-        label: "Copy link to current section",
+        label: commandPaletteLabels.copySectionUrlLabel,
         keywords: "share url link location",
         run: () => {
           navigator.clipboard?.writeText(window.location.href).catch(() => {});
@@ -384,9 +390,9 @@ export default function CommandPalette() {
                 >
                   <span className="truncate">
                     {c.id.endsWith("copy-email") && copiedEmail
-                      ? "Copied email to clipboard"
+                      ? commandPaletteLabels.copiedEmail
                       : c.id.endsWith("copy-url") && copiedUrl
-                      ? "Copied section link to clipboard"
+                      ? commandPaletteLabels.copiedSectionUrl
                       : c.label}
                   </span>
                   <span className="label flex shrink-0 items-center gap-1.5 normal-case">
@@ -406,9 +412,9 @@ export default function CommandPalette() {
         {/* Announce copy success to screen readers. */}
         <span aria-live="polite" className="sr-only">
           {copiedEmail
-            ? `Email address ${links.email} copied to clipboard`
+            ? commandPaletteLabels.copiedEmail
             : copiedUrl
-            ? "Link to current section copied to clipboard"
+            ? commandPaletteLabels.copiedSectionUrl
             : ""}
         </span>
 
