@@ -135,12 +135,15 @@ export default function Lamp() {
     // budget gets the lamp turned off (the page falls back to the default
     // fully-lit rendering), but the rAF loop below keeps running and keeps
     // feeding this guard real timestamps either way, so it notices the
-    // device recovering from a transient stall and re-arms on its own. See
-    // src/lib/motion.ts (FRAME_BUDGET, createFrameBudgetGuard) for the
-    // rolling-window numbers and why they replace the old "10 consecutive
-    // frames over 32ms → teardown()" breaker, which fired on ordinary
-    // scrolling and, once tripped, never recovered for the rest of the
-    // session — the exact bug this guard exists to fix. Shares the guard's
+    // device recovering from a transient stall and re-arms on its own — the
+    // first time. A second trip in the same session latches the guard and
+    // it stays off for the rest of the visit rather than oscillating
+    // between armed and suspended every few seconds. See src/lib/motion.ts
+    // (FRAME_BUDGET, createFrameBudgetGuard) for the rolling-window numbers
+    // and why they replace the old "10 consecutive frames over 32ms →
+    // teardown()" breaker, which fired on ordinary scrolling and, once
+    // tripped, never recovered for the rest of the session — the exact bug
+    // this guard exists to fix. Shares the guard's
     // shape (not its instance) with Torch.tsx: each effect judges its own
     // frame budget independently, the same way each already kept its own
     // separate `slowFrames` counter before this fix.

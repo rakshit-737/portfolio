@@ -71,36 +71,74 @@ for (const pagePath of pages) {
 // deliberate commit to move again.
 const MEDIA_BUDGET_KB = 3500;
 const html = readFileSync("out/index.html", "utf8");
-const candidates = new Set();
-for (const m of html.matchAll(/<source\b[^>]*>/gi)) {
-  const tag = m[0];
-  if (/\bmedia="/i.test(tag)) continue;
-  if (!/type="image\/avif"/i.test(tag)) continue;
-  const srcsetMatch = tag.match(/srcset="([^"]+)"/i);
-  if (!srcsetMatch) continue;
-  const entries = srcsetMatch[1]
-    .split(",")
-    .map((s) => s.trim().split(/\s+/))
-    .map(([url, w]) => ({ url, w: parseInt(w, 10) || 0 }));
-  const widest = entries.sort((a, b) => b.w - a.w)[0];
-  if (widest) candidates.add(widest.url);
-}
-// One motion clip per plate, if it has one. Rendered as `data-src` (not
-// `src`) so no browser ever fetches it without JavaScript promoting it —
-// see Plate.tsx / Lamp.tsx — but a visitor whose lamp does turn on
-// downloads exactly this file, once, so it counts toward the real ceiling.
-for (const m of html.matchAll(/data-src="([^"]+\.webm)"/gi)) {
-  candidates.add(m[1]);
-}
-let mediaBytes = 0;
-for (const url of candidates) {
+
+// A URL's HTML `src`/`srcset` value is site-root-relative and may carry a
+// basePath prefix (GitHub Pages) ahead of the real `public/` path — strip
+// down to whichever known asset root the URL actually contains, the same
+// way for every candidate this file ever resolves, rather than each call
+// site re-deriving its own prefix-stripping rule.
+const ASSET_ROOTS = ["art", "certificates"];
+function resolveOutPath(url) {
   const rel = url.replace(/^\/+/, "").split("/");
-  // Strip a basePath prefix if one was baked in.
-  const artIndex = rel.indexOf("art");
-  const path = join("out", ...(artIndex >= 0 ? rel.slice(artIndex) : rel));
-  mediaBytes += readFileSync(path).length;
+  const rootIndex = rel.findIndex((seg) => ASSET_ROOTS.includes(seg));
+  return join("out", ...(rootIndex >= 0 ? rel.slice(rootIndex) : rel));
 }
-const mediaKb = mediaBytes / 1024;
+
+// Extracts the real worst-case download set from an HTML slice: the
+// widest non-media-gated AVIF `<source>` per `<picture>` (a browser only
+// ever fetches one of AVIF/WebP, and AVIF wins wherever it's supported —
+// see the long comment above), one `data-src` motion webm per plate, and
+// — Task 20 fix — every plain `<img src>` that sits OUTSIDE a `<picture>`
+// entirely. That last rule is what the certificate PNG walked through
+// before this fix: a `<picture>`-wrapped `<img>` is already covered by
+// its sibling `<source>` (the img is only a same-content fallback, never
+// fetched by a browser that understood the `<source>`s at all), but a
+// bare `<img src>` has no sibling to be conditional on — its full weight
+// is a real, unconditional download for every visitor, so it must always
+// count. Scanning for it generically (not "every `<img>` in the
+// certifications list") closes the hole for any future non-art asset that
+// ships the same way, not just this one.
+function mediaCandidates(slice) {
+  const candidates = new Set();
+  for (const m of slice.matchAll(/<source\b[^>]*>/gi)) {
+    const tag = m[0];
+    if (/\bmedia="/i.test(tag)) continue;
+    if (!/type="image\/avif"/i.test(tag)) continue;
+    const srcsetMatch = tag.match(/srcset="([^"]+)"/i);
+    if (!srcsetMatch) continue;
+    const entries = srcsetMatch[1]
+      .split(",")
+      .map((s) => s.trim().split(/\s+/))
+      .map(([url, w]) => ({ url, w: parseInt(w, 10) || 0 }));
+    const widest = entries.sort((a, b) => b.w - a.w)[0];
+    if (widest) candidates.add(widest.url);
+  }
+  // One motion clip per plate, if it has one. Rendered as `data-src` (not
+  // `src`) so no browser ever fetches it without JavaScript promoting it —
+  // see Plate.tsx / Lamp.tsx — but a visitor whose lamp does turn on
+  // downloads exactly this file, once, so it counts toward the real
+  // ceiling.
+  for (const m of slice.matchAll(/data-src="([^"]+\.webm)"/gi)) {
+    candidates.add(m[1]);
+  }
+  const pictureRanges = [...slice.matchAll(/<picture\b[\s\S]*?<\/picture>/gi)].map(
+    (m) => [m.index, m.index + m[0].length],
+  );
+  const insidePicture = (idx) => pictureRanges.some(([s, e]) => idx >= s && idx < e);
+  for (const m of slice.matchAll(/<img\b[^>]*\bsrc="([^"]+)"/gi)) {
+    if (insidePicture(m.index)) continue;
+    candidates.add(m[1]);
+  }
+  return candidates;
+}
+
+function bytesOf(candidates) {
+  let bytes = 0;
+  for (const url of candidates) bytes += readFileSync(resolveOutPath(url)).length;
+  return bytes;
+}
+
+const mediaKb = bytesOf(mediaCandidates(html)) / 1024;
 const mediaOk = mediaKb <= MEDIA_BUDGET_KB;
 console.log(
   `${mediaOk ? "OK  " : "FAIL"} out/index.html: ${mediaKb.toFixed(0)} kB media (budget ${MEDIA_BUDGET_KB} kB)`,
@@ -122,31 +160,7 @@ if (heroStart < 0 || heroEnd < 0 || heroEnd <= heroStart) {
   failed = true;
 } else {
   const heroHtml = html.slice(heroStart, heroEnd);
-  const heroCandidates = new Set();
-  for (const m of heroHtml.matchAll(/<source\b[^>]*>/gi)) {
-    const tag = m[0];
-    if (/\bmedia="/i.test(tag)) continue;
-    if (!/type="image\/avif"/i.test(tag)) continue;
-    const srcsetMatch = tag.match(/srcset="([^"]+)"/i);
-    if (!srcsetMatch) continue;
-    const entries = srcsetMatch[1]
-      .split(",")
-      .map((s) => s.trim().split(/\s+/))
-      .map(([url, w]) => ({ url, w: parseInt(w, 10) || 0 }));
-    const widest = entries.sort((a, b) => b.w - a.w)[0];
-    if (widest) heroCandidates.add(widest.url);
-  }
-  for (const m of heroHtml.matchAll(/data-src="([^"]+\.webm)"/gi)) {
-    heroCandidates.add(m[1]);
-  }
-  let heroBytes = 0;
-  for (const url of heroCandidates) {
-    const rel = url.replace(/^\/+/, "").split("/");
-    const artIndex = rel.indexOf("art");
-    const path = join("out", ...(artIndex >= 0 ? rel.slice(artIndex) : rel));
-    heroBytes += readFileSync(path).length;
-  }
-  const heroKb = heroBytes / 1024;
+  const heroKb = bytesOf(mediaCandidates(heroHtml)) / 1024;
   const heroOk = heroKb <= HERO_BUDGET_KB;
   console.log(
     `${heroOk ? "OK  " : "FAIL"} out/index.html: ${heroKb.toFixed(0)} kB above-the-fold media (budget ${HERO_BUDGET_KB} kB)`,

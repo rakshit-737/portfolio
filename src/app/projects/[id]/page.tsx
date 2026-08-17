@@ -164,9 +164,19 @@ export default async function CaseStudyPage({
 
       <main>
         <div className="relative isolate h-[60svh] overflow-hidden">
-          {/* No lamp, no scroll mechanics here (spec §5.2) — `motion={false}`
-              keeps this banner from ever emitting the scroll-scrubbed
-              <video> the landing-page act for the same plate carries. */}
+          {/* No scroll mechanics here — this banner has no `[data-act]`
+              ancestor, so Lamp.tsx's rAF loop never finds it and nothing
+              ever scrubs its `--p`/`--lamp-x`/`--lamp-y`. It still masks:
+              `data-lamp="on"` is set globally (Lamp.tsx mounts in
+              layout.tsx, on every page), so `.plate-lit`'s CSS mask
+              activates here too, just with every custom property at its
+              unset default — a static pool centred at 50%/50% with
+              `--lamp-r`'s literal fallback (26vmax), the spec's own "lamp
+              static and centred" (§5.2). `motion={false}` is the one
+              thing this banner genuinely opts out of: it keeps Plate.tsx
+              from ever emitting the scroll-scrubbed <video> the
+              landing-page act for the same plate carries, since nothing
+              here would ever scrub it either. */}
           <Plate id={acts[project.id].plate} priority motion={false} />
           <div className={`${SHELL} scrim absolute inset-x-0 bottom-0 z-10 pb-12`}>
             <p className="label">{project.timeframe}</p>

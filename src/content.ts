@@ -566,8 +566,15 @@ export interface Achievement {
   title: string;
   detail: string;
   date: string;
-  /** URL when live; null → visibly disabled "coming soon"; omit → no certificate. */
-  certificateUrl?: string | null;
+  /** Path under `public/`, unbased — apply `withBase()` at the render
+   *  site. Omit when there's no certificate to link. (This used to also
+   *  accept `null` for a visibly-disabled "certificate pending" state —
+   *  removed once the one achievement that used it got a real scan; see
+   *  the comment at its call site below. Re-add it here, and the
+   *  disabled-chip branch at the render site, if a future achievement
+   *  genuinely needs it — don't leave the type accepting a value nothing
+   *  renders.) */
+  certificateUrl?: string;
 }
 
 export const achievements: Achievement[] = [

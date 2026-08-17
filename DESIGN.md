@@ -307,8 +307,14 @@ past the standard scrim's protected zone (measured directly: L=0.086 lit,
 against the ember contrast gate's L≤0.058 ceiling, before `.scrim-wide`).
 
 **Case files.** A static, non-interactive plate (`Plate` at `h-[60svh]`, no
-lamp mask, no scroll-scrubbing) opens each case study as a fixed painted
-header, credited exactly like a landing-page act. Below it, sections follow
+scroll-scrubbing, `motion={false}`) opens each case study as a fixed painted
+header, credited exactly like a landing-page act. It still carries the
+lamp's mask — `data-lamp="on"` is global, set once on `<html>` for the
+whole site — but with no `[data-act]` ancestor for Lamp.tsx's rAF loop to
+find and scrub, every custom property the mask reads sits at its unset
+default: a static pool centred at 50%/50% with `--lamp-r`'s literal
+fallback (26vmax), exactly the "lamp static and centred" the spec asks
+for (§5.2). Below it, sections follow
 the previous system's grammar unchanged: a `13rem` sticky title column
 (`lg:sticky lg:top-24`) against a fluid content column, separated by
 `border-t border-rule`, `3rem`–`4rem` of vertical padding.
@@ -499,9 +505,15 @@ approach carries over unchanged.
 ### Benchmark Chart
 A real table styled as a chart, structurally unchanged: `.label` axis ticks,
 a track at 12% `currentColor` with a solid bar inside, a tabular value
-column. The two rows that carry the finding now ignite (ember) instead of
-inverting; every other bar stays `signal` at reduced opacity. Bars grow from
-`scaleX(0)` once, on approach, via a DOM attribute rather than React state.
+column. The two rows that carry the finding are marked by bar weight alone
+— full-opacity `bg-signal`, against every other row's 0.55 — deliberately
+not `.ignite`: the value column sits far enough right in the widened
+`.scrim-wide` column (x≈1196px, measured) that the lamp's pinned rest x
+(666px) can never close the gap within its own maximum lit radius (352px),
+at any scroll position on either viewport, so the class would only ever
+render bone-with-JS or ember-without — a standing contradiction, never
+emphasis. Bars grow from `scaleX(0)` once, on approach, via a DOM attribute
+rather than React state.
 
 ### Diagram Flow
 A pipeline on a hairline rail, structurally unchanged. The verdict stage is
@@ -545,16 +557,29 @@ re-queried every frame), and every tick compares each one's real screen
 centre against the lamp's own pixel position, toggling `.is-lit` — not a
 second `mask-image`, since a mask's percentages resolve against the masked
 element's own box, which is right for `.plate-lit` (which fills the act)
-and meaningless for a few-character-wide metric. A circuit breaker locks the
-lamp lit (removes `data-lamp`) if the device can't hold frame budget for ten
-consecutive frames.
+and meaningless for a few-character-wide metric. A shared circuit breaker
+(`src/lib/motion.ts`, `createFrameBudgetGuard`) judges a rolling window of
+the last 60 frames rather than a consecutive-miss streak, so one good frame
+mid-scroll can't reset it and one bad streak can't kill it outright: it
+suspends the lamp (removes `data-lamp`, falling back to the fully-lit
+default) once a clear majority of that window is slow, and re-arms it once
+the ratio falls back to a small minority — the first time. A second trip in
+the same session latches the guard, so a device that genuinely can't hold
+frame budget in steady state gets one clean, permanent fallback rather than
+an unrecovering ~3s oscillation between masked and fully-lit.
 
 ### Torch
 The page-wide cursor flashlight (`Torch.tsx`), desktop-only
 (`hover: none` and reduced motion both disable it outright, not just
 visually). Shares `POINTER_LERP` with `Lamp.tsx` so the two pools of light
 move together. Sets `data-torch="on"` on `<html>` only once a real pointer
-has moved. Raises the plate's unlit floor while active
+has moved, and clears it again — fading the beam back out over the same
+0.6s transition — on a genuine `pointerleave` off the document or a short
+pointer-idle timeout, so a reader who nudges the mouse once and then reads
+the rest of the page by wheel or keyboard scroll doesn't spend the visit
+under a frozen pool and a permanent dimming wash. The next real
+`pointermove` re-arms it exactly like the first ever move. Raises the
+plate's unlit floor while active
 (`[data-torch="on"][data-lamp="on"] .plate-dark`) so the torch's dimming
 wash and the lamp's own unlit floor don't compound into a darker painting
 than either produces alone — this selector must be compound (no space);

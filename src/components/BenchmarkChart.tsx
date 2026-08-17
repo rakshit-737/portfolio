@@ -6,9 +6,16 @@ import { benchmarkChart } from "@/content";
 /**
  * The finding, drawn: mean wait by scheduling policy on the SDSC SP2 trace.
  * The two marked rows are the result — the XGBoost scheduler and its own
- * ML-free control land on the same number — so only their values ignite.
- * Ember marks the number, never the bar: every bar stays signal-coloured,
- * highlighted ones at full opacity and the rest at 0.55.
+ * ML-free control land on the same number. They're highlighted by bar
+ * weight alone (full-opacity `bg-signal` vs. every other row's 0.55) —
+ * deliberately not `.ignite`. This table sits in the widened `.scrim-wide`
+ * reading column, near its right edge (measured directly against the
+ * built page: the value column centres at x≈1196px against the lamp's
+ * pinned rest x of 666px, a 530px gap the lamp's own maximum lit radius,
+ * 352px, can never close, at any scroll position on either viewport) — a
+ * class that can only ever render bone-with-JS or ember-without is a
+ * standing contradiction, not emphasis, so it does not belong on these
+ * values. See DESIGN.md's Benchmark Chart section.
  *
  * Bars grow once, on approach, as part of the page's single motion budget.
  */
@@ -102,10 +109,7 @@ export default function BenchmarkChart() {
                       }
                     />
                   </span>
-                  <span
-                    className={`w-14 shrink-0 text-right font-mono text-sm tabular-nums ${p.highlight ? "ignite" : ""}`}
-                    data-value={p.highlight ? p.wait.toFixed(1) : undefined}
-                  >
+                  <span className="w-14 shrink-0 text-right font-mono text-sm tabular-nums">
                     {p.wait.toFixed(1)}
                   </span>
                 </span>

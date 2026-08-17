@@ -172,11 +172,14 @@ all eight paintings with their Commons sources; tokens live in
   animations beyond the one-per-act reveal; everything has a
   `prefers-reduced-motion` fallback that also removes any motion video from
   the DOM outright.
-- Case files open with a static, non-interactive painted header (no lamp
-  mask) and otherwise keep the previous grammar: a sticky left title rail
+- Case files open with a static, non-interactive painted header — no
+  scroll-scrubbing, but still lit by a static, centred lamp mask (there's
+  no `[data-act]` ancestor for the scroll-driven one to scrub) — and
+  otherwise keep the previous grammar: a sticky left title rail
   against the record on the right (problem → approach + pipeline diagram →
-  decisions → evidence → outcome). The evidence table's highlighted rows now
-  ignite instead of inverting.
+  decisions → evidence → outcome). The evidence table's rows are plain bold
+  tabular numbers, not inverted or ignited — case files have no `[data-act]`
+  for the lamp to scrub, so ignition is a landing-page-only device.
 - Print: tokens flip to black-on-white, every painting and the torch are
   dropped, act copy is forced visible regardless of scroll state, and link
   targets are printed after their text.

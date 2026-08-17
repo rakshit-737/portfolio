@@ -61,7 +61,7 @@ function Label({
 }) {
   return (
     <span
-      className={`cartouche-label flex flex-1 items-center justify-center gap-2 border border-signal uppercase transition-colors ${labelWeights[weight]} ${
+      className={`cartouche-label flex flex-1 items-center justify-center gap-2 border border-signal whitespace-nowrap uppercase transition-colors ${labelWeights[weight]} ${
         small
           ? "px-3 py-2 text-xs tracking-[0.12em]"
           : "px-5 py-3 text-sm tracking-[0.14em]"

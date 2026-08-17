@@ -47,6 +47,29 @@ export const POINTER_LERP = 0.1;
  * and hydration settling, none of which says anything about steady-state
  * performance — frames in that window are never sampled at all, so
  * startup cost can never contribute toward a trip.
+ *
+ * LATCH_AFTER_TRIPS: on the exact population this breaker exists for — a
+ * device that genuinely cannot hold frame budget in steady state, not
+ * just through one bursty scroll — trip and recover are not a single
+ * event but a stable oscillation: post-warmup, the window fills with slow
+ * frames and trips; both components then skip their per-frame work, which
+ * makes frames cheap again, so the slow-frame count drains out of the
+ * rolling window and it recovers in ~0.75s (`RECOVER_RATIO · WINDOW`
+ * frames' worth of window turnover); the per-frame work resumes, the
+ * device is still slow, and it trips again ~2s later. Recovering is the
+ * right call the FIRST time — most trips are a genuine transient stall
+ * (a scroll-and-decode burst, a backgrounded tab catching up) and
+ * deserve a chance to resume. It stops being the right call once the
+ * pattern repeats: a second trip in the same session is evidence of the
+ * steady-state case, not a second unrelated transient, and recovering
+ * again just re-arms `data-lamp`/`data-torch` for another ~2s before the
+ * same oscillation trips a third time — every plate flipping between
+ * masked and fully-lit and every `.ignite` between bone and ember on a
+ * ~3s cycle for the rest of the visit. Latching after the second trip
+ * (never calling `onRecover` again for this guard's lifetime) trades
+ * that oscillation for one clean, permanent fallback to the fully-lit
+ * default — which is what the whole no-JS/reduced-motion design already
+ * treats as the safe, always-legible state.
  */
 export const FRAME_BUDGET = {
   WINDOW: 60,
@@ -54,6 +77,7 @@ export const FRAME_BUDGET = {
   TRIP_RATIO: 0.6,
   RECOVER_RATIO: 0.25,
   WARMUP_MS: 1000,
+  LATCH_AFTER_TRIPS: 2,
 } as const;
 
 /**
@@ -72,22 +96,36 @@ export const FRAME_BUDGET = {
  * Tripping is a suspension, not a teardown: the guard keeps sampling
  * every tick regardless of its own state, so it notices the device
  * recovering from a transient stall (a burst of video-seek-and-decode
- * jank, a background tab catching up) and re-arms the effect on its own.
- * Callers are expected to do the same — stop the expensive per-frame work
- * on `onTrip` but keep the rAF loop alive and keep calling `sample` every
- * tick, rather than cancelling it — or recovery can never be observed.
+ * jank, a background tab catching up) and re-arms the effect on its own —
+ * the FIRST time. A second trip in the same session latches the guard:
+ * `onRecover` is never called again after it, and the effect stays off
+ * for the rest of the visit instead of oscillating between armed and
+ * suspended every ~3s (see FRAME_BUDGET.LATCH_AFTER_TRIPS above for why).
+ * Callers are expected to keep the rAF loop alive and keep calling
+ * `sample` every tick regardless of trip/latch state, rather than
+ * cancelling it on `onTrip` — that's what lets the first-trip recovery
+ * path be observed at all, and costs nothing once latched (`sample`
+ * below is O(1) either way).
  */
 export function createFrameBudgetGuard(onTrip: () => void, onRecover: () => void) {
   const slow = new Uint8Array(FRAME_BUDGET.WINDOW);
   let count = 0; // samples written so far, caps at WINDOW
   let cursor = 0;
   let slowCount = 0;
-  let startedAt = 0;
+  // `null`, not `0`: a real rAF timestamp is never exactly 0, but a test
+  // harness driving `sample()` with injected timestamps can legitimately
+  // want to start its clock there — a `0`-as-"unset" sentinel would treat
+  // every call before the first *nonzero* `now` as still unstarted and
+  // silently re-seed `startedAt` on each of them. `null` has no such
+  // collision with a real timestamp value. See tests/motion.spec.ts.
+  let startedAt: number | null = null;
   let tripped = false;
+  let tripCount = 0;
+  let latched = false;
 
   return {
     sample(now: number, last: number) {
-      if (!startedAt) startedAt = now;
+      if (startedAt === null) startedAt = now;
       if (now - startedAt < FRAME_BUDGET.WARMUP_MS) return;
       if (!last) return; // no dt yet — first tick after warmup
 
@@ -106,8 +144,10 @@ export function createFrameBudgetGuard(onTrip: () => void, onRecover: () => void
       const ratio = slowCount / FRAME_BUDGET.WINDOW;
       if (!tripped && ratio >= FRAME_BUDGET.TRIP_RATIO) {
         tripped = true;
+        tripCount++;
+        if (tripCount >= FRAME_BUDGET.LATCH_AFTER_TRIPS) latched = true;
         onTrip();
-      } else if (tripped && ratio <= FRAME_BUDGET.RECOVER_RATIO) {
+      } else if (tripped && !latched && ratio <= FRAME_BUDGET.RECOVER_RATIO) {
         tripped = false;
         onRecover();
       }

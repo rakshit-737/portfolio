@@ -77,6 +77,22 @@ function certificateImage(image: string | undefined): string | null {
   return existsSync(join(process.cwd(), "public", image)) ? image : null;
 }
 
+/** A small AVIF/WebP pair for the thumbnail slot, named by convention from
+ *  the full-resolution scan (`gen-certificate-thumb.mjs`, run manually and
+ *  committed like the rest of the site's generated art). The full file
+ *  stays the link target — this only ever replaces the *thumbnail*, never
+ *  the scan a click opens. Falls back to the full PNG in the (currently
+ *  hypothetical) case a thumbnail hasn't been generated for a given scan
+ *  yet, so a missing thumbnail degrades to the old, oversized-but-correct
+ *  rendering rather than a broken build or a placeholder image. */
+function certificateThumb(image: string): { avif: string; webp: string } | null {
+  const stem = image.replace(/\.[^./]+$/, "");
+  const avif = `${stem}-thumb.avif`;
+  const webp = `${stem}-thumb.webp`;
+  const has = (p: string) => existsSync(join(process.cwd(), "public", p));
+  return has(avif) && has(webp) ? { avif, webp } : null;
+}
+
 export default async function Home() {
   // Baked in at build time — the static export is the record.
   const generatedOn = new Date().toISOString().slice(0, 10);
@@ -245,9 +261,12 @@ export default async function Home() {
                   of any featured project) centres at ~43% of a 1280px
                   viewport and extends to ~53% — inside the standard
                   scrim's fading band (30%–62%), not its protected one. Lit,
-                  it measured L=0.086 against the ember contrast gate's
-                  L≤0.058 ceiling (`IGNITE_LUMINANCE_CEILING`,
-                  tests/lamplight.spec.ts) — below AA.
+                  it measured L=0.086, below AA against the ember contrast
+                  gate's minimum — that gate now checks the real WCAG ratio
+                  directly (`EMBER_AA_MIN`, tests/lamplight.spec.ts) rather
+                  than the fixed background-luminance ceiling this comment
+                  originally cited, but the underlying measurement and the
+                  reason `.scrim-wide` is scoped here are unchanged.
                   Scoped to `scheduler` specifically, not applied to warden
                   and plantpal too: `.scrim-wide` widens the *whole* scrim
                   box's protected band, which also covers part of where
@@ -446,9 +465,6 @@ export default async function Home() {
                       ...(a.certificateUrl
                         ? [{ label: "certificate", href: withBase(a.certificateUrl) }]
                         : []),
-                      ...(a.certificateUrl === null
-                        ? [{ label: "certificate pending", disabled: true }]
-                        : []),
                     ]}
                   />
                 </li>
@@ -461,6 +477,8 @@ export default async function Home() {
             <ul>
               {certifications.map((c) => {
                 const image = certificateImage(c.image);
+                const thumb = image ? certificateThumb(image) : null;
+                const scanAlt = `Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for ${c.reason} at ${c.event}`;
                 return (
                   <li
                     key={`${c.title}-${c.date}`}
@@ -480,19 +498,39 @@ export default async function Home() {
                           rel="noopener noreferrer"
                           className="mt-4 inline-block border border-rule p-1"
                         >
-                          <img
-                            src={withBase(image)}
-                            alt={`Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for ${c.reason} at ${c.event}`}
-                            className="block h-28 w-auto"
-                            loading="lazy"
-                            decoding="async"
-                          />
+                          {thumb ? (
+                            <picture>
+                              <source
+                                srcSet={withBase(thumb.avif)}
+                                type="image/avif"
+                              />
+                              <source
+                                srcSet={withBase(thumb.webp)}
+                                type="image/webp"
+                              />
+                              <img
+                                src={withBase(thumb.webp)}
+                                alt={scanAlt}
+                                className="block h-28 w-auto"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            </picture>
+                          ) : (
+                            <img
+                              src={withBase(image)}
+                              alt={scanAlt}
+                              className="block h-28 w-auto"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          )}
                         </a>
                       )}
                     </div>
                     <div className="min-w-0">
                       <p className="prose-field text-[0.9375rem]">
-                        Awarded for securing {c.reason} at {c.event}, presented
+                        Awarded for securing {c.reason} at {c.event}, organized
                         by {c.organiser}.
                       </p>
                       <Provenance

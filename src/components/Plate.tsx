@@ -53,13 +53,17 @@ export default function Plate({
    *  plate has one. Defaults `true` because every landing-page act wants
    *  it when the plate has one — Lamp.tsx scrubs `video.currentTime` from
    *  scroll there. The case-file banner (`projects/[id]/page.tsx`) passes
-   *  `false` explicitly: it has no lamp and no scroll mechanics (spec
-   *  §5.2), so a clip there would only ever paint one static frame
-   *  identical to the still beneath it — a real download (180–239kB per
-   *  case file) that nothing ever plays. Gating in `Plate` itself, rather
-   *  than filtering `promoteVideos()` by ancestor, means the banner never
-   *  emits a `<video>` element at all — there is nothing for any query to
-   *  find. */
+   *  `false` explicitly: it has no `[data-act]` ancestor, so nothing ever
+   *  scrubs it — Lamp.tsx's rAF loop only ever finds elements under
+   *  `[data-act]`, and the banner isn't one. (It still carries the lamp's
+   *  CSS mask, just static and centred — every custom property the mask
+   *  reads falls back to its unset default once `data-lamp="on"` is set
+   *  globally, which spec §5.2 calls for directly.) A clip here would only
+   *  ever paint one static frame identical to the still beneath it — a
+   *  real download (180–239kB per case file) that nothing ever plays.
+   *  Gating in `Plate` itself, rather than filtering `promoteVideos()` by
+   *  ancestor, means the banner never emits a `<video>` element at all —
+   *  there is nothing for any query to find. */
   motion?: boolean;
 }) {
   const plate = plates[id];

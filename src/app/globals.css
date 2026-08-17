@@ -335,6 +335,35 @@ section[id] {
   }
 }
 
+/* Task 20 fix: the ledger act is the one act rendered with
+   `overflow-y: visible` (Act.tsx) instead of `overflow-hidden` — its
+   plate wrapper is genuinely `position: sticky` and needs a real
+   scrolling ancestor to pin against, so the act itself can no longer clip
+   anything that overflows its own box vertically. `.scrim::before`'s
+   ordinary `-8vh` vertical bleed relied on exactly that clipping: with it
+   gone, the pseudo-element's box starts 8vh above the ledger act's own
+   top edge and paints straight over whatever sits there in the previous
+   act — measured directly, the ledger's scrim box shares the act's own
+   top offset, so the bleed opened 64px into the *research* act above it,
+   permanently painting over its `.label` ("ACT 06 — THE FINDING") on
+   every wide-viewport scroll position (`z-10` included — a later sibling
+   with no explicit stacking order paints over an earlier one wherever
+   their boxes overlap on screen, `isolate` notwithstanding, since
+   `isolate` scopes internal stacking, not paint order between siblings).
+   Every other act keeps `overflow-hidden`, so this is the only `.scrim`
+   whose bleed can ever escape its own act — zero the vertical component
+   here specifically rather than touching every act's clipping. The
+   horizontal `-6vw` bleed stays: it is still clipped by the ledger act's
+   own `overflow-x-clip` and is what guards the reading column's side
+   edges against the sticky plate behind it. Verified both halves after
+   this change: the research label samples a real bone pixel again (see
+   the per-act label test in tests/lamplight.spec.ts), and the ledger's
+   plate still pins (Task 14a/14e's sticky-plate tests are unaffected —
+   this rule touches only `.scrim`, never the plate wrapper). */
+#ledger .scrim::before {
+  inset: 0 -6vw;
+}
+
 /* The copy resolves once, when its act first arrives. One authored beat,
    never replayed — Lamp.tsx sets `data-seen` on an act's first
    intersection and never removes it, so scrolling back past an act does

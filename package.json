@@ -12,7 +12,8 @@
     "budget": "node scripts/check-budget.mjs",
     "art": "node scripts/fetch-art.mjs",
     "check:art": "node scripts/check-art.mjs",
-    "favicon": "node scripts/gen-favicon.mjs"
+    "favicon": "node scripts/gen-favicon.mjs",
+    "cert-thumb": "node scripts/gen-certificate-thumb.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.27.0",
