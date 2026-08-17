@@ -100,8 +100,10 @@ section[id] {
   text-wrap: balance;
 }
 
-/* A metric inside a bullet. Mono, never dimmed, ignites under the lamp
-   via the ::after layer in the materials block below. */
+/* A metric inside a bullet — the single strongest number in a `**bold**`
+   run, rendered by Metric.tsx. Mono and semibold, never dimmed; body copy
+   has no contrast headroom for an ember ::after layer, so this does not
+   ignite. */
 .metric {
   position: relative;
   display: inline-block;
@@ -305,11 +307,13 @@ section[id] {
   );
 }
 @media (max-width: 48rem) {
-  /* Below `lg`, the ledger's grid collapses to a single stacked column
-     (Tailwind's `lg:grid-cols-[...]` has no effect under that breakpoint)
-     and its text runs the same narrow width as every other act's mobile
-     column, so the standard narrow-viewport band already covers it —
-     no widening needed here. */
+  /* This query's own 48rem cutoff is narrower than the ledger grid's
+     `lg` breakpoint (64rem) — the grid has already collapsed to a single
+     stacked column by then, running the same narrow width as every other
+     act's mobile column, so the standard narrow-viewport band already
+     covers it. Between 48rem and 64rem the wide gradient stays active
+     over that single column; it only ever protects more of the box than
+     the narrow one, never less, so this is not a contrast regression. */
   .scrim-wide::before {
     background: linear-gradient(
       to top,
