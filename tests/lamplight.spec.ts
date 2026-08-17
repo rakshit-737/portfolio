@@ -1127,14 +1127,29 @@ test("a metric fades back to bone once the lamp leaves it", async ({ page }) => 
     // is genuinely the pre-entry state, not a frozen leftover of the lit
     // one).
     await scrollScheduerJustBeforeEntry(page);
-    await page.waitForTimeout(500);
-    const faded = await readState();
-    if (faded.lampOn !== "on") throw new BreakerTripped();
-    expect(
-      faded.isLit,
-      "metric should fade back to bone once the lamp scrolls away from it",
-    ).toBe(false);
-    expect(Number(faded.emberOpacity)).toBeLessThan(0.05);
+    await expect
+      .poll(
+        async () => {
+          const state = await readState();
+          if (state.lampOn !== "on") throw new BreakerTripped();
+          return state.isLit;
+        },
+        {
+          timeout: 2_000,
+          message: "metric should fade back to bone once the lamp scrolls away from it",
+        },
+      )
+      .toBe(false);
+    await expect
+      .poll(
+        async () => {
+          const state = await readState();
+          if (state.lampOn !== "on") throw new BreakerTripped();
+          return Number(state.emberOpacity);
+        },
+        { timeout: 2_000 },
+      )
+      .toBeLessThan(0.05);
   });
 });
 
