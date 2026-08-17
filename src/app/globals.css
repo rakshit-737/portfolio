@@ -121,7 +121,9 @@ section[id] {
   stroke: var(--color-signal);
 }
 
-/* Barcode end-caps on controls. */
+/* Barcode end-caps — still carried by Nav.tsx's active-section marker.
+   Bracket.tsx (buttons) moved to the wax-seal cartouche below and no
+   longer uses this. */
 .cap {
   background-image: repeating-linear-gradient(
     to right,
@@ -132,6 +134,15 @@ section[id] {
     currentColor 9px 11px,
     transparent 11px 14px
   );
+}
+
+/* The cartouche's label voice (Bracket.tsx) — Newsreader's second and
+   only other home, alongside `.statement`. A control's label, not a
+   headline, so it never approaches statement scale; size and tracking
+   are set at the call site (BracketLink/BracketButton/BracketDisabled). */
+.cartouche-label {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
 }
 
 /* ── The lamp ────────────────────────────────────────────────────────
@@ -569,6 +580,23 @@ section[id] {
   }
   .ignite::after {
     display: none;
+  }
+  /* Every Bracket control on the landing page and case files already
+     sits inside a `.print-hidden` wrapper (buttons are chrome, not
+     record); the 404 page's single control does not, so this is a
+     backstop in the component itself rather than something every call
+     site has to remember. A filled cartouche's inner chamber would
+     otherwise print as a solid block (`--color-signal` is near-black on
+     paper) and the seal's small solid square is pure decoration — both
+     dropped so a printed Bracket costs nothing but its own hairlines. */
+  .bracket,
+  .bracket .cartouche-label {
+    background: transparent !important;
+    color: #08070a !important;
+    border-color: #08070a !important;
+  }
+  .bracket .seal {
+    display: none !important;
   }
   [data-act] {
     position: static !important;

@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { ArrowUpRight } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/icons";
 import Act from "@/components/Act";
@@ -18,6 +20,7 @@ import {
   acts,
   archive,
   benchmarkChart,
+  certifications,
   contact,
   education,
   featuredProjects,
@@ -64,6 +67,15 @@ const webSiteJsonLd = {
   url: `${site.url}/`,
   author: { "@type": "Person", name: hero.name },
 };
+
+/** A `Certification.image` names a path under `public/`, but the file is
+ *  owner-supplied and may not exist yet — checked at build time so a
+ *  missing scan renders the entry text-only instead of a broken image or
+ *  a failed build. Never a placeholder image. */
+function certificateImage(image: string | undefined): string | null {
+  if (!image) return null;
+  return existsSync(join(process.cwd(), "public", image)) ? image : null;
+}
 
 export default async function Home() {
   // Baked in at build time — the static export is the record.
@@ -432,7 +444,7 @@ export default async function Home() {
                     segments={[
                       { label: a.date },
                       ...(a.certificateUrl
-                        ? [{ label: "certificate", href: a.certificateUrl }]
+                        ? [{ label: "certificate", href: withBase(a.certificateUrl) }]
                         : []),
                       ...(a.certificateUrl === null
                         ? [{ label: "certificate pending", disabled: true }]
@@ -441,6 +453,61 @@ export default async function Home() {
                   />
                 </li>
               ))}
+            </ul>
+
+            <h3 className="label mt-16 border-b border-rule pb-2">
+              Certifications
+            </h3>
+            <ul>
+              {certifications.map((c) => {
+                const image = certificateImage(c.image);
+                return (
+                  <li
+                    key={`${c.title}-${c.date}`}
+                    className="grid gap-x-12 gap-y-4 border-b border-rule py-9 lg:grid-cols-[22rem_minmax(0,1fr)]"
+                  >
+                    <div>
+                      <h3 className="font-mono text-base leading-snug font-semibold tracking-tight">
+                        {c.title}
+                      </h3>
+                      <p className="prose-field mt-2 text-sm">
+                        {c.awardedTo} — reg. {c.registration}
+                      </p>
+                      {image && (
+                        <a
+                          href={withBase(image)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4 inline-block border border-rule p-1"
+                        >
+                          <img
+                            src={withBase(image)}
+                            alt={`Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for ${c.reason} at ${c.event}`}
+                            className="block h-28 w-auto"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </a>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="prose-field text-[0.9375rem]">
+                        Awarded for securing {c.reason} at {c.event}, presented
+                        by {c.organiser}.
+                      </p>
+                      <Provenance
+                        className="mt-4"
+                        segments={[
+                          { label: c.date },
+                          ...c.signatories.map((s) => ({
+                            label: `${s.name} — ${s.role}`,
+                          })),
+                        ]}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
 
             <h3 className="label mt-16 border-b border-rule pb-2">Skills</h3>
@@ -546,6 +613,8 @@ export default async function Home() {
               className="mt-10"
               segments={withCredit(acts.contact.plate, [])}
             />
+
+            <p className="mt-10 text-sm">{contact.closing}</p>
           </div>
         </Act>
       </main>

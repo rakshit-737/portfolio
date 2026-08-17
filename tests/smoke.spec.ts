@@ -67,6 +67,54 @@ test("llms.txt and sitemap emit", async ({ request }) => {
   expect((await request.get("/favicon.ico")).status()).toBe(200);
 });
 
+test("favicon.ico is a genuine multi-resolution icon, not a stub", async ({
+  request,
+}) => {
+  // A 200 alone doesn't prove the file is a real image — a 1-byte stub
+  // serves 200 too, which is exactly how that regression shipped
+  // unnoticed before. Parse the actual .ico container: an ICONDIR header,
+  // one ICONDIRENTRY per frame, then (for a modern icon) a raw PNG per
+  // frame — and confirm each declared frame really is a PNG of the
+  // declared size, not just that bytes were returned.
+  const res = await request.get("/favicon.ico");
+  const buf = await res.body();
+
+  expect(buf.length).toBeGreaterThan(500);
+  expect(buf.readUInt16LE(0)).toBe(0); // ICONDIR.reserved
+  expect(buf.readUInt16LE(2)).toBe(1); // ICONDIR.type — 1 = icon
+
+  const count = buf.readUInt16LE(4);
+  expect(count).toBeGreaterThanOrEqual(2); // genuinely multi-resolution
+
+  const sizes: number[] = [];
+  const PNG_SIGNATURE = Buffer.from([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+  ]);
+  for (let i = 0; i < count; i++) {
+    const off = 6 + i * 16;
+    const width = buf[off] === 0 ? 256 : buf[off];
+    const height = buf[off + 1] === 0 ? 256 : buf[off + 1];
+    const bytesInRes = buf.readUInt32LE(off + 8);
+    const imageOffset = buf.readUInt32LE(off + 12);
+
+    expect(width).toBe(height); // every frame here is square
+    sizes.push(width);
+
+    const frame = buf.subarray(imageOffset, imageOffset + bytesInRes);
+    expect(frame.subarray(0, 8)).toEqual(PNG_SIGNATURE);
+    // PNG IHDR: 4-byte length, "IHDR", then 4-byte width, 4-byte height —
+    // the frame's own declared pixel dimensions must match the ICO
+    // directory entry's, not just exist.
+    expect(frame.subarray(12, 16).toString("ascii")).toBe("IHDR");
+    expect(frame.readUInt32BE(16)).toBe(width);
+    expect(frame.readUInt32BE(20)).toBe(height);
+  }
+
+  // The three sizes a real favicon needs across browser chrome/tabs/PWA
+  // shortcuts.
+  expect(sizes.sort((a, b) => a - b)).toEqual([16, 32, 48]);
+});
+
 test("internal links on the index resolve", async ({ page, request }) => {
   await page.goto("/");
   const hrefs = await page

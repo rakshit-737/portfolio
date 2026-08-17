@@ -194,10 +194,13 @@ dark room, not a scheme.
 There is no fourth value, no grey, and no second accent. A new surface that
 "needs a colour" needs a different device — light, scale, or a rule.
 
-**The Ember-Is-Rare Rule.** Ember marks a lit measurement and the lamp's own
-core, full stop. It never sets a headline, a control, a link, or a passage
+**The Ember-Is-Rare Rule.** Ember marks a lit measurement, the lamp's own
+core, and — its one exception, added with the wax-seal cartouche — a
+Bracket control's seal mark on hover or focus, never at rest. It still
+never sets a headline, a control's resting colour, a link, or a passage
 of prose. If something needs to stand out and it is not a number the lamp
-can reach, it does not get ember — it gets scale, or nothing.
+can reach or that one seal, it does not get ember — it gets scale, or
+nothing.
 
 **The No-Inversion Rule.** The previous system's region-flip (`.negative`)
 does not exist here. Nothing on this site swaps a whole surface's ground and
@@ -378,9 +381,11 @@ lit ground instead of a flat one:
 
 - **The hairline.** A 1px rule at `rule` or `rule-soft`, used as divider,
   border, underline decoration, and diagram connector.
-- **The bracket.** The world's control silhouette: a 1px `signal` border
-  around a label, with a barcode end-cap (`.cap`) on each flank at 70%
-  opacity.
+- **The bracket.** Nav's active-section marker keeps the original
+  silhouette: a 1px `signal` border around a label, with a barcode
+  end-cap (`.cap`) on each flank at 70% opacity. Buttons themselves
+  moved to the wax-seal cartouche (below) — a doubled hairline frame and
+  a seal mark, not a barcode.
 - **The square mark.** The sine's 6px node squares, the diagram flow's 6px
   stage node, the benchmark chart's growing bars. Every graphic primitive
   that isn't a painting is an axis-aligned rectangle.
@@ -398,19 +403,50 @@ kind of stock image.
 
 ## Components
 
-### Buttons (Bracket controls)
-- **Shape:** square (0px), 1px `signal` border, barcode end-caps at 70%
-  opacity flanking a `.label` centre (`Bracket.tsx`).
-- **Filled:** `signal` background, `ground` text. Exactly one filled control
-  per surface — the résumé download in the hero and the contact close,
-  "Read the case file" on a project act.
-- **Outline:** transparent ground, `signal` text and border.
-- **Hover / Focus:** both weights resolve by swapping their own ground and
-  mark (`transition-colors`) — a local, per-control device, not the old
-  region-wide inversion. Focus is a 2px `signal` outline at 2px offset,
-  global via `:focus-visible`.
-- **Disabled** (`BracketDisabled`): the label keeps its place, wrapped in a
-  dashed `rule` border rather than dimmed or removed.
+### Buttons (wax-seal cartouche, `Bracket.tsx`)
+The barcode-flanked bracket was the redesign's one surviving element of
+the previous system; it is gone now, replaced by an ornate cartouche the
+owner asked for directly — a doubled hairline frame around a
+letterspaced serif label, with a small seal-like mark at the leading
+edge. Square geometry throughout, matching the rest of the world: the
+seal is a bordered square holding a solid square, never a circle.
+- **Shape:** an outer 1px `signal` rule on the control itself, a 3px
+  gutter, then an inner 1px `signal` rule around the label — two
+  concentric hairlines, not one. The seal sits in its own bordered
+  chamber before the label, `aria-hidden` and never part of the
+  control's accessible name (that comes from the label text alone).
+- **Label typography:** Newsreader (`.cartouche-label`), the display
+  font's only other home besides `.statement` — uppercase, letterspaced,
+  sized as a control's label, never approaching statement scale. This is
+  a deliberate, narrow exception to the Monospace Default Rule above,
+  scoped to exactly one component.
+- **Filled:** `signal` background, `ground` text on the inner chamber.
+  Exactly one filled control per surface — the résumé download in the
+  hero and the contact close, "Read the case file" on a project act.
+- **Outline:** transparent inner chamber, `signal` text and borders.
+- **Hover:** the inner chamber swaps its own ground and mark
+  (`transition-colors`) — the established local device, not a region-wide
+  inversion — and the seal warms from bone to ember.
+- **Focus:** the global 2px `signal` outline at 2px offset
+  (`:focus-visible`), and the seal also warms to ember. The outline never
+  appears on hover and the chamber's fill never swaps on focus alone, so
+  the two states stay visually distinct even though both may carry the
+  ember seal.
+- **Ember exception:** the seal is the one place ember appears on a
+  control — hover/focus only, never at rest. This narrows the
+  Ember-Is-Rare Rule above by exactly one component; ember still never
+  touches prose, a graphic, or a control's resting state anywhere else.
+- **Disabled** (`BracketDisabled`): the label keeps its place; only the
+  outer ring goes dashed and `rule`-toned rather than the control
+  dimming or disappearing, and the seal never carries `group` hover/focus
+  wiring, so it can't be coaxed into looking interactive.
+- **Touch target:** every weight and size keeps a minimum 44×44px hit
+  area (`min-h-11` plus the doubled frame's own padding), even where the
+  visible label is smaller (`small`).
+- **Print:** every call site already sits inside a `.print-hidden`
+  wrapper, but the component also neutralises itself directly — filled
+  backgrounds drop, the seal is removed — so a Bracket that ever prints
+  costs nothing but its own hairlines, never a solid block.
 
 ### Chips
 - **Pass / fail chip** (`Provenance`): a verified outcome is a filled chip

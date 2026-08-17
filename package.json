@@ -11,7 +11,8 @@
     "test": "playwright test",
     "budget": "node scripts/check-budget.mjs",
     "art": "node scripts/fetch-art.mjs",
-    "check:art": "node scripts/check-art.mjs"
+    "check:art": "node scripts/check-art.mjs",
+    "favicon": "node scripts/gen-favicon.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.27.0",
