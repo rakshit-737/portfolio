@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { POINTER_LERP } from "@/lib/motion";
+import { POINTER_LERP, createFrameBudgetGuard } from "@/lib/motion";
 
 /**
  * A page-wide flashlight, layered above every act's own lamp.
@@ -89,8 +89,41 @@ export default function Torch() {
     let lastWrittenR = -1;
     let active = false;
     let frame = 0;
-    let slowFrames = 0;
     let last = 0;
+    // Whether the frame-budget guard has shed this effect's work. Distinct
+    // from `active` (has the pointer ever moved): `data-torch` should read
+    // "on" only when both are true, so every place that changes either one
+    // goes through `syncArmed` rather than setting the attribute directly.
+    let suspended = false;
+
+    const syncArmed = () => {
+      if (active && !suspended) {
+        root.setAttribute("data-torch", "on");
+      } else {
+        root.removeAttribute("data-torch");
+      }
+    };
+
+    // Suspends rather than tears down: a device that can't hold frame
+    // budget gets the torch turned off, but the rAF loop below keeps
+    // running and keeps feeding this guard real timestamps either way, so
+    // it notices the device recovering from a transient stall (scroll-and-
+    // decode burst, a background tab catching up) and re-arms on its own.
+    // See src/lib/motion.ts (FRAME_BUDGET, createFrameBudgetGuard) for the
+    // rolling-window numbers and why they replace the old "10 consecutive
+    // frames over 32ms → teardown()" breaker, which fired on ordinary
+    // scrolling and, once tripped, never recovered for the rest of the
+    // session — the exact bug this guard exists to fix.
+    const guard = createFrameBudgetGuard(
+      () => {
+        suspended = true;
+        syncArmed();
+      },
+      () => {
+        suspended = false;
+        syncArmed();
+      },
+    );
 
     const onPointer = (e: PointerEvent) => {
       raw.dx = e.clientX - window.innerWidth / 2;
@@ -102,23 +135,22 @@ export default function Torch() {
         smooth.dx = raw.dx;
         smooth.dy = raw.dy;
         active = true;
-        root.setAttribute("data-torch", "on");
+        syncArmed();
       }
     };
 
     const tick = (now: number) => {
-      // Same circuit breaker as Lamp.tsx: a device that can't hold frame
-      // budget gets the torch turned off rather than a stutter.
-      if (last && now - last > 32) {
-        if (++slowFrames >= 10) {
-          root.removeAttribute("data-torch");
-          teardown();
-          return;
-        }
-      } else {
-        slowFrames = 0;
-      }
+      guard.sample(now, last);
       last = now;
+
+      // Suspended: skip the per-frame work the guard exists to shed, but
+      // keep the loop alive — `guard.sample` above still runs every tick,
+      // which is what lets `onRecover` fire once frame budget is healthy
+      // again.
+      if (suspended) {
+        frame = requestAnimationFrame(tick);
+        return;
+      }
 
       if (active) {
         smooth.dx += (raw.dx - smooth.dx) * POINTER_LERP;

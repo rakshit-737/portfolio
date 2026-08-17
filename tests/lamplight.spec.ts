@@ -999,6 +999,46 @@ test("ember contrast: arming the torch first", async ({ page }) => {
   await gotoWithTorchArmed(page);
 });
 
+// Regression guard: the reported bug. The old circuit breaker (an inline
+// counter in both Torch.tsx and Lamp.tsx) counted 10 CONSECUTIVE rAF
+// callbacks slower than 32ms and, once tripped, called teardown() —
+// cancelling the rAF loop and removing every listener for the rest of the
+// session. 32ms is under 31fps and this page seeks a WebM and decodes
+// multi-megapixel AVIFs while scrolling, on top of a second rAF loop for
+// the other component — completely ordinary scrolling reaches ten such
+// frames trivially, and once it does, there is no path back: the torch (and
+// the lamp) goes dark for the rest of the visit, exactly as the owner
+// reported ("visible on the first page" and never again after scrolling).
+//
+// This test scrolls through every act the way a reader actually would —
+// not a single scrollIntoViewIfNeeded — specifically to give that load a
+// real chance to happen, then asserts the torch and lamp are BOTH still
+// alive afterward. Confirmed this fails against the pre-fix breaker: with
+// the old "10 consecutive frames > 32ms → teardown()" logic restored in
+// Torch.tsx/Lamp.tsx, this test fails reliably under load, exactly
+// reproducing the report; see task-18-report.md for the captured failing
+// run. The fix (src/lib/motion.ts's createFrameBudgetGuard) is a
+// rolling-window, hysteresis breaker that can suspend and recover, so a
+// transient stall no longer permanently kills either effect.
+test("the torch and lamp survive a normal scroll through every act", async ({
+  page,
+}) => {
+  await gotoWithTorchArmed(page);
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+
+  for (const id of ACTS) {
+    await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+    // A reader lingers on each act rather than teleporting through them —
+    // long enough for the act's own video-seek/AVIF-decode work (the load
+    // that used to trip the old breaker) to actually happen.
+    await page.waitForTimeout(200);
+  }
+
+  await expect(page.locator("html")).toHaveAttribute("data-torch", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+  await expect(page.locator(".torch")).toHaveCSS("opacity", "1");
+});
+
 for (const id of ACTS) {
   test(`ignite metrics in act ${id} clear ember-appropriate AA contrast`, async ({
     page,

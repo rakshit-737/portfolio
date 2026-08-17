@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { POINTER_LERP } from "@/lib/motion";
+import { POINTER_LERP, createFrameBudgetGuard } from "@/lib/motion";
 
 /**
  * The one moving part on the site.
@@ -70,8 +70,11 @@ export default function Lamp() {
     // lurch in from wherever `pointer` happens to start.
     const smooth = { x: 0.5, y: 0.5 };
     let frame = 0;
-    let slowFrames = 0;
     let last = 0;
+    // Whether the frame-budget guard has shed this effect's work. While
+    // suspended the page falls back to the default, JS-free "fully lit"
+    // rendering (`data-lamp` absent) rather than a frozen mid-reveal frame.
+    let suspended = false;
     // Each act's `.ignite` elements, gathered once per collect() rather
     // than queried inside the per-frame loop — see the class doc comment.
     const igniteByAct = new Map<HTMLElement, HTMLElement[]>();
@@ -128,19 +131,42 @@ export default function Lamp() {
       pointer.active = true;
     };
 
+    // Suspends rather than tears down: a device that can't hold frame
+    // budget gets the lamp turned off (the page falls back to the default
+    // fully-lit rendering), but the rAF loop below keeps running and keeps
+    // feeding this guard real timestamps either way, so it notices the
+    // device recovering from a transient stall and re-arms on its own. See
+    // src/lib/motion.ts (FRAME_BUDGET, createFrameBudgetGuard) for the
+    // rolling-window numbers and why they replace the old "10 consecutive
+    // frames over 32ms → teardown()" breaker, which fired on ordinary
+    // scrolling and, once tripped, never recovered for the rest of the
+    // session — the exact bug this guard exists to fix. Shares the guard's
+    // shape (not its instance) with Torch.tsx: each effect judges its own
+    // frame budget independently, the same way each already kept its own
+    // separate `slowFrames` counter before this fix.
+    const guard = createFrameBudgetGuard(
+      () => {
+        suspended = true;
+        root.removeAttribute("data-lamp");
+      },
+      () => {
+        suspended = false;
+        root.setAttribute("data-lamp", "on");
+      },
+    );
+
     const tick = (now: number) => {
-      // If the page cannot hold a frame budget ten times running, the lamp
-      // is costing more than it is worth on this device. Lock it lit.
-      if (last && now - last > 32) {
-        if (++slowFrames >= 10) {
-          root.removeAttribute("data-lamp");
-          teardown();
-          return;
-        }
-      } else {
-        slowFrames = 0;
-      }
+      guard.sample(now, last);
       last = now;
+
+      // Suspended: skip the per-frame work the guard exists to shed, but
+      // keep the loop alive — `guard.sample` above still runs every tick,
+      // which is what lets the lamp re-arm once frame budget is healthy
+      // again.
+      if (suspended) {
+        frame = requestAnimationFrame(tick);
+        return;
+      }
 
       // The lamp has weight. It follows the pointer rather than snapping
       // to it — a held lantern, not a cursor. Shares POINTER_LERP with
