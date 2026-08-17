@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { ArrowUpRight } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/icons";
 import Act from "@/components/Act";
@@ -18,6 +20,7 @@ import {
   acts,
   archive,
   benchmarkChart,
+  certifications,
   contact,
   education,
   featuredProjects,
@@ -64,6 +67,31 @@ const webSiteJsonLd = {
   url: `${site.url}/`,
   author: { "@type": "Person", name: hero.name },
 };
+
+/** A `Certification.image` names a path under `public/`, but the file is
+ *  owner-supplied and may not exist yet — checked at build time so a
+ *  missing scan renders the entry text-only instead of a broken image or
+ *  a failed build. Never a placeholder image. */
+function certificateImage(image: string | undefined): string | null {
+  if (!image) return null;
+  return existsSync(join(process.cwd(), "public", image)) ? image : null;
+}
+
+/** A small AVIF/WebP pair for the thumbnail slot, named by convention from
+ *  the full-resolution scan (`gen-certificate-thumb.mjs`, run manually and
+ *  committed like the rest of the site's generated art). The full file
+ *  stays the link target — this only ever replaces the *thumbnail*, never
+ *  the scan a click opens. Falls back to the full PNG in the (currently
+ *  hypothetical) case a thumbnail hasn't been generated for a given scan
+ *  yet, so a missing thumbnail degrades to the old, oversized-but-correct
+ *  rendering rather than a broken build or a placeholder image. */
+function certificateThumb(image: string): { avif: string; webp: string } | null {
+  const stem = image.replace(/\.[^./]+$/, "");
+  const avif = `${stem}-thumb.avif`;
+  const webp = `${stem}-thumb.webp`;
+  const has = (p: string) => existsSync(join(process.cwd(), "public", p));
+  return has(avif) && has(webp) ? { avif, webp } : null;
+}
 
 export default async function Home() {
   // Baked in at build time — the static export is the record.
@@ -137,7 +165,7 @@ export default async function Home() {
             <p className="label">{hero.role}</p>
 
             <h1 id="hero-title" className="statement mt-6">
-              {hero.name}
+              {acts.hero.statement}
             </h1>
 
             <p className="label mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 normal-case">
@@ -213,7 +241,7 @@ export default async function Home() {
         </Act>
 
         {featuredProjects.map((project, i) => {
-          const act = acts[project.id as "warden" | "scheduler" | "plantpal"];
+          const act = acts[project.id];
           const live = featuredLive[i];
           return (
             <Act
@@ -225,7 +253,34 @@ export default async function Home() {
             >
               <Plate id={act.plate} />
 
-              <div className={`${SHELL} scrim relative z-10 py-24`}>
+              {/* `.scrim-wide` on `scheduler` only, not the standard
+                  `.scrim`: `headlineNumbers` renders as an unconstrained
+                  `flex flex-wrap` row (no max-width), so its rightmost
+                  value's x-position is content-driven. Measured directly:
+                  scheduler's third value ("p = 2.6×10⁻¹⁶", the widest label
+                  of any featured project) centres at ~43% of a 1280px
+                  viewport and extends to ~53% — inside the standard
+                  scrim's fading band (30%–62%), not its protected one. Lit,
+                  it measured L=0.086, below AA against the ember contrast
+                  gate's minimum — that gate now checks the real WCAG ratio
+                  directly (`EMBER_AA_MIN`, tests/lamplight.spec.ts) rather
+                  than the fixed background-luminance ceiling this comment
+                  originally cited, but the underlying measurement and the
+                  reason `.scrim-wide` is scoped here are unchanged.
+                  Scoped to `scheduler` specifically, not applied to warden
+                  and plantpal too: `.scrim-wide` widens the *whole* scrim
+                  box's protected band, which also covers part of where
+                  each act's own lamp rests (warden's sits at x≈52%, which
+                  the wide band's fade only clears by 85% — tried widening
+                  all three first, and it measurably dimmed warden's own
+                  reveal pool, `L 0.089 → 0.015`, enough to fail "the
+                  lamp's reveal pool is measurably brighter than the
+                  frame's far edge"). Widening only the one act whose
+                  copy actually needs it avoids trading a real fix for a
+                  new regression in a plate this doesn't concern. */}
+              <div
+                className={`${SHELL} scrim ${project.id === "scheduler" ? "scrim-wide" : ""} relative z-10 py-24`}
+              >
                 <p className="label">{project.timeframe}</p>
                 <Statement id={`${project.id}-title`}>{act.statement}</Statement>
 
@@ -318,6 +373,7 @@ export default async function Home() {
           label={acts.ledger.label}
           lamp={plates[acts.ledger.plate].lamp}
           className="!min-h-0"
+          overflow="visible"
         >
           <div className="pointer-events-none absolute inset-0">
             <div className="sticky top-0 h-[100svh]">
@@ -407,15 +463,89 @@ export default async function Home() {
                     segments={[
                       { label: a.date },
                       ...(a.certificateUrl
-                        ? [{ label: "certificate", href: a.certificateUrl }]
-                        : []),
-                      ...(a.certificateUrl === null
-                        ? [{ label: "certificate pending", disabled: true }]
+                        ? [{ label: "certificate", href: withBase(a.certificateUrl) }]
                         : []),
                     ]}
                   />
                 </li>
               ))}
+            </ul>
+
+            <h3 className="label mt-16 border-b border-rule pb-2">
+              Certifications
+            </h3>
+            <ul>
+              {certifications.map((c) => {
+                const image = certificateImage(c.image);
+                const thumb = image ? certificateThumb(image) : null;
+                const scanAlt = `Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for ${c.reason} at ${c.event}`;
+                return (
+                  <li
+                    key={`${c.title}-${c.date}`}
+                    className="grid gap-x-12 gap-y-4 border-b border-rule py-9 lg:grid-cols-[22rem_minmax(0,1fr)]"
+                  >
+                    <div>
+                      <h3 className="font-mono text-base leading-snug font-semibold tracking-tight">
+                        {c.title}
+                      </h3>
+                      <p className="prose-field mt-2 text-sm">
+                        {c.awardedTo} — reg. {c.registration}
+                      </p>
+                      {image && (
+                        <a
+                          href={withBase(image)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4 inline-block border border-rule p-1"
+                        >
+                          {thumb ? (
+                            <picture>
+                              <source
+                                srcSet={withBase(thumb.avif)}
+                                type="image/avif"
+                              />
+                              <source
+                                srcSet={withBase(thumb.webp)}
+                                type="image/webp"
+                              />
+                              <img
+                                src={withBase(thumb.webp)}
+                                alt={scanAlt}
+                                className="block h-28 w-auto"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            </picture>
+                          ) : (
+                            <img
+                              src={withBase(image)}
+                              alt={scanAlt}
+                              className="block h-28 w-auto"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          )}
+                        </a>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="prose-field text-[0.9375rem]">
+                        Awarded for securing {c.reason} at {c.event}, organized
+                        by {c.organiser}.
+                      </p>
+                      <Provenance
+                        className="mt-4"
+                        segments={[
+                          { label: c.date },
+                          ...c.signatories.map((s) => ({
+                            label: `${s.name} — ${s.role}`,
+                          })),
+                        ]}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
 
             <h3 className="label mt-16 border-b border-rule pb-2">Skills</h3>
@@ -521,6 +651,8 @@ export default async function Home() {
               className="mt-10"
               segments={withCredit(acts.contact.plate, [])}
             />
+
+            <p className="mt-10 text-sm">{contact.closing}</p>
           </div>
         </Act>
       </main>

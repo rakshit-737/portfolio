@@ -22,7 +22,11 @@ export interface HeadlineNumber {
 }
 
 export interface FeaturedProject {
-  id: string;
+  /** One of the eight landing-page acts (`ActId`, declared below with
+   *  `acts`) — every featured project has its own act, so `acts[id]` and
+   *  `plates[acts[id].plate]` never need an unchecked cast at the call
+   *  site. Forward reference to `ActId` is fine within one module. */
+  id: ActId;
   name: string;
   timeframe: string;
   oneLiner: string;
@@ -97,6 +101,9 @@ export const contact = {
   headline:
     "Open to internships and full-time roles in software and security engineering.",
   body: "The fastest way to reach me is email — copy it here, or find me on GitHub and LinkedIn.",
+  /** The owner asked for a thank-you at the close of the record. One
+   *  quiet line, in the site's mono voice — not a second statement. */
+  closing: "Thank you for reading this far.",
 } as const;
 
 export const about = {
@@ -559,8 +566,15 @@ export interface Achievement {
   title: string;
   detail: string;
   date: string;
-  /** URL when live; null → visibly disabled "coming soon"; omit → no certificate. */
-  certificateUrl?: string | null;
+  /** Path under `public/`, unbased — apply `withBase()` at the render
+   *  site. Omit when there's no certificate to link. (This used to also
+   *  accept `null` for a visibly-disabled "certificate pending" state —
+   *  removed once the one achievement that used it got a real scan; see
+   *  the comment at its call site below. Re-add it here, and the
+   *  disabled-chip branch at the render site, if a future achievement
+   *  genuinely needs it — don't leave the type accepting a value nothing
+   *  renders.) */
+  certificateUrl?: string;
 }
 
 export const achievements: Achievement[] = [
@@ -568,12 +582,70 @@ export const achievements: Achievement[] = [
     title: "First Prize — Cyber Secure 360 Expo 2025",
     detail: "Organized by SCOPE, VIT Chennai.",
     date: "Jun 2025",
-    certificateUrl: null, // CERTIFICATE_URL — placeholder
+    // The certificate itself now has a home — see `certifications` below,
+    // which carries the scan, issuer, date and registration number. This
+    // was `null` ("certificate pending") before the owner supplied the
+    // scan; leaving it there once the document exists and is shown lower
+    // on the same page would read as still-missing when it isn't.
+    certificateUrl: "/certificates/cyber-secure-360-2025.png",
   },
   {
     title: "Top 100 Teams — FarAway Zuup Hackathon",
     detail: "Among ~11,000 participants.",
     date: "Jun 2026",
+  },
+];
+
+export interface CertificationSignatory {
+  name: string;
+  role: string;
+}
+
+export interface Certification {
+  title: string;
+  awardedTo: string;
+  registration: string;
+  /** What the certificate recognises, e.g. "First Prize". */
+  reason: string;
+  event: string;
+  organiser: string;
+  date: string;
+  signatories: CertificationSignatory[];
+  /** Path under `public/`, unbased — apply `withBase()` at the render
+   *  site. When the named file exists it renders as a modest bordered
+   *  thumbnail linking to the full scan; when absent, the entry renders
+   *  its text alone and the build still succeeds — never a placeholder
+   *  image. */
+  image?: string;
+}
+
+/**
+ * Certifications — the credential itself (issuer, date, registration
+ * number), distinct from `achievements[0]` above, which records the
+ * outcome. Shaped to hold several entries even though only one is
+ * supplied today.
+ *
+ * Every fact below — title, names, registration number, event name,
+ * organiser, date, and both signatories' names and roles — is
+ * transcribed verbatim from the owner's certificate document
+ * (public/certificates/cyber-secure-360-2025.png). Nothing here is
+ * inferred or invented.
+ */
+export const certifications: Certification[] = [
+  {
+    title: "Certificate of Appreciation",
+    awardedTo: "Rakshit Rameshbabu",
+    registration: "24BYB1117",
+    reason: "First Prize",
+    event: "Cyber Secure 360 Expo – 2025",
+    organiser:
+      "School of Computer Science and Engineering (SCOPE), Vellore Institute of Technology, Chennai",
+    date: "21 June 2025",
+    signatories: [
+      { name: "Dr. Karmel A", role: "HOD, B.Tech CSE Cyber Security" },
+      { name: "Dr. Ganesan R", role: "Dean, SCOPE" },
+    ],
+    image: "/certificates/cyber-secure-360-2025.png",
   },
 ];
 

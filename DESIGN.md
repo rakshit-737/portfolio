@@ -152,8 +152,8 @@ on four of the eight acts.
 
 **Key Characteristics:**
 - Three values — ground, bone signal, ember — no grey, no other hue.
-- Emphasis is light: a number ignites under the lamp's mask; nothing
-  inverts a whole region anymore.
+- Emphasis is light: a number ignites once the lamp's pool actually
+  reaches it; nothing inverts a whole region anymore.
 - Newsreader for eight display statements; Chivo Mono everywhere else,
   including all numbers; Chivo only for reading passages.
 - Eight full-bleed acts, each set in a credited public-domain painting, in
@@ -171,12 +171,11 @@ dark room, not a scheme.
 ### Primary
 - **Signal Bone** (`{colors.signal}`, `#F2EDE3`): every mark of language on
   the page — type, strokes, rules, control borders, the sine's nodes. It is
-  also what a lit number looks like immediately before ember takes over the
-  lamp's radial mask.
+  also what a lit number looks like before the lamp's pool reaches it.
 - **Ember** (`{colors.ember}`, `#E8A33D`): the light itself. It appears in
   exactly two places — the pseudo-element that lights an `.ignite` number
-  when the lamp's mask crosses it, and nowhere else. It never touches prose,
-  never touches a graphic, never fills a control.
+  once the lamp's pool actually reaches it, and nowhere else. It never
+  touches prose, never touches a graphic, never fills a control.
 
 ### Neutral
 - **Ground** (`{colors.ground}`, `#08070A`): the dark a candlelit painting
@@ -195,10 +194,13 @@ dark room, not a scheme.
 There is no fourth value, no grey, and no second accent. A new surface that
 "needs a colour" needs a different device — light, scale, or a rule.
 
-**The Ember-Is-Rare Rule.** Ember marks a lit measurement and the lamp's own
-core, full stop. It never sets a headline, a control, a link, or a passage
+**The Ember-Is-Rare Rule.** Ember marks a lit measurement, the lamp's own
+core, and — its one exception, added with the wax-seal cartouche — a
+Bracket control's seal mark on hover or focus, never at rest. It still
+never sets a headline, a control's resting colour, a link, or a passage
 of prose. If something needs to stand out and it is not a number the lamp
-can reach, it does not get ember — it gets scale, or nothing.
+can reach or that one seal, it does not get ember — it gets scale, or
+nothing.
 
 **The No-Inversion Rule.** The previous system's region-flip (`.negative`)
 does not exist here. Nothing on this site swaps a whole surface's ground and
@@ -298,11 +300,21 @@ inside the viewport-height section, with 6rem of vertical padding
 just above the fold. Each act's content sits inside `.scrim`, a gradient
 that guards text from the painted midtone behind it — a left-to-right guard
 on wide screens, top-to-bottom on narrow ones (`≤48rem`), widened
-(`.scrim-wide`) for the ledger's broader reading column.
+(`.scrim-wide`) for a reading column that runs wider than the standard
+band: the ledger's two-column archive grid, and the scheduler act, whose
+widest headline number ("p = 2.6×10⁻¹⁶") pushes its `headlineNumbers` row
+past the standard scrim's protected zone (measured directly: L=0.086 lit,
+against the ember contrast gate's L≤0.058 ceiling, before `.scrim-wide`).
 
 **Case files.** A static, non-interactive plate (`Plate` at `h-[60svh]`, no
-lamp mask, no scroll-scrubbing) opens each case study as a fixed painted
-header, credited exactly like a landing-page act. Below it, sections follow
+scroll-scrubbing, `motion={false}`) opens each case study as a fixed painted
+header, credited exactly like a landing-page act. It still carries the
+lamp's mask — `data-lamp="on"` is global, set once on `<html>` for the
+whole site — but with no `[data-act]` ancestor for Lamp.tsx's rAF loop to
+find and scrub, every custom property the mask reads sits at its unset
+default: a static pool centred at 50%/50% with `--lamp-r`'s literal
+fallback (26vmax), exactly the "lamp static and centred" the spec asks
+for (§5.2). Below it, sections follow
 the previous system's grammar unchanged: a `13rem` sticky title column
 (`lg:sticky lg:top-24`) against a fluid content column, separated by
 `border-t border-rule`, `3rem`–`4rem` of vertical padding.
@@ -375,9 +387,11 @@ lit ground instead of a flat one:
 
 - **The hairline.** A 1px rule at `rule` or `rule-soft`, used as divider,
   border, underline decoration, and diagram connector.
-- **The bracket.** The world's control silhouette: a 1px `signal` border
-  around a label, with a barcode end-cap (`.cap`) on each flank at 70%
-  opacity.
+- **The bracket.** Nav's active-section marker keeps the original
+  silhouette: a 1px `signal` border around a label, with a barcode
+  end-cap (`.cap`) on each flank at 70% opacity. Buttons themselves
+  moved to the wax-seal cartouche (below) — a doubled hairline frame and
+  a seal mark, not a barcode.
 - **The square mark.** The sine's 6px node squares, the diagram flow's 6px
   stage node, the benchmark chart's growing bars. Every graphic primitive
   that isn't a painting is an axis-aligned rectangle.
@@ -395,19 +409,50 @@ kind of stock image.
 
 ## Components
 
-### Buttons (Bracket controls)
-- **Shape:** square (0px), 1px `signal` border, barcode end-caps at 70%
-  opacity flanking a `.label` centre (`Bracket.tsx`).
-- **Filled:** `signal` background, `ground` text. Exactly one filled control
-  per surface — the résumé download in the hero and the contact close,
-  "Read the case file" on a project act.
-- **Outline:** transparent ground, `signal` text and border.
-- **Hover / Focus:** both weights resolve by swapping their own ground and
-  mark (`transition-colors`) — a local, per-control device, not the old
-  region-wide inversion. Focus is a 2px `signal` outline at 2px offset,
-  global via `:focus-visible`.
-- **Disabled** (`BracketDisabled`): the label keeps its place, wrapped in a
-  dashed `rule` border rather than dimmed or removed.
+### Buttons (wax-seal cartouche, `Bracket.tsx`)
+The barcode-flanked bracket was the redesign's one surviving element of
+the previous system; it is gone now, replaced by an ornate cartouche the
+owner asked for directly — a doubled hairline frame around a
+letterspaced serif label, with a small seal-like mark at the leading
+edge. Square geometry throughout, matching the rest of the world: the
+seal is a bordered square holding a solid square, never a circle.
+- **Shape:** an outer 1px `signal` rule on the control itself, a 3px
+  gutter, then an inner 1px `signal` rule around the label — two
+  concentric hairlines, not one. The seal sits in its own bordered
+  chamber before the label, `aria-hidden` and never part of the
+  control's accessible name (that comes from the label text alone).
+- **Label typography:** Newsreader (`.cartouche-label`), the display
+  font's only other home besides `.statement` — uppercase, letterspaced,
+  sized as a control's label, never approaching statement scale. This is
+  a deliberate, narrow exception to the Monospace Default Rule above,
+  scoped to exactly one component.
+- **Filled:** `signal` background, `ground` text on the inner chamber.
+  Exactly one filled control per surface — the résumé download in the
+  hero and the contact close, "Read the case file" on a project act.
+- **Outline:** transparent inner chamber, `signal` text and borders.
+- **Hover:** the inner chamber swaps its own ground and mark
+  (`transition-colors`) — the established local device, not a region-wide
+  inversion — and the seal warms from bone to ember.
+- **Focus:** the global 2px `signal` outline at 2px offset
+  (`:focus-visible`), and the seal also warms to ember. The outline never
+  appears on hover and the chamber's fill never swaps on focus alone, so
+  the two states stay visually distinct even though both may carry the
+  ember seal.
+- **Ember exception:** the seal is the one place ember appears on a
+  control — hover/focus only, never at rest. This narrows the
+  Ember-Is-Rare Rule above by exactly one component; ember still never
+  touches prose, a graphic, or a control's resting state anywhere else.
+- **Disabled** (`BracketDisabled`): the label keeps its place; only the
+  outer ring goes dashed and `rule`-toned rather than the control
+  dimming or disappearing, and the seal never carries `group` hover/focus
+  wiring, so it can't be coaxed into looking interactive.
+- **Touch target:** every weight and size keeps a minimum 44×44px hit
+  area (`min-h-11` plus the doubled frame's own padding), even where the
+  visible label is smaller (`small`).
+- **Print:** every call site already sits inside a `.print-hidden`
+  wrapper, but the component also neutralises itself directly — filled
+  backgrounds drop, the seal is removed — so a Bracket that ever prints
+  costs nothing but its own hairlines, never a solid block.
 
 ### Chips
 - **Pass / fail chip** (`Provenance`): a verified outcome is a filled chip
@@ -445,8 +490,8 @@ way code is, on the same line as the rest of the evidence.
 ### Rail
 A `<dl>` of measurements, unchanged in structure. Optionally `ignite`: the
 value renders through the ember pseudo-element (`data-value` + `.ignite`),
-so it lights when the lamp's mask reaches it and simply reads as bone signal
-under reduced motion or no JS.
+so it lights once the lamp's pool actually reaches it and simply reads as
+bone signal under reduced motion or no JS.
 
 ### Sine Lattice
 The world's one curve, unchanged: a single stroke sampled at 96 points with
@@ -460,9 +505,15 @@ approach carries over unchanged.
 ### Benchmark Chart
 A real table styled as a chart, structurally unchanged: `.label` axis ticks,
 a track at 12% `currentColor` with a solid bar inside, a tabular value
-column. The two rows that carry the finding now ignite (ember) instead of
-inverting; every other bar stays `signal` at reduced opacity. Bars grow from
-`scaleX(0)` once, on approach, via a DOM attribute rather than React state.
+column. The two rows that carry the finding are marked by bar weight alone
+— full-opacity `bg-signal`, against every other row's 0.55 — deliberately
+not `.ignite`: the value column sits far enough right in the widened
+`.scrim-wide` column (x≈1196px, measured) that the lamp's pinned rest x
+(666px) can never close the gap within its own maximum lit radius (352px),
+at any scroll position on either viewport, so the class would only ever
+render bone-with-JS or ember-without — a standing contradiction, never
+emphasis. Bars grow from `scaleX(0)` once, on approach, via a DOM attribute
+rather than React state.
 
 ### Diagram Flow
 A pipeline on a hairline rail, structurally unchanged. The verdict stage is
@@ -500,16 +551,35 @@ loop, one `IntersectionObserver`, one passive pointermove listener. Writes
 `--p` (linear act progress), `--pe` (eased, for the plate's push-in and the
 motion video's scrub), `--lamp-x`, `--lamp-y` onto every visible act. Sets
 `data-lamp="on"` on `<html>` — the mask CSS is entirely gated on that
-attribute, so the unstyled default is fully lit. A circuit breaker locks the
-lamp lit (removes `data-lamp`) if the device can't hold frame budget for ten
-consecutive frames.
+attribute, so the unstyled default is fully lit. The same tick also drives
+ignition: each visible act's `.ignite` elements are gathered once (not
+re-queried every frame), and every tick compares each one's real screen
+centre against the lamp's own pixel position, toggling `.is-lit` — not a
+second `mask-image`, since a mask's percentages resolve against the masked
+element's own box, which is right for `.plate-lit` (which fills the act)
+and meaningless for a few-character-wide metric. A shared circuit breaker
+(`src/lib/motion.ts`, `createFrameBudgetGuard`) judges a rolling window of
+the last 60 frames rather than a consecutive-miss streak, so one good frame
+mid-scroll can't reset it and one bad streak can't kill it outright: it
+suspends the lamp (removes `data-lamp`, falling back to the fully-lit
+default) once a clear majority of that window is slow, and re-arms it once
+the ratio falls back to a small minority — the first time. A second trip in
+the same session latches the guard, so a device that genuinely can't hold
+frame budget in steady state gets one clean, permanent fallback rather than
+an unrecovering ~3s oscillation between masked and fully-lit.
 
 ### Torch
 The page-wide cursor flashlight (`Torch.tsx`), desktop-only
 (`hover: none` and reduced motion both disable it outright, not just
 visually). Shares `POINTER_LERP` with `Lamp.tsx` so the two pools of light
 move together. Sets `data-torch="on"` on `<html>` only once a real pointer
-has moved. Raises the plate's unlit floor while active
+has moved, and clears it again — fading the beam back out over the same
+0.6s transition — on a genuine `pointerleave` off the document or a short
+pointer-idle timeout, so a reader who nudges the mouse once and then reads
+the rest of the page by wheel or keyboard scroll doesn't spend the visit
+under a frozen pool and a permanent dimming wash. The next real
+`pointermove` re-arms it exactly like the first ever move. Raises the
+plate's unlit floor while active
 (`[data-torch="on"][data-lamp="on"] .plate-dark`) so the torch's dimming
 wash and the lamp's own unlit floor don't compound into a darker painting
 than either produces alone — this selector must be compound (no space);

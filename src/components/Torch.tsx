@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { POINTER_LERP } from "@/lib/motion";
+import { POINTER_LERP, createFrameBudgetGuard } from "@/lib/motion";
 
 /**
  * A page-wide flashlight, layered above every act's own lamp.
@@ -32,6 +32,21 @@ import { POINTER_LERP } from "@/lib/motion";
  * Default, JS-free state is fully transparent: `.torch` ships at
  * `opacity: 0` in CSS, so with no JavaScript the element renders but is
  * inert and undimmed. Only a genuine pointer entry turns it on.
+ *
+ * It also has to turn back off. `active` used to be a one-way latch — set
+ * on the first `pointermove` and never cleared — so a reader who moved the
+ * mouse once and then read the rest of the page by wheel or keyboard scroll
+ * stayed under the torch's dimming wash for the remainder of the visit,
+ * with the lit pool frozen wherever the cursor last stopped: bone dropped
+ * from ~17:1 to ~8.8:1 and ember from ~9:1 to ~5.7:1, page-wide, for no
+ * reason a reader would understand. Two triggers clear `active` now — a
+ * genuine `pointerleave` off the document, and a short idle timeout reset
+ * on every real pointer move — reusing `.torch`'s existing 0.6s opacity
+ * transition to fade out rather than snapping dark. The next real
+ * `pointermove` re-arms exactly like the very first one (the `!active`
+ * branch below already snaps the smoothed position instead of sweeping in
+ * from wherever it was left, which is correct for both "first ever move"
+ * and "move after an idle disarm").
  */
 export default function Torch() {
   useEffect(() => {
@@ -89,36 +104,104 @@ export default function Torch() {
     let lastWrittenR = -1;
     let active = false;
     let frame = 0;
-    let slowFrames = 0;
     let last = 0;
+    // How long the pointer may sit still before the torch fades back out.
+    // Long enough that a reader pausing to read a line of prose doesn't
+    // flicker the torch off under their cursor; short enough that reading
+    // by wheel or keyboard scroll after one initial mouse nudge doesn't
+    // spend the rest of the visit under a frozen pool and a page-wide dim
+    // wash — see the class doc comment above.
+    const IDLE_MS = 2000;
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    // Whether the frame-budget guard has shed this effect's work. Distinct
+    // from `active` (has the pointer ever moved): `data-torch` should read
+    // "on" only when both are true, so every place that changes either one
+    // goes through `syncArmed` rather than setting the attribute directly.
+    let suspended = false;
+
+    const syncArmed = () => {
+      if (active && !suspended) {
+        root.setAttribute("data-torch", "on");
+      } else {
+        root.removeAttribute("data-torch");
+      }
+    };
+
+    // Suspends rather than tears down: a device that can't hold frame
+    // budget gets the torch turned off, but the rAF loop below keeps
+    // running and keeps feeding this guard real timestamps either way, so
+    // it notices the device recovering from a transient stall (scroll-and-
+    // decode burst, a background tab catching up) and re-arms on its own —
+    // the first time. A second trip in the same session latches the guard
+    // and it stays off for the rest of the visit rather than oscillating
+    // between armed and suspended every few seconds. See src/lib/motion.ts
+    // (FRAME_BUDGET, createFrameBudgetGuard) for the rolling-window numbers
+    // and why they replace the old "10 consecutive frames over 32ms →
+    // teardown()" breaker, which fired on ordinary scrolling and, once
+    // tripped, never recovered for the rest of the session — the exact bug
+    // this guard exists to fix.
+    const guard = createFrameBudgetGuard(
+      () => {
+        suspended = true;
+        syncArmed();
+      },
+      () => {
+        suspended = false;
+        syncArmed();
+      },
+    );
+
+    // Disarms the torch — pointer gone idle, or gone off the page entirely.
+    // Shares `syncArmed` with the frame-budget guard above rather than
+    // setting the attribute directly, so "on" always means both "a pointer
+    // is genuinely present and moving" and "the device can afford it".
+    const disarm = () => {
+      active = false;
+      syncArmed();
+    };
+
+    const armIdleTimer = () => {
+      if (idleTimer !== undefined) clearTimeout(idleTimer);
+      idleTimer = setTimeout(disarm, IDLE_MS);
+    };
 
     const onPointer = (e: PointerEvent) => {
       raw.dx = e.clientX - window.innerWidth / 2;
       raw.dy = e.clientY - window.innerHeight / 2;
       if (!active) {
-        // First movement: snap the smoothed position to the raw one so
-        // the beam doesn't sweep in from the viewport centre, then let
-        // the CSS opacity transition carry the actual "fade in".
+        // First movement — or the first movement after an idle/pointerleave
+        // disarm, which resets `active` the same way: snap the smoothed
+        // position to the raw one so the beam doesn't sweep in from the
+        // viewport centre (or from wherever it was left), then let the CSS
+        // opacity transition carry the actual "fade in".
         smooth.dx = raw.dx;
         smooth.dy = raw.dy;
         active = true;
-        root.setAttribute("data-torch", "on");
+        syncArmed();
       }
+      armIdleTimer();
+    };
+
+    // A real exit, not idleness: the pointer left the document outright
+    // (moved onto browser chrome, another window, off-screen). Disarms
+    // immediately rather than waiting out the idle timeout.
+    const onPointerLeave = () => {
+      if (idleTimer !== undefined) clearTimeout(idleTimer);
+      disarm();
     };
 
     const tick = (now: number) => {
-      // Same circuit breaker as Lamp.tsx: a device that can't hold frame
-      // budget gets the torch turned off rather than a stutter.
-      if (last && now - last > 32) {
-        if (++slowFrames >= 10) {
-          root.removeAttribute("data-torch");
-          teardown();
-          return;
-        }
-      } else {
-        slowFrames = 0;
-      }
+      guard.sample(now, last);
       last = now;
+
+      // Suspended: skip the per-frame work the guard exists to shed, but
+      // keep the loop alive — `guard.sample` above still runs every tick,
+      // which is what lets `onRecover` fire once frame budget is healthy
+      // again.
+      if (suspended) {
+        frame = requestAnimationFrame(tick);
+        return;
+      }
 
       if (active) {
         smooth.dx += (raw.dx - smooth.dx) * POINTER_LERP;
@@ -147,10 +230,12 @@ export default function Torch() {
 
     const teardown = () => {
       cancelAnimationFrame(frame);
+      if (idleTimer !== undefined) clearTimeout(idleTimer);
       window.removeEventListener("pointermove", onPointer);
       window.removeEventListener("resize", updateRadius);
       document.removeEventListener("pointerover", onPointerOver);
       document.removeEventListener("pointerout", onPointerOut);
+      document.documentElement.removeEventListener("pointerleave", onPointerLeave);
     };
 
     updateRadius();
@@ -158,6 +243,13 @@ export default function Torch() {
     window.addEventListener("resize", updateRadius, { passive: true });
     document.addEventListener("pointerover", onPointerOver, { passive: true });
     document.addEventListener("pointerout", onPointerOut, { passive: true });
+    // `pointerleave` on the root element fires when the pointer leaves the
+    // document entirely (it does not bubble, so it has to be bound where
+    // it's meaningful) — unlike `pointerout`/`mouseout`, it doesn't also
+    // fire on every ordinary move between child elements.
+    document.documentElement.addEventListener("pointerleave", onPointerLeave, {
+      passive: true,
+    });
     frame = requestAnimationFrame(tick);
 
     return () => {

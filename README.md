@@ -64,9 +64,21 @@ CI (`.github/workflows/ci.yml`) enforces, on every push and PR:
 
 ## Editing content
 
-All copy lives in [`src/content.ts`](src/content.ts) — bio, projects,
-achievements, skills, education, links. Components only render what that file
-exports, so text edits never touch markup.
+All copy lives in [`src/content.ts`](src/content.ts) — bio, projects, act
+statements, achievements, certifications, skills, education, links, and the
+closing line. Components only render what that file exports, so text edits never
+touch markup.
+
+Two conventions worth knowing before editing it:
+
+- **`acts`** holds one display line per act, plus which painting the act is set
+  in. Every statement is a quotation or faithful condensation of copy that
+  already exists elsewhere in the file — that is deliberate, so no claim on the
+  site's largest type is unsourced.
+- **`certifications`** carries the credential itself (issuer, date, registration
+  number, and an optional scan under `public/certificates/`), while
+  `achievements` carries the one-line result. An entry whose `image` file is
+  absent renders its text alone rather than breaking the build.
 
 ## Deployment
 
@@ -110,8 +122,11 @@ all eight paintings with their Commons sources; tokens live in
 - Emphasis is light, not inversion. The previous design's page-wide
   `.negative` flip is gone; a control like `Bracket` or a nav link swaps its
   own two colours on hover, but nothing swaps a whole region's ground and
-  mark anymore. A number "ignites" — bone signal becomes ember — only when
-  the lamp's radial mask sweeps across it.
+  mark anymore. A number "ignites" — bone signal becomes ember — only once
+  the lamp's pool actually reaches it: `Lamp.tsx` compares each metric's
+  real screen position against the lamp's, every rAF tick, and toggles the
+  ember state directly, rather than masking the metric the way the
+  painting itself is masked.
 - Eight full-bleed acts (`Act.tsx`), each set in a painting fetched from
   Wikimedia Commons, cropped, and committed to `public/art/` with a sha256
   lockfile so CI never touches the network. They sit in normal document
@@ -122,10 +137,23 @@ all eight paintings with their Commons sources; tokens live in
   scroll position and pointer position and writes CSS custom properties onto
   each visible act; everything visual is CSS reading them, not React state.
   A desktop-only cursor torch (`Torch.tsx`) shares the same pointer and
-  smoothing constant, so the two read as one light rather than two.
-  **The default, JavaScript-free state is fully lit** — the reveal mask only
-  exists once the client turns the lamp on, so a no-JS or reduced-motion
-  visitor gets a painted page, never a black one.
+  smoothing constant (`src/lib/motion.ts`), so the two read as one light rather
+  than two, and the plate's unlit floor rises while the torch is on so the two
+  dimmings never compound. **The default, JavaScript-free state is fully lit** —
+  the reveal mask only exists once the client turns the lamp on, so a no-JS or
+  reduced-motion visitor gets a painted page, never a black one.
+- Both lights share a **frame-budget breaker** that sheds the effect on a device
+  that genuinely cannot hold it — judged over a rolling window, and
+  **recoverable**: it suspends rather than destroys, and restores itself once
+  frames are healthy again. An earlier version tripped after ten consecutive
+  sub-31fps frames and tore the listeners down permanently, which meant the
+  torch died on the first real scroll and never returned. A regression test now
+  scrolls the page with the torch armed and asserts both lights are still alive.
+- Controls (`Bracket.tsx`) are **wax-seal cartouches**: a doubled hairline frame
+  with a small seal mark at the leading edge and letterspaced Newsreader caps.
+  Ember appears only on hover and focus, never at rest — it has the least
+  contrast headroom on this palette, so it is an accent and not a text colour.
+  Focus is styled distinctly from hover so keyboard state is never ambiguous.
 - Four of the eight acts (hero, warden, scheduler, plantpal) also carry a
   short scroll-scrubbed video, seeked by scroll position and never played on
   a timer; the other four ship stills only, to hold the media budget.
@@ -144,11 +172,14 @@ all eight paintings with their Commons sources; tokens live in
   animations beyond the one-per-act reveal; everything has a
   `prefers-reduced-motion` fallback that also removes any motion video from
   the DOM outright.
-- Case files open with a static, non-interactive painted header (no lamp
-  mask) and otherwise keep the previous grammar: a sticky left title rail
+- Case files open with a static, non-interactive painted header — no
+  scroll-scrubbing, but still lit by a static, centred lamp mask (there's
+  no `[data-act]` ancestor for the scroll-driven one to scrub) — and
+  otherwise keep the previous grammar: a sticky left title rail
   against the record on the right (problem → approach + pipeline diagram →
-  decisions → evidence → outcome). The evidence table's highlighted rows now
-  ignite instead of inverting.
+  decisions → evidence → outcome). The evidence table's rows are plain bold
+  tabular numbers, not inverted or ignited — case files have no `[data-act]`
+  for the lamp to scrub, so ignition is a landing-page-only device.
 - Print: tokens flip to black-on-white, every painting and the torch are
   dropped, act copy is forced visible regardless of scroll state, and link
   targets are printed after their text.
@@ -174,9 +205,25 @@ all eight paintings with their Commons sources; tokens live in
 
 ## Still to fill in
 
-- `CERTIFICATE_URL` — set `certificateUrl` on the Cyber Secure 360 achievement
-  in [`src/content.ts`](src/content.ts).
-- More achievements (hackathons, CTFs, certifications, rankings) — the
-  section currently lists two items; add real ones to `content.ts` only.
+- More achievements and certifications (hackathons, CTFs, rankings) — the
+  ledger lists what exists today; add real ones to `content.ts` only, and drop
+  any accompanying scan into `public/certificates/`.
 - Optional headshot — not currently used by the design; if wanted, add to
   `public/` and extend the About section.
+
+## Known open items
+
+Recorded rather than hidden:
+
+- **The *Alchemist* plate (the About act) reads weak on phones.** Every crop in
+  the set is landscape while a phone viewport is tall, so `object-fit: cover` is
+  height-bound and vertical framing has no slack to use. A portrait
+  `cropNarrow` was added for it, which helps but does not fully solve it; a
+  tighter narrow crop is the real fix.
+- **Scroll-scrubbed motion covers four of the eight acts, not all eight.** The
+  full spread measured 4140 kB against a 3500 kB media ceiling. The four that
+  move are the hero and the three project acts — the work moves, the context
+  holds still.
+- **`Lamp` and `Torch` run one rAF loop each**, sharing a smoothing constant but
+  not a loop. Bounded and cleaned up in both, but a single loop with two writers
+  would be the cheaper shape whenever either is next touched.

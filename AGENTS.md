@@ -19,11 +19,17 @@ the authority on the visual system; this is the short version.
   alpha only. Tokens live in `src/app/globals.css` `@theme`.
 - **Emphasis is light, not inversion.** The old `.negative` region-flip is
   gone entirely — nothing here swaps a whole surface's ground and mark. A
-  number ignites (`.ignite` + `data-value`) when the lamp's radial mask
-  crosses it; a control (`Bracket`, `Nav` link) swaps its own two colours on
-  hover, which is a local device, not a resurrection of the old mechanism.
-  Never name an inversion-like class `invert` — Tailwind ships an `invert`
-  filter utility and the two silently cancel.
+  number ignites (`.ignite` + `data-value`) when the lamp's pool actually
+  reaches it — `Lamp.tsx` compares each visible act's `.ignite` elements'
+  real screen centres against the lamp's own pixel position every rAF
+  tick and toggles a `.is-lit` class, which CSS fades over 240ms
+  (`globals.css`). Deliberately not a second `mask-image`: a mask's
+  percentages resolve against the masked element's own box, which is
+  correct for `.plate-lit` (which fills the act) and meaningless for a
+  few-character-wide metric. A control (`Bracket`, `Nav` link) swaps its
+  own two colours on hover, which is a local device, not a resurrection of
+  the old mechanism. Never name an inversion-like class `invert` —
+  Tailwind ships an `invert` filter utility and the two silently cancel.
 - **Eight full-bleed acts** (`Act.tsx`, `data-act`), each set in a
   public-domain painting (`src/lib/art.ts`) fetched from Wikimedia Commons,
   cropped, and committed to `public/art/` with a sha256 lockfile

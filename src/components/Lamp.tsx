@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { POINTER_LERP } from "@/lib/motion";
+import { POINTER_LERP, createFrameBudgetGuard } from "@/lib/motion";
 
 /**
  * The one moving part on the site.
@@ -15,6 +15,18 @@ import { POINTER_LERP } from "@/lib/motion";
  * state, no re-renders on scroll. The same loop also drives each act's
  * motion video, if it has one: `video.currentTime` is set from `--pe`, so
  * scroll — not time — is the video's only clock; it is never played.
+ *
+ * The same tick also ignites `.ignite` metrics: a CSS `mask-image` can't do
+ * this (a mask's `at var(--lamp-x) var(--lamp-y)` percentages resolve
+ * against the masked element's OWN box, and a metric's box is nothing like
+ * the act's — see the comment on `.ignite` in globals.css for the bug that
+ * produced. So it's done here in real pixels instead: each visible act's
+ * `.ignite` elements are enumerated once per `collect()` (the set is small
+ * and stable — this is not a per-frame query), and every tick compares each
+ * one's `getBoundingClientRect()` centre against the lamp's own pixel
+ * position (the act's rect plus the same fractional `x`/`y` this tick
+ * already computes for `--lamp-x`/`--lamp-y`), toggling `.is-lit` — spec
+ * §4.1: "no per-element observers".
  *
  * The default, JS-free state is "fully lit", with no video at all. This
  * component switches the page into masked mode by setting `data-lamp="on"`,
@@ -58,8 +70,14 @@ export default function Lamp() {
     // lurch in from wherever `pointer` happens to start.
     const smooth = { x: 0.5, y: 0.5 };
     let frame = 0;
-    let slowFrames = 0;
     let last = 0;
+    // Whether the frame-budget guard has shed this effect's work. While
+    // suspended the page falls back to the default, JS-free "fully lit"
+    // rendering (`data-lamp` absent) rather than a frozen mid-reveal frame.
+    let suspended = false;
+    // Each act's `.ignite` elements, gathered once per collect() rather
+    // than queried inside the per-frame loop — see the class doc comment.
+    const igniteByAct = new Map<HTMLElement, HTMLElement[]>();
 
     const collect = () => {
       // disconnect() fires no final "not intersecting" callback, so any
@@ -68,7 +86,11 @@ export default function Lamp() {
       visible.clear();
       acts = Array.from(document.querySelectorAll<HTMLElement>("[data-act]"));
       observer.disconnect();
-      for (const act of acts) observer.observe(act);
+      igniteByAct.clear();
+      for (const act of acts) {
+        observer.observe(act);
+        igniteByAct.set(act, Array.from(act.querySelectorAll<HTMLElement>(".ignite")));
+      }
     };
 
     // Promotes `data-src` to `src` on every plate's motion video, once —
@@ -109,19 +131,45 @@ export default function Lamp() {
       pointer.active = true;
     };
 
+    // Suspends rather than tears down: a device that can't hold frame
+    // budget gets the lamp turned off (the page falls back to the default
+    // fully-lit rendering), but the rAF loop below keeps running and keeps
+    // feeding this guard real timestamps either way, so it notices the
+    // device recovering from a transient stall and re-arms on its own — the
+    // first time. A second trip in the same session latches the guard and
+    // it stays off for the rest of the visit rather than oscillating
+    // between armed and suspended every few seconds. See src/lib/motion.ts
+    // (FRAME_BUDGET, createFrameBudgetGuard) for the rolling-window numbers
+    // and why they replace the old "10 consecutive frames over 32ms →
+    // teardown()" breaker, which fired on ordinary scrolling and, once
+    // tripped, never recovered for the rest of the session — the exact bug
+    // this guard exists to fix. Shares the guard's
+    // shape (not its instance) with Torch.tsx: each effect judges its own
+    // frame budget independently, the same way each already kept its own
+    // separate `slowFrames` counter before this fix.
+    const guard = createFrameBudgetGuard(
+      () => {
+        suspended = true;
+        root.removeAttribute("data-lamp");
+      },
+      () => {
+        suspended = false;
+        root.setAttribute("data-lamp", "on");
+      },
+    );
+
     const tick = (now: number) => {
-      // If the page cannot hold a frame budget ten times running, the lamp
-      // is costing more than it is worth on this device. Lock it lit.
-      if (last && now - last > 32) {
-        if (++slowFrames >= 10) {
-          root.removeAttribute("data-lamp");
-          teardown();
-          return;
-        }
-      } else {
-        slowFrames = 0;
-      }
+      guard.sample(now, last);
       last = now;
+
+      // Suspended: skip the per-frame work the guard exists to shed, but
+      // keep the loop alive — `guard.sample` above still runs every tick,
+      // which is what lets the lamp re-arm once frame budget is healthy
+      // again.
+      if (suspended) {
+        frame = requestAnimationFrame(tick);
+        return;
+      }
 
       // The lamp has weight. It follows the pointer rather than snapping
       // to it — a held lantern, not a cursor. Shares POINTER_LERP with
@@ -134,6 +182,11 @@ export default function Lamp() {
       }
 
       const vh = window.innerHeight;
+      // 1vmax in px — used to turn the plate mask's `--lamp-r` formula
+      // (globals.css: `26vmax + min(p, 1-p) * 30vmax`) into a real pixel
+      // radius for the ignite comparison below. Computed once per tick,
+      // not per act — window size doesn't change mid-frame.
+      const vmax = Math.max(window.innerWidth, vh) / 100;
       for (const act of visible) {
         const r = act.getBoundingClientRect();
         // 0 when the act's top hits the viewport bottom, 1 when its
@@ -167,6 +220,37 @@ export default function Lamp() {
         act.style.setProperty("--pe", eased.toFixed(4));
         act.style.setProperty("--lamp-x", `${(x * 100).toFixed(2)}%`);
         act.style.setProperty("--lamp-y", `${(y * 100).toFixed(2)}%`);
+
+        // Critical 1: the lamp's real pixel position — `x`/`y` above are
+        // fractions of THIS act's box (that's what `--lamp-x`/`--lamp-y`
+        // need to be, since `.plate-lit`'s mask resolves against the same
+        // box), so converting to a viewport pixel point takes the act's own
+        // rect, not the viewport's. Matches the mask's own radius formula
+        // (globals.css `--lamp-r`) so the ignite pool and the plate's lit
+        // pool agree on how big the light is.
+        const igniteEls = igniteByAct.get(act);
+        if (igniteEls && igniteEls.length > 0) {
+          const lampPxX = r.left + x * r.width;
+          const lampPxY = r.top + y * r.height;
+          const lampR = (26 + Math.min(p, 1 - p) * 30) * vmax;
+          // The plate mask is fully opaque out to 46% of `--lamp-r` and
+          // fades to nothing by 88%; a metric either reads as bone or as
+          // ember, not fractionally in between, so it ignites at a single
+          // radius rather than reproducing that whole falloff — picked at
+          // the middle of the fade band so a metric lights up roughly when
+          // the plate under it is roughly half-revealed, not only once
+          // it's fully in the opaque core.
+          const litRadius = lampR * 0.67;
+          const litRadiusSq = litRadius * litRadius;
+          for (const el of igniteEls) {
+            const er = el.getBoundingClientRect();
+            const ex = er.left + er.width / 2;
+            const ey = er.top + er.height / 2;
+            const dx = ex - lampPxX;
+            const dy = ey - lampPxY;
+            el.classList.toggle("is-lit", dx * dx + dy * dy <= litRadiusSq);
+          }
+        }
 
         // Scroll is the video's only clock — it is never played. Seeking
         // is cheap because the encode is keyframe-dense (Task 14b).

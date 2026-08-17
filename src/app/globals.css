@@ -121,7 +121,9 @@ section[id] {
   stroke: var(--color-signal);
 }
 
-/* Barcode end-caps on controls. */
+/* Barcode end-caps — still carried by Nav.tsx's active-section marker.
+   Bracket.tsx (buttons) moved to the wax-seal cartouche below and no
+   longer uses this. */
 .cap {
   background-image: repeating-linear-gradient(
     to right,
@@ -132,6 +134,15 @@ section[id] {
     currentColor 9px 11px,
     transparent 11px 14px
   );
+}
+
+/* The cartouche's label voice (Bracket.tsx) — Newsreader's second and
+   only other home, alongside `.statement`. A control's label, not a
+   headline, so it never approaches statement scale; size and tracking
+   are set at the call site (BracketLink/BracketButton/BracketDisabled). */
+.cartouche-label {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
 }
 
 /* ── The lamp ────────────────────────────────────────────────────────
@@ -324,6 +335,35 @@ section[id] {
   }
 }
 
+/* Task 20 fix: the ledger act is the one act rendered with
+   `overflow-y: visible` (Act.tsx) instead of `overflow-hidden` — its
+   plate wrapper is genuinely `position: sticky` and needs a real
+   scrolling ancestor to pin against, so the act itself can no longer clip
+   anything that overflows its own box vertically. `.scrim::before`'s
+   ordinary `-8vh` vertical bleed relied on exactly that clipping: with it
+   gone, the pseudo-element's box starts 8vh above the ledger act's own
+   top edge and paints straight over whatever sits there in the previous
+   act — measured directly, the ledger's scrim box shares the act's own
+   top offset, so the bleed opened 64px into the *research* act above it,
+   permanently painting over its `.label` ("ACT 06 — THE FINDING") on
+   every wide-viewport scroll position (`z-10` included — a later sibling
+   with no explicit stacking order paints over an earlier one wherever
+   their boxes overlap on screen, `isolate` notwithstanding, since
+   `isolate` scopes internal stacking, not paint order between siblings).
+   Every other act keeps `overflow-hidden`, so this is the only `.scrim`
+   whose bleed can ever escape its own act — zero the vertical component
+   here specifically rather than touching every act's clipping. The
+   horizontal `-6vw` bleed stays: it is still clipped by the ledger act's
+   own `overflow-x-clip` and is what guards the reading column's side
+   edges against the sticky plate behind it. Verified both halves after
+   this change: the research label samples a real bone pixel again (see
+   the per-act label test in tests/lamplight.spec.ts), and the ledger's
+   plate still pins (Task 14a/14e's sticky-plate tests are unaffected —
+   this rule touches only `.scrim`, never the plate wrapper). */
+#ledger .scrim::before {
+  inset: 0 -6vw;
+}
+
 /* The copy resolves once, when its act first arrives. One authored beat,
    never replayed — Lamp.tsx sets `data-seen` on an act's first
    intersection and never removes it, so scrolling back past an act does
@@ -358,7 +398,27 @@ section[id] {
 
 /* A number ignites when the light reaches it. The ember copy is a
    pseudo-element, so assistive technology reads the bone original once
-   and axe never sees a second colour on the same text node. */
+   and axe never sees a second colour on the same text node.
+
+   Critical 1 fix: this used to be a second `mask-image` reading
+   `--lamp-x`/`--lamp-y` directly, exactly like `.plate-lit`. That looked
+   consistent but was wrong: a `mask-image` resolves its `at var(--lamp-x)
+   var(--lamp-y))` percentages against ITS OWN box, and `--lamp-x`/`--lamp-y`
+   are percentages of the *act*, not of a `.ignite` element a few characters
+   wide — so the mask centred itself somewhere essentially arbitrary,
+   determined by the element's own layout width, never by where the lamp
+   actually was. (`.plate-lit`/`.plate-motion` don't have this bug because
+   those elements themselves fill the act box via `inset: 0`, so their own
+   box IS the percentage basis `--lamp-x`/`--lamp-y` were computed against.)
+   `--lamp-r` doubled the problem: it's declared on `.plate-lit`/
+   `.plate-motion`, a sibling subtree, so `.ignite` never inherited it and
+   silently fell back to the literal `26vmax` in the `var()` default.
+
+   The fix (spec §4.1: "comparing each metric's centre against the lamp
+   coordinates in the same rAF tick — no per-element observers") moves the
+   comparison into Lamp.tsx, in real pixels, using each element's own
+   `getBoundingClientRect()` against the act's lamp point computed the same
+   way — then just toggles `.is-lit` here. No mask, no percentage trap. */
 .ignite {
   position: relative;
   color: var(--color-signal);
@@ -370,19 +430,19 @@ section[id] {
   color: var(--color-ember);
   pointer-events: none;
 }
+/* Once the lamp is on, the ember copy starts invisible and only reaches
+   full opacity once Lamp.tsx's rAF tick says this element's centre is
+   inside the lamp's pool (`.is-lit`, set/cleared every frame). With no JS,
+   or under reduced motion, `data-lamp="on"` is never set, so neither rule
+   below ever applies and the base `.ignite::after` rule above renders
+   ember unconditionally — the "fully lit, permanently" default §4.3
+   requires. */
 [data-lamp="on"] .ignite::after {
-  -webkit-mask-image: radial-gradient(
-    circle var(--lamp-r, 26vmax) at var(--lamp-x, 50%) var(--lamp-y, 50%),
-    #000 0%,
-    #000 30%,
-    transparent 62%
-  );
-  mask-image: radial-gradient(
-    circle var(--lamp-r, 26vmax) at var(--lamp-x, 50%) var(--lamp-y, 50%),
-    #000 0%,
-    #000 30%,
-    transparent 62%
-  );
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+[data-lamp="on"] .ignite.is-lit::after {
+  opacity: 1;
 }
 
 /* ── The torch ───────────────────────────────────────────────────────
@@ -410,12 +470,34 @@ section[id] {
   top: 50%;
   left: 50%;
   z-index: 60;
+  /* 200vw/200vh, unchanged: a finish-review pass suggested shrinking this
+     to 150vw/150vh, reasoning that the overlay only needs to cover a
+     pointer offset up to half the viewport (`raw.dx = e.clientX -
+     innerWidth / 2`, so `|dx|` maxes at ~50vw) plus its own 75vw margin.
+     That arithmetic drops a term: covering a *sweep to one edge* means the
+     overlay's FAR edge — the one on the opposite side from the cursor —
+     must still reach the viewport's far edge too. At 150vw (75vw
+     half-width) shifted by the full 50vw offset, the trailing edge lands
+     75 − 50 = 25vw short of centre, leaving the 25vw of viewport on the
+     cursor's opposite side completely uncovered — confirmed directly:
+     moving the pointer to a corner and reading `.torch`'s
+     `getBoundingClientRect()` at 150vw leaves a real gap between the
+     overlay and two edges of the viewport, not a rendering rounding
+     error. The correct minimum is half-width ≥ offset + half-viewport =
+     50vw + 50vw = 100vw, i.e. width ≥ 200vw — this was already the
+     tightest safe size, not double what was needed. Re-verified at
+     200vw/200vh: the overlay's rect contains the full viewport at both
+     tested extremes. */
   width: 200vw;
   height: 200vh;
   margin: -100vh 0 0 -100vw;
   pointer-events: none;
   opacity: 0;
-  will-change: transform;
+  /* No `will-change: transform` — `translate3d()` below already promotes
+     this element to its own compositor layer, so the hint added a second,
+     redundant reason to keep a composited surface resident without
+     changing what actually gets composited. This part of the same
+     finish-review suggestion holds and is applied. */
   transform: translate3d(var(--torch-x, 0px), var(--torch-y, 0px), 0);
   transition: opacity 0.6s ease;
   background: radial-gradient(
@@ -527,6 +609,23 @@ section[id] {
   }
   .ignite::after {
     display: none;
+  }
+  /* Every Bracket control on the landing page and case files already
+     sits inside a `.print-hidden` wrapper (buttons are chrome, not
+     record); the 404 page's single control does not, so this is a
+     backstop in the component itself rather than something every call
+     site has to remember. A filled cartouche's inner chamber would
+     otherwise print as a solid block (`--color-signal` is near-black on
+     paper) and the seal's small solid square is pure decoration — both
+     dropped so a printed Bracket costs nothing but its own hairlines. */
+  .bracket,
+  .bracket .cartouche-label {
+    background: transparent !important;
+    color: #08070a !important;
+    border-color: #08070a !important;
+  }
+  .bracket .seal {
+    display: none !important;
   }
   [data-act] {
     position: static !important;
