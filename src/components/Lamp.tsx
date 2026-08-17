@@ -53,14 +53,15 @@ export default function Lamp() {
     // bottom of the frame rather than the left, so the bias below swaps
     // from "push the light right" to "push the light up".
     const narrow = window.matchMedia("(max-width: 48rem)").matches;
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
-    // A metered connection, or a small touch device, is exactly where a
-    // 4-second video loop per act costs the most and is seen the least —
-    // skip promoting any video's `src` at all rather than fetch it unseen.
+    const noHover = window.matchMedia("(hover: none)").matches;
+    // A metered connection, a touch/no-hover device, or a narrow viewport
+    // is exactly where a 4-second video loop per act costs the most and is
+    // seen the least — skip promoting any video's `src` at all rather than
+    // fetch it unseen.
     const saveData =
       (navigator as unknown as { connection?: { saveData?: boolean } }).connection
         ?.saveData === true;
-    const motionAllowed = !saveData && !(coarse && window.innerWidth < 700);
+    const motionAllowed = !saveData && !noHover && window.innerWidth >= 700;
 
     let acts: HTMLElement[] = [];
     const visible = new Set<HTMLElement>();
