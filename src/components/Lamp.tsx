@@ -119,6 +119,13 @@ export default function Lamp() {
             if (!el.hasAttribute("data-seen")) el.setAttribute("data-seen", "");
           } else {
             visible.delete(el);
+            // An act that stops intersecting also stops being ticked, so
+            // any `.is-lit` its metrics already picked up would otherwise
+            // freeze lit forever — clear it here, once, on the way out.
+            const igniteEls = igniteByAct.get(el);
+            if (igniteEls) {
+              for (const ig of igniteEls) ig.classList.remove("is-lit");
+            }
           }
         }
       },
