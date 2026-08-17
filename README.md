@@ -21,22 +21,46 @@ npm run build      # outputs the static site to ./out
 The build must complete with zero type errors. Preview the export with any
 static file server, e.g. `npx serve out`.
 
+## Commands
+
+| Command | Does |
+| --- | --- |
+| `npm run dev` | Local dev server at `http://localhost:3000` |
+| `npm run build` | Static export to `./out` (zero type errors required) |
+| `npm run start` | Serve the built `./out` with `npx serve` |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Playwright smoke + axe scan against `./out` (build first) |
+| `npm run budget` | Gzipped-JS and landing-page media weight ceilings (`scripts/check-budget.mjs`) |
+| `npm run art` | Fetches, crops, and encodes the eight plates from Wikimedia Commons into `public/art/`, and writes `src/lib/art.lock.json` |
+| `npm run check:art` | Verifies every committed plate file's sha256 against the lockfile — this is the CI gate |
+
+`public/art/` (the plate images and motion clips) and `src/lib/art.lock.json`
+are **committed to the repo**. `npm run art` is never run in CI — it hits
+the Wikimedia Commons API and is slow and network-dependent. It's a manual,
+occasional step: run it locally, review the output, and commit the result
+when a plate's crop or framing changes. CI only ever runs `npm run
+check:art`, which checks the committed files against the lockfile and never
+touches the network.
+
 ## Quality gates
 
 CI (`.github/workflows/ci.yml`) enforces, on every push and PR:
 
+- `npm run check:art` — every committed plate file matches its lockfile
+  entry; the build never contacts Wikimedia
 - `npm run typecheck` and `npm run lint` — zero errors
-- `npm run budget` — gzipped-JS ceiling per exported page
-  (`scripts/check-budget.mjs`; ceiling 210 kB, baseline ≈ 192 kB — the
-  Next 16 + React 19 hydration runtime dominates)
+- `npm run budget` — gzipped-JS ceiling per exported page plus a media-weight
+  ceiling for the landing page's paintings and scroll-scrubbed video clips
+  (`scripts/check-budget.mjs`)
 - `npm test` — Playwright smoke tests against `./out` (page renders, ⌘K
   palette opens and jumps, anchors navigate, résumé resolves, case-study
-  routes 200, internal links resolve) plus an axe accessibility scan that
-  must report zero violations
+  routes 200, internal links resolve, plate credits render, the lamp turns
+  on and moves with scroll) plus an axe accessibility scan that must report
+  zero violations
 - `scripts/check-lighthouse.mjs` — Lighthouse category minimums (mobile +
   desktop) and a CLS cap; thresholds are a ratchet, raised as numbers
-  improve, never lowered to pass. Mobile performance is tracked honestly
-  at the framework-hydration baseline rather than gamed.
+  improve, never lowered to pass.
 
 ## Editing content
 
@@ -71,54 +95,72 @@ GitHub Actions**. The workflow computes `NEXT_PUBLIC_BASE_PATH` and
 
 ## Design notes
 
-Concept: **“the data field”** — an engineer’s record rendered as a data
-field, where the numbers are the page at the scale of the thing they measure.
-`DESIGN.md` holds the full system; tokens live in `src/app/globals.css`
-`@theme`.
+Concept: **“Lamplight”** — a scroll-driven, candlelit portfolio built on
+eight public-domain paintings, where a moving light source reveals both the
+art and the metrics. Nothing is asserted outright; only what the light
+reaches is proven. `DESIGN.md` holds the full system, including a table of
+all eight paintings with their Commons sources; tokens live in
+`src/app/globals.css` `@theme`.
 
-- Palette: `#000` field, `#fff` signal, and nothing else. **There is no grey.**
-  Hierarchy comes from scale, tracking and density rather than from dimmed
-  text, so every text pair on the site sits at 21:1. Fractional alpha is
-  reserved for rules and bar fields, which are graphics, not language.
-- Inversion is the only emphasis device: `.negative` re-declares the four
-  colour tokens and flips a whole region to white ground. The Research
-  section (the negative result) and the Contact close are inverted; so is the
-  evidence table on every case file. The class is deliberately *not* called
-  `invert` — Tailwind ships an `invert` filter utility that would cancel it.
-- Type: Chivo Mono at every size, with Chivo (sans) used only for reading
-  passages, loaded with `next/font`.
-- Materials: hairline bar fields, a sine lattice, binary matrices, bracketed
-  controls with barcode end-caps. Field geometry is generated deterministically
-  at build time from a seeded PRNG (`src/lib/field.ts`), so the export is
-  byte-stable and nothing ships to the client. A bar field measures nothing;
-  every rendered *number* traces to `content.ts` or to live GitHub data.
-- Provenance: every record carries a mono provenance line (date · status ·
-  stack · repo · tests/CI), augmented at build time with live GitHub data
-  (stars, head sha → commit link, CI conclusion → Actions link) via
-  `src/lib/github.ts`. The footer fetches this repo itself, so the record
-  carries its own verification. A project’s binary matrix is cut from its
-  head commit SHA — change the commit and the pattern changes.
-- Motion: **one authored moment.** On load, the hero field resolves left to
-  right and the sine draws. The only other motion is the benchmark bars
-  growing once when scrolled to. No per-section entrance animations, no hover
-  effects; everything has a `prefers-reduced-motion` fallback.
-- Case files follow the same grammar: the section title sits in a left rail,
-  the record on the right (problem → approach + pipeline diagram → decisions →
-  evidence → outcome), with the evidence table inverted.
-- Print: tokens flip to black-on-white, full-bleed fields are dropped, and
-  link targets are printed after their text.
+- Palette: `#08070A` ground, `#F2EDE3` bone signal, `#E8A33D` ember, and
+  nothing else. **There is no grey and no second accent.** Ember is the
+  rarest mark on the site — it lights a measured number under the lamp's
+  mask and nothing else; it never touches prose or a control. Fractional
+  alpha is reserved for rules and the lamp/torch's own gradients.
+- Emphasis is light, not inversion. The previous design's page-wide
+  `.negative` flip is gone; a control like `Bracket` or a nav link swaps its
+  own two colours on hover, but nothing swaps a whole region's ground and
+  mark anymore. A number "ignites" — bone signal becomes ember — only when
+  the lamp's radial mask sweeps across it.
+- Eight full-bleed acts (`Act.tsx`), each set in a painting fetched from
+  Wikimedia Commons, cropped, and committed to `public/art/` with a sha256
+  lockfile so CI never touches the network. They sit in normal document
+  flow — not pinned, not scroll-jacked — with one exception: the ledger
+  act's background painting is `position: sticky` so it stays visible behind
+  its own long-scrolling list of archive rows.
+- The lamp (`Lamp.tsx`) is the one moving part: a single rAF loop reads
+  scroll position and pointer position and writes CSS custom properties onto
+  each visible act; everything visual is CSS reading them, not React state.
+  A desktop-only cursor torch (`Torch.tsx`) shares the same pointer and
+  smoothing constant, so the two read as one light rather than two.
+  **The default, JavaScript-free state is fully lit** — the reveal mask only
+  exists once the client turns the lamp on, so a no-JS or reduced-motion
+  visitor gets a painted page, never a black one.
+- Four of the eight acts (hero, warden, scheduler, plantpal) also carry a
+  short scroll-scrubbed video, seeked by scroll position and never played on
+  a timer; the other four ship stills only, to hold the media budget.
+- Type: Newsreader carries one display line per act; Chivo Mono carries
+  everything else, including every number at every size; Chivo (sans) is
+  used only for reading passages. All loaded with `next/font`.
+- Provenance: every act and every record still carries a mono provenance
+  line (date · status · stack · repo · tests/CI), augmented at build time
+  with live GitHub data via `src/lib/github.ts` — the footer fetches this
+  repo itself, so the record carries its own verification. Every act's line
+  now also credits its painting (artist, title, year, Commons link) — art is
+  sourced the same way code is.
+- Motion: one reveal per act, playing once on first scroll arrival and never
+  replayed on scroll-back, plus the lamp/torch's continuous drive and the
+  benchmark bars growing once on approach. No per-section entrance
+  animations beyond the one-per-act reveal; everything has a
+  `prefers-reduced-motion` fallback that also removes any motion video from
+  the DOM outright.
+- Case files open with a static, non-interactive painted header (no lamp
+  mask) and otherwise keep the previous grammar: a sticky left title rail
+  against the record on the right (problem → approach + pipeline diagram →
+  decisions → evidence → outcome). The evidence table's highlighted rows now
+  ignite instead of inverting.
+- Print: tokens flip to black-on-white, every painting and the torch are
+  dropped, act copy is forced visible regardless of scroll state, and link
+  targets are printed after their text.
 
 ### Deviations from the brief
 
-- The 🥇 in the achievements copy is not rendered — the achievement is stated
-  as a record row, respecting the “no emoji” ban while keeping the “First
-  Prize” content intact.
 - The scheduler study stays in **Featured work**; the separate **Research**
-  section carries the constructive-takeaway pull quote and the benchmark
-  chart, so the two don’t duplicate each other.
-- The `~` evidence shell from the previous design was dropped: a terminal
-  window is the one thing this world cannot contain without becoming the
-  developer-portfolio cliché it exists to refuse. The ⌘K index remains.
+  act carries the constructive-takeaway pull quote and the benchmark chart,
+  so the two don't duplicate each other.
+- The ⌘K command palette from the previous design is unchanged and remains
+  the fastest way to jump a section, open a repository, or copy the contact
+  email.
 
 ## Discoverability
 

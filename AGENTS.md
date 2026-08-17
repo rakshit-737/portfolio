@@ -6,34 +6,59 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Repo conventions
 
-## Concept: "the data field"
+## Concept: "lamplight"
 
-The record rendered as a data field — the numbers are the page, at the scale
-of the thing they measure. `DESIGN.md` is the authority on the visual system;
-this is the short version.
+A scroll-driven, candlelit portfolio built on public-domain paintings, where
+a movable light source reveals both the art and the metrics. `DESIGN.md` is
+the authority on the visual system; this is the short version.
 
-- **Two values, no third.** `#000` and `#fff`. There is no grey in this
-  palette: hierarchy comes from scale, tracking and density, never from
-  dimmed text. Fractional alpha belongs only to rules and bar fields, which
-  are graphics rather than language. Tokens live in `src/app/globals.css`
-  `@theme` as `--color-field`, `--color-signal`, `--color-rule`,
-  `--color-rule-soft`.
-- **Inversion is the emphasis mechanism.** `.negative` re-declares those four
-  tokens and flips a whole region to white ground. Never call the class
-  `invert` — Tailwind ships an `invert` filter utility and the two cancel out.
-- Signature materials: hairline bar fields (`BarField`), the sine lattice
-  (`SineLattice`), binary matrices cut from real commit SHAs (`BitMatrix`),
-  bracketed controls with barcode end-caps (`Bracket`), and the provenance
-  line (`Provenance`), augmented at build time with live GitHub
-  stars/head-sha/CI (`src/lib/github.ts`).
-- Field geometry is deterministic (`src/lib/field.ts`, seeded) so the export
-  is byte-stable. A bar field encodes no measurement; anything rendered as a
-  *number* comes from `src/content.ts` or live GitHub data.
-- Fonts: Chivo Mono everywhere; Chivo (sans) only for reading passages
+- **Three values, no fourth.** `--color-ground` `#08070A`, `--color-signal`
+  `#F2EDE3` (bone), `--color-ember` `#E8A33D`. There is no grey. Ember marks
+  a lit number and nothing else — never prose, never a graphic. Rules
+  (`--color-rule`, `--color-rule-soft`) are `--color-signal` at fractional
+  alpha only. Tokens live in `src/app/globals.css` `@theme`.
+- **Emphasis is light, not inversion.** The old `.negative` region-flip is
+  gone entirely — nothing here swaps a whole surface's ground and mark. A
+  number ignites (`.ignite` + `data-value`) when the lamp's radial mask
+  crosses it; a control (`Bracket`, `Nav` link) swaps its own two colours on
+  hover, which is a local device, not a resurrection of the old mechanism.
+  Never name an inversion-like class `invert` — Tailwind ships an `invert`
+  filter utility and the two silently cancel.
+- **Eight full-bleed acts** (`Act.tsx`, `data-act`), each set in a
+  public-domain painting (`src/lib/art.ts`) fetched from Wikimedia Commons,
+  cropped, and committed to `public/art/` with a sha256 lockfile
+  (`src/lib/art.lock.json`) so CI never contacts Wikimedia — `npm run
+  check:art` verifies every file against it. Acts are **not** pinned or
+  scroll-jacked; the page scrolls at native speed. Only the ledger act's
+  background plate is `position: sticky`, so it stays visible behind its own
+  long scrolling archive. Every plate carries a visible credit
+  (`creditOf()` / `withCredit()`, `src/lib/credit.ts`) — art is sourced the
+  way code is.
+- **The lamp** (`Lamp.tsx`) is the one moving part: a single rAF loop, an
+  `IntersectionObserver`, and a pointermove listener, writing `--p` / `--pe`
+  / `--lamp-x` / `--lamp-y` onto each visible act; everything visual is CSS
+  reading those properties. **The default, JS-free state is fully lit** —
+  the mask exists only once the client sets `data-lamp="on"` on `<html>`, so
+  a no-JS or reduced-motion visitor gets a painted page, not a black one.
+- **The torch** (`Torch.tsx`) is a desktop-only, page-wide cursor
+  flashlight sharing the same pointer and lerp constant (`POINTER_LERP`,
+  `src/lib/motion.ts`) as the lamp — one light, two renderings. It raises the
+  plate's unlit floor while active so the two effects don't compound.
+- Four of the eight acts (hero, warden, scheduler, plantpal) carry
+  scroll-scrubbed motion clips (`.plate-motion`, a `<video>` seeked from
+  scroll progress, never played); the other four ship stills only — the
+  spread was cut back from all eight to hold the media budget.
+- Fonts: Newsreader carries the eight act statements (`Statement.tsx`,
+  `.statement`); Chivo Mono carries everything else, **including every
+  number at every size**; Chivo (sans) carries reading passages
   (`.prose-field`). No emoji.
-- **One authored moment:** the hero field resolves left-to-right and the sine
-  draws, once, on load. No per-section entrance animations. Every animation
-  has a `prefers-reduced-motion` fallback.
+- **One authored moment per act, once.** An act's copy resolves into place
+  on its first intersection (`data-seen`, set once, never replayed on
+  scroll-back). There are no other entrance animations.
+- **Document order is paint order** in the four-layer plate stack
+  (`.plate-dark` → `.plate-lit` → `.plate-motion` → `.plate::after`, all
+  `position: absolute` with no `z-index`). Reordering these layers makes the
+  lamp invisible — three tests guard it.
 
 ## Hard rules
 
@@ -47,19 +72,39 @@ this is the short version.
   `withBase` / `NEXT_PUBLIC_BASE_PATH` (Next 16's export prefetch 404s on
   `next/link` here; a smoke test guards it).
 - No heavy dependencies (no UI kits, no animation frameworks). New
-  dependencies need a one-line justification.
+  dependencies need a one-line justification. `sharp` and `ffmpeg-static` are
+  devDependencies — the art pipeline (`scripts/fetch-art.mjs`) uses them to
+  crop plates and encode the scroll-scrubbed motion clips at build time
+  only; neither ships to the client.
 - Accessibility non-negotiable: full keyboard path, visible focus, correct
-  landmarks/heading order, WCAG AA contrast, reduced-motion everywhere. The
+  landmarks/heading order, WCAG AA contrast (ember included — it carries
+  body-sized numbers, not just large text), reduced-motion everywhere. The
   axe scan in CI must stay at zero violations. Never dim text to signal a
   state — this palette has no contrast headroom to spend.
-- In card bullets, `**text**` marks the single strongest metric — rendered by
-  `Metric` as an inverted chip. One per bullet, sparingly.
+- A `[data-a] [data-b]` selector is a descendant combinator, not a compound
+  one. `data-lamp` and `data-torch` both live on `<html>`, so any rule that
+  needs both must be written `[data-a][data-b]` with no space.
+- Satori (the OG image renderer) cannot do CSS masks, so OG cards never use
+  the lamp, and it has no glyph for the superscript minus — run any
+  superscript-bearing string through `ogText()` (`src/lib/ogFonts.ts`)
+  before it reaches an OG card.
+- In card bullets, `**text**` marks the single strongest metric — rendered
+  by `Metric` as a bold mono chip (`.metric`). One per bullet, sparingly.
+  This is a static emphasis, not an ignition: only measurements driven
+  through `.ignite` (rail values, headline numbers, benchmark highlights)
+  carry ember.
 
 ## Commands
 
 - `npm run build` — static export to `./out` (zero type errors required)
 - `npm run lint` / `npm run typecheck`
 - `npm test` — Playwright smoke + axe against `./out` (build first)
-- `npm run budget` — gzipped-JS ceiling (`scripts/check-budget.mjs`)
+- `npm run budget` — gzipped-JS and media-weight ceilings
+  (`scripts/check-budget.mjs`)
+- `npm run art` — fetches, crops, and encodes the eight plates from
+  Wikimedia Commons into `public/art/`; run manually and commit the result,
+  never in CI
+- `npm run check:art` — verifies every committed plate file's sha256 against
+  `src/lib/art.lock.json`; this is the CI gate, not `npm run art`
 - CI: `.github/workflows/ci.yml` (quality gate) and `deploy-pages.yml`
   (GitHub Pages deploy; computes basePath from repo name)
