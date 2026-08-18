@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { ArrowUpRight } from "lucide-react";
+import { preload } from "react-dom";
 import { GithubIcon, LinkedinIcon } from "@/components/icons";
 import Act from "@/components/Act";
 import BenchmarkChart from "@/components/BenchmarkChart";
@@ -9,7 +10,7 @@ import CommandPalette from "@/components/CommandPalette";
 import CopyEmailButton from "@/components/CopyEmailButton";
 import Metric from "@/components/Metric";
 import Nav from "@/components/Nav";
-import Plate from "@/components/Plate";
+import Plate, { narrowSrcset, narrowTiers, srcset } from "@/components/Plate";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
 import SineLattice from "@/components/SineLattice";
@@ -109,6 +110,41 @@ export default async function Home() {
     ),
     fetchRepoLive("https://github.com/rakshit-737/portfolio"),
   ]);
+
+  // The hero plate's LCP candidate (`#hero .plate-dark img`) otherwise isn't
+  // discovered until the browser parses well into the document — it's
+  // inside a `<picture>` several hundred lines down. `react-dom`'s
+  // `preload()` emits a real `<link rel="preload">` into `<head>` during
+  // the server render, so the fetch starts with the HTML rather than after
+  // layout. Plain JSX `<link>` elements do NOT auto-hoist into `<head>` in
+  // this Next.js version — only `<title>`/`<meta>`/`<link rel="stylesheet">`
+  // do, per the resource-preloading docs — so this imperative call is the
+  // only path in. Two candidates, gated by the same `(max-width: 48rem)`
+  // breakpoint `Plate.tsx` uses for its narrow `<source>`, so a phone never
+  // fetches the wide crop and vice versa. AVIF only — matches the format
+  // `Plate.tsx` lists first, which every Lighthouse-class Chrome decodes.
+  if (narrowTiers(acts.hero.plate, "avif").length > 0) {
+    preload(withBase(`/art/${acts.hero.plate}-narrow-960.avif`), {
+      as: "image",
+      imageSrcSet: narrowSrcset(acts.hero.plate, "avif"),
+      imageSizes: "100vw",
+      media: "(max-width: 48rem)",
+      type: "image/avif",
+      // Matches the `<img>` itself, which already carries
+      // fetchpriority="high" — Lighthouse's LCP-discovery check flags a
+      // preload hint that doesn't also opt into high priority, since a
+      // default-priority preload can still queue behind other requests.
+      fetchPriority: "high",
+    });
+  }
+  preload(withBase(`/art/${acts.hero.plate}-1920.avif`), {
+    as: "image",
+    imageSrcSet: srcset(acts.hero.plate, "avif"),
+    imageSizes: "100vw",
+    media: "(min-width: 48.0625rem)",
+    type: "image/avif",
+    fetchPriority: "high",
+  });
 
   const buildRail: RailItem[] = [
     { value: generatedOn, label: "record generated" },
@@ -478,10 +514,12 @@ export default async function Home() {
               {certifications.map((c) => {
                 const image = certificateImage(c.image);
                 const thumb = image ? certificateThumb(image) : null;
-                const scanAlt = `Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for ${c.reason} at ${c.event}`;
+                const scanAlt = c.event
+                  ? `Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for ${c.reason} at ${c.event}`
+                  : `Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for completing "${c.reason}", issued by ${c.organiser}`;
                 return (
                   <li
-                    key={`${c.title}-${c.date}`}
+                    key={`${c.title}-${c.reason}-${c.awardedTo}`}
                     className="grid gap-x-12 gap-y-4 border-b border-rule py-9 lg:grid-cols-[22rem_minmax(0,1fr)]"
                   >
                     <div>
@@ -489,7 +527,8 @@ export default async function Home() {
                         {c.title}
                       </h3>
                       <p className="prose-field mt-2 text-sm">
-                        {c.awardedTo} — reg. {c.registration}
+                        {c.awardedTo}
+                        {c.registration ? ` — reg. ${c.registration}` : ""}
                       </p>
                       {image && (
                         <a
@@ -530,14 +569,29 @@ export default async function Home() {
                     </div>
                     <div className="min-w-0">
                       <p className="prose-field text-[0.9375rem]">
-                        Awarded for securing {c.reason} at {c.event}, organized
-                        by {c.organiser}.
+                        {c.event ? (
+                          <>
+                            Awarded for securing {c.reason} at {c.event},
+                            organized by {c.organiser}.
+                          </>
+                        ) : (
+                          <>
+                            Completed &ldquo;{c.reason}&rdquo;, issued by{" "}
+                            {c.organiser}.
+                          </>
+                        )}
+                        {c.partners && c.partners.length > 0 && (
+                          <> Delivered in partnership with {c.partners.join(", ")}.</>
+                        )}
                       </p>
                       <Provenance
                         className="mt-4"
                         segments={[
-                          { label: c.date },
-                          ...c.signatories.map((s) => ({
+                          ...(c.date ? [{ label: c.date }] : []),
+                          ...(c.verificationUrl
+                            ? [{ label: "verify", href: c.verificationUrl }]
+                            : []),
+                          ...(c.signatories ?? []).map((s) => ({
                             label: `${s.name} — ${s.role}`,
                           })),
                         ]}

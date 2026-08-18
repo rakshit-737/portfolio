@@ -604,13 +604,27 @@ export interface CertificationSignatory {
 export interface Certification {
   title: string;
   awardedTo: string;
-  registration: string;
-  /** What the certificate recognises, e.g. "First Prize". */
+  /** Registration or certificate number. Omit when the document prints
+   *  neither. */
+  registration?: string;
+  /** What the certificate recognises — a prize ("First Prize") for an
+   *  award, or the course name for a certificate of completion. */
   reason: string;
-  event: string;
+  /** The event a prize was awarded at. Absent for course-completion
+   *  certificates, which have no event. */
+  event?: string;
   organiser: string;
-  date: string;
-  signatories: CertificationSignatory[];
+  /** Issue date, exactly as printed. Omit when the document prints none. */
+  date?: string;
+  /** Omit when the document names no signatories. */
+  signatories?: CertificationSignatory[];
+  /** Other organisations' marks shown on the document (e.g. partner
+   *  institutions on a course certificate), transcribed verbatim. Omit
+   *  when the document shows none. */
+  partners?: string[];
+  /** A live verification URL printed on the document, if any — surfaced
+   *  as a link alongside the other provenance segments. */
+  verificationUrl?: string;
   /** Path under `public/`, unbased — apply `withBase()` at the render
    *  site. When the named file exists it renders as a modest bordered
    *  thumbnail linking to the full scan; when absent, the entry renders
@@ -622,14 +636,13 @@ export interface Certification {
 /**
  * Certifications — the credential itself (issuer, date, registration
  * number), distinct from `achievements[0]` above, which records the
- * outcome. Shaped to hold several entries even though only one is
- * supplied today.
+ * outcome. Shaped to hold several entries even though only one held this
+ * shape's full field set for a while.
  *
- * Every fact below — title, names, registration number, event name,
- * organiser, date, and both signatories' names and roles — is
- * transcribed verbatim from the owner's certificate document
- * (public/certificates/cyber-secure-360-2025.png). Nothing here is
- * inferred or invented.
+ * Every fact below is transcribed verbatim from the owner's certificate
+ * documents in `public/certificates/`. Nothing here is inferred or
+ * invented; a field is omitted rather than guessed whenever the source
+ * document doesn't print it.
  */
 export const certifications: Certification[] = [
   {
@@ -646,6 +659,50 @@ export const certifications: Certification[] = [
       { name: "Dr. Ganesan R", role: "Dean, SCOPE" },
     ],
     image: "/certificates/cyber-secure-360-2025.png",
+  },
+  {
+    title: "Certificate of Completion",
+    awardedTo: "Rakshit R",
+    reason: "AI Fluency: Framework & Foundations",
+    organiser: "Anthropic",
+    partners: [
+      "University College Cork (Ireland)",
+      "Ringling College of Art + Design",
+      "Higher Education Authority (An tÚdarás um Ard-Oideachas)",
+      "National Forum for the Enhancement of Teaching and Learning in Higher Education",
+    ],
+    image: "/certificates/ai-fluency-framework-and-foundations.png",
+  },
+  {
+    title: "Certificate of Completion",
+    awardedTo: "Rakshit R",
+    reason: "Claude 101",
+    organiser: "Anthropic",
+    image: "/certificates/claude-101.png",
+  },
+  {
+    title: "Certificate of Completion",
+    awardedTo: "Rakshit R",
+    reason: "Claude Code in Action",
+    organiser: "Anthropic",
+    registration: "k66h6cj46fuo",
+    date: "4 April 2026",
+    verificationUrl: "https://verify.skilljar.com/c/k66h6cj46fuo",
+    image: "/certificates/claude-code-in-action.png",
+  },
+  {
+    // Transcribed from the certificate: the document prints a credential ID
+    // (40C256D368DB2490) alongside the certification number recorded here,
+    // and marks itself "Online Verifiable" without printing a URL — so no
+    // `verificationUrl` is claimed. Satya Narayana Nadella signs it, but the
+    // document states no role for him, so no signatory role is invented.
+    title: "Microsoft Certified: Azure Fundamentals",
+    awardedTo: "Rakshit Rameshbabu",
+    registration: "D85FB0-05V137",
+    reason: "Azure Fundamentals",
+    organiser: "Microsoft",
+    date: "24 July 2026",
+    image: "/certificates/azure-fundamentals.png",
   },
 ];
 

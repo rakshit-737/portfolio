@@ -14,18 +14,18 @@ function tiers(id: PlateId, ext: "avif" | "webp"): number[] {
   return PLATE_WIDTHS.filter((w) => `${id}-${w}.${ext}` in lock);
 }
 
-function srcset(id: PlateId, ext: "avif" | "webp"): string {
+export function srcset(id: PlateId, ext: "avif" | "webp"): string {
   return tiers(id, ext)
     .map((w) => `${withBase(`/art/${id}-${w}.${ext}`)} ${w}w`)
     .join(", ");
 }
 
 /** Widths actually emitted for this plate's narrow crop, if it has one. */
-function narrowTiers(id: PlateId, ext: "avif" | "webp"): number[] {
+export function narrowTiers(id: PlateId, ext: "avif" | "webp"): number[] {
   return NARROW_WIDTHS.filter((w) => `${id}-narrow-${w}.${ext}` in lock);
 }
 
-function narrowSrcset(id: PlateId, ext: "avif" | "webp"): string {
+export function narrowSrcset(id: PlateId, ext: "avif" | "webp"): string {
   return narrowTiers(id, ext)
     .map((w) => `${withBase(`/art/${id}-narrow-${w}.${ext}`)} ${w}w`)
     .join(", ");
