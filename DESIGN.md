@@ -306,6 +306,26 @@ widest headline number ("p = 2.6×10⁻¹⁶") pushes its `headlineNumbers` row
 past the standard scrim's protected zone (measured directly: L=0.086 lit,
 against the ember contrast gate's L≤0.058 ceiling, before `.scrim-wide`).
 
+**The hero, specifically.** Stacked top to bottom: the kicker (`hero.role`,
+`.label`), the name (`.statement`, Newsreader), one plain-English
+positioning line (`hero.positioning`, `.prose-field`, ≤14 words condensed
+from `about.paragraphs[0]` — no number, no proper noun, parseable in three
+seconds), the VERIFIED strip, the stat rail, then exactly two CTAs — a
+filled "Read the Warden case file" and an outline "Résumé". The VERIFIED
+strip is not a badge: every token (`hero.provenance.tokens`,
+`src/content.ts`) is its own link to a real receipt — the Warden case
+file's Outcome section, this repo's Actions history, this repo's README —
+each carrying a screen-reader-only proof (`aria-describedby`) alongside
+its visible underline. A claim that stops having a receipt gets deleted
+from the strip, not kept as decoration. At `≤48rem` two responsive
+collapses hold the hero to one screen without a second markup branch:
+the strip becomes a single "verified record ↗" link at the CI receipt
+(`sm:hidden` / `hidden sm:flex`, same tokens, same DOM), and the stat rail
+keeps only its middle value (9.07, the CGPA) visible via `nth-child`,
+`display:none` rather than a conditional render — the other two stats
+stay in the DOM and still ignite once the lamp reaches them at wider
+viewports.
+
 **Case files.** A static, non-interactive plate (`Plate` at `h-[60svh]`, no
 scroll-scrubbing, `motion={false}`) opens each case study as a fixed painted
 header, credited exactly like a landing-page act. It still carries the
@@ -427,8 +447,9 @@ seal is a bordered square holding a solid square, never a circle.
   a deliberate, narrow exception to the Monospace Default Rule above,
   scoped to exactly one component.
 - **Filled:** `signal` background, `ground` text on the inner chamber.
-  Exactly one filled control per surface — the résumé download in the
-  hero and the contact close, "Read the case file" on a project act.
+  Exactly one filled control per surface — "Read the Warden case file" in
+  the hero, the résumé download at the contact close, "Read the case
+  file" on a project act.
 - **Outline:** transparent inner chamber, `signal` text and borders.
 - **Hover:** the inner chamber swaps its own ground and mark
   (`transition-colors`) — the established local device, not a region-wide

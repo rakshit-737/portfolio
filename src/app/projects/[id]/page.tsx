@@ -67,6 +67,7 @@ function CaseSection({
 }) {
   return (
     <section
+      id={slug}
       aria-labelledby={`${slug}-title`}
       className="border-t border-rule py-12 sm:py-16"
     >

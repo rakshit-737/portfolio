@@ -40,6 +40,17 @@ import { fetchRepoLive, liveSegments } from "@/lib/github";
 
 const SHELL = "mx-auto w-full max-w-[100rem] px-5 sm:px-8 lg:px-12";
 
+// The mobile-collapsed "verified record ↗" link reuses the same receipt
+// as the full strip's "tested in CI" token, rather than a second literal
+// URL that could drift from it.
+const foundCiToken = hero.provenance.tokens.find(
+  (t) => t.label === "tested in CI",
+);
+if (!foundCiToken) {
+  throw new Error('hero.provenance.tokens is missing its "tested in CI" entry');
+}
+const ciToken: (typeof hero.provenance.tokens)[number] = foundCiToken;
+
 const personJsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
@@ -204,23 +215,75 @@ export default async function Home() {
               {acts.hero.statement}
             </h1>
 
-            <p className="label mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 normal-case">
+            {/* Positioning line — a plain-English sentence a stranger can
+                parse before reaching a single number. Not `.prose-field`:
+                the hero stays in the site's mono default voice (the
+                Monospace Default Rule, DESIGN.md) — the reading-passage
+                face is reserved for the acts that actually carry body
+                copy, an invariant `tests/lamplight.spec.ts` locks down
+                per act. */}
+            <p className="mt-4 max-w-[34ch] text-base leading-relaxed sm:text-lg">
+              {hero.positioning}
+            </p>
+
+            {/* Mobile: the strip collapses to one link at the Actions
+                receipt, so the 390px hero still fits without a second
+                markup branch for the tokens themselves. */}
+            <a
+              href={ciToken.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="label mt-6 inline-flex items-center gap-1.5 underline decoration-rule underline-offset-4 transition-colors hover:text-ember hover:decoration-ember focus-visible:text-ember sm:hidden"
+            >
+              verified record
+              <ArrowUpRight size={11} aria-hidden="true" />
+            </a>
+
+            {/* sm and up: every token of "verified" links to its own
+                receipt — a proof strip, not a self-claim. */}
+            <p className="label mt-6 hidden flex-wrap items-center gap-x-2 gap-y-1 normal-case sm:flex">
               <span className="bg-signal px-1.5 py-0.5 text-ground">
                 {hero.provenance.prefix}
               </span>
-              {hero.provenance.text}
+              {hero.provenance.tokens.map((t, i) => (
+                <span key={t.label} className="inline-flex items-center gap-2">
+                  {i > 0 && (
+                    <span aria-hidden="true" className="opacity-60">
+                      ·
+                    </span>
+                  )}
+                  <a
+                    href={t.href.startsWith("/") ? withBase(t.href) : t.href}
+                    {...(t.href.startsWith("/")
+                      ? {}
+                      : { target: "_blank", rel: "noopener noreferrer" })}
+                    aria-describedby={`hero-proof-${i}`}
+                    className="underline decoration-rule underline-offset-4 transition-colors hover:text-ember hover:decoration-ember focus-visible:text-ember"
+                  >
+                    {t.label}
+                  </a>
+                  <span id={`hero-proof-${i}`} className="sr-only">
+                    {t.proof}
+                  </span>
+                </span>
+              ))}
             </p>
 
-            <Rail items={heroStats} className="mt-10" ignite />
+            {/* Mobile keeps exactly one stat above the fold (9.07, the
+                middle item) — presentation only, all three still render in
+                the DOM and light up together once the lamp reaches them. */}
+            <Rail
+              items={heroStats}
+              className="mt-10 [&>div]:hidden [&>div:nth-child(2)]:block sm:[&>div]:block"
+              ignite
+            />
 
             <div className="print-hidden mt-10 flex flex-wrap items-center gap-3">
-              <BracketLink href={withBase(links.resume)} weight="filled" download>
-                Download résumé
+              <BracketLink href={withBase("/projects/warden/")} weight="filled">
+                Read the Warden case file
               </BracketLink>
-              <BracketLink href={`mailto:${links.email}`}>Email me</BracketLink>
-              <BracketLink href={links.github.url} external>
-                <GithubIcon size={13} />
-                GitHub
+              <BracketLink href={withBase(links.resume)} download>
+                Résumé
               </BracketLink>
             </div>
 

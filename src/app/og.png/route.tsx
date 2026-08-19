@@ -66,21 +66,40 @@ export async function GET() {
         <div
           style={{
             display: "flex",
-            alignItems: "flex-end",
-            gap: 56,
+            alignItems: "flex-start",
+            gap: 40,
             borderTop: `2px solid ${OG_EMBER}`,
             paddingTop: 26,
           }}
         >
+          {/* `flex: 1` + `minWidth: 0` (rather than the old fixed `gap`
+              with no width bound) so a long label — P2's hero stats read
+              as full sentences, not the short "CGPA / 10" this card was
+              first tuned against — wraps inside its own column instead of
+              overflowing the 1200px card. `alignItems: flex-start`
+              replaces the old `flex-end`: with labels now wrapping to a
+              different number of lines each, bottom-aligning the values
+              would stagger them; top-aligning keeps all three numbers on
+              one shared baseline regardless of label length. */}
           {heroStats.map((s) => (
-            <div key={ogText(s.label)} style={{ display: "flex", flexDirection: "column" }}>
+            <div
+              key={ogText(s.label)}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
               <span style={{ fontSize: 44, fontWeight: 600, letterSpacing: -1 }}>
                 {ogText(s.value)}
               </span>
               <span
                 style={{
-                  fontSize: 18,
-                  letterSpacing: 2.5,
+                  display: "flex",
+                  fontSize: 16,
+                  lineHeight: 1.35,
+                  letterSpacing: 1.5,
                   textTransform: "uppercase",
                   marginTop: 8,
                 }}

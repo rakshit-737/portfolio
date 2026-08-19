@@ -61,26 +61,81 @@ export const site = {
     "https://rakshit-737.github.io/portfolio",
 } as const;
 
+export interface ProvenanceToken {
+  label: string;
+  href: string;
+  /** Screen-reader-only proof text (`aria-describedby`) — what backs the
+   *  claim, for the reader who can't infer it from the underlined label
+   *  alone. */
+  proof: string;
+}
+
+/**
+ * Each token here is a real receipt, not a self-claim: the strip only
+ * ever states what it can also link to. A token that stops having a real
+ * receipt gets deleted, not kept as decoration.
+ */
+const provenanceTokens: readonly ProvenanceToken[] = [
+  {
+    label: "builds end-to-end",
+    href: "/projects/warden/#outcome",
+    proof:
+      "See Warden's case file, Outcome section, for the built, tested, and deployed system this claim traces to.",
+  },
+  {
+    label: "tested in CI",
+    href: "https://github.com/rakshit-737/portfolio/actions",
+    proof: "This site's own GitHub Actions history — CI runs on every push.",
+  },
+  {
+    label: "reproducible",
+    href: "https://github.com/rakshit-737/portfolio#build-static-export",
+    proof:
+      "This site's own README, Build (static export) section — a documented build from scratch.",
+  },
+] as const;
+
 export const hero = {
   name: "Rakshit Rameshbabu",
   role: "Software & Security Engineer — B.Tech (Cyber Security) @ VIT Chennai",
   location: "Chennai, India",
+  /** ≤14 words, condensed from `about.paragraphs[0]`'s opening sentence:
+   *  "I build full-stack products and backend systems and take them
+   *  end-to-end — from written requirements and architecture to
+   *  CI-tested, reproducible deployments." No new claims, just trimmed. */
+  positioning:
+    "I build full-stack products and backend systems, taken end-to-end.",
   /** Typed once on page load. */
   provenance: {
     prefix: "verified:",
-    text: "builds end-to-end · tested in CI · reproducible",
+    tokens: provenanceTokens,
+    /** Plain-text join for the OG card (Satori can't render links) —
+     *  derived from `tokens` so the two can't drift. */
+    text: provenanceTokens.map((t) => t.label).join(" · "),
   },
 } as const;
 
 /**
- * Mono stat strip under the hero CTAs — proof above the fold.
- * Every number is sourced from elsewhere in this file (education,
- * Warden evidence, scheduler study).
+ * Mono stat strip under the hero CTAs — proof above the fold. Every value
+ * traces elsewhere in this file:
+ * - "3" is the count of `featuredProjects` below (warden, scheduler,
+ *   plantpal) — "end-to-end" traces to `hero.provenance` and
+ *   `about.paragraphs[0]`.
+ * - "9.07" is `education[0].score`.
+ * - "6" is `featuredProjects[0].headlineNumbers[0]` (Warden's six
+ *   analyzers), explained inline rather than left as a bare proper noun —
+ *   see `featuredProjects[0].oneLiner`.
+ * The old facts (45,432 dispatch instants, 40 tests in CI) are not
+ * deleted from the site — they still render as headline numbers inside
+ * the scheduler and warden acts further down the page.
  */
 export const heroStats: HeadlineNumber[] = [
-  { value: "9.07", label: "CGPA / 10" },
-  { value: "40", label: "tests in CI — Warden" },
-  { value: "45,432", label: "dispatch instants verified" },
+  { value: "3", label: "systems built end-to-end — code → CI → deploy" },
+  { value: "9.07", label: "CGPA / 10 — VIT Chennai" },
+  {
+    value: "6",
+    label: "security analyzers in Warden, my supply-chain firewall",
+  },
 ];
 
 export const links = {
