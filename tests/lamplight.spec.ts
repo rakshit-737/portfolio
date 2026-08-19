@@ -481,6 +481,131 @@ test("the lamp's reveal pool is measurably brighter than the frame's far edge", 
   ).toBeGreaterThan(edgeLum * REVEAL_MARGIN);
 });
 
+// ── No-black-viewport guard ─────────────────────────────────────────────
+// P1 floor lock (audit prompt pack): the published audit claimed "100%
+// pure black" viewports on a no-pointer scroll through the page. A probe
+// against the real build (context.md's own measured baseline, reproduced
+// again here as this test's own thresholds) disproved that — no black
+// viewport exists anywhere on either tested viewport — but nothing before
+// this test locked that fact into CI, so a future change could silently
+// regress it (e.g. dropping `[data-lamp="on"] .plate-dark`'s floor back to
+// its pre-P1 value, or lower) without any gate noticing. This is that
+// lock: a deliberately conservative floor set well under the measured
+// baseline (6% mean / 0.5% bright-pixel share vs. a measured worst case of
+// ~9%/3.5% desktop, ~9.4%/5.6% mobile — see the P1 floor report for the
+// full per-step table), so it fails a genuine regression with real margin
+// rather than flapping on ordinary rendering variance.
+//
+// Deliberately no pointer movement anywhere in this test (the entire point
+// — an idle-pointer scroll is the reading pattern most likely to hit a
+// void, since the torch's own dimming wash never engages) and a screenshot
+// taken every 700px rather than once per act, so a dead band that doesn't
+// happen to land on an act's own contrast-gate sample point (the
+// statement, or a `.prose-field` row) still gets caught.
+//
+// Two greyscale measures per step, both required: mean luminance (a
+// uniformly grey-but-non-black frame could still read as "void" to a
+// reader) and the fraction of pixels above mid-grey (a frame that's mostly
+// nearly-black with one bright corner could pass a mean-luminance-only
+// check while still reading as void everywhere else) — text or a lit
+// patch of paint has to be genuinely present, not just averaged in.
+//
+// Break-and-restore, documented in full in the P1 floor report: the
+// brief that produced this test named a specific break —
+// `[data-lamp="on"] .plate-dark` set to `brightness(0.05)` — and expected
+// it to fail both assertions. Tried it, rebuilt, measured: it does NOT
+// fail either one, on either viewport (desktop worst case moved from
+// L=9.06%/3.46% to L=8.37%/3.13% — a real, measured drop, but nowhere
+// near either floor). Root cause, measured directly: `.plate-dark` is
+// only ever the UNMASKED region of a plate — the nav bar, every act's own
+// `.label`, `.statement`, and body copy are un-gated by this filter
+// entirely, and that bone-on-ground text alone already clears both floors
+// with wide margin at every single scroll step, painting or no painting.
+// This is not a defect in the test: it correctly proves the thing the
+// published audit's "100% pure black" claim actually needed to be false —
+// text is unconditionally present at every scroll position (nothing on
+// this page waits for a scroll-triggered reveal before rendering; see the
+// reveal-model verification in the P1 floor report) — but it does mean
+// these two floors are a "the page is never textless-and-paintless" guard
+// foremost, not a `.plate-dark`-brightness regression guard specifically.
+// Confirmed the gate is not vacuous with a second, combined break: the
+// same `brightness(0.05)` plate PLUS every `.statement`/`.label`/
+// `.prose-field`/`dd`/`dt`/`p` forced to `opacity: 0` (simulating "the
+// copy reveal never fires" on top of a near-black plate) fails the mean-
+// luminance assertion at several steps on both viewports (worst: desktop
+// L=5.25% at y=2800, mobile L=4.88% at y=11900 — both genuinely under the
+// 6% floor). Restored both breaks and rebuilt — passes again on both
+// viewports. Reported, not tuned around: see the P1 floor report for the
+// full negative-result writeup rather than silently swapping in a break
+// that "worked."
+const NO_VOID_MEAN_LUMINANCE_FLOOR = 0.06;
+const NO_VOID_BRIGHT_PIXEL_SHARE_FLOOR = 0.005;
+const NO_VOID_STEP_PX = 700;
+const NO_VOID_SETTLE_MS = 350;
+
+async function assertNoVoidAcrossScroll(
+  page: import("@playwright/test").Page,
+  viewportLabel: string,
+) {
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+  // Never moves the pointer for the rest of this test — see the comment
+  // above: an idle-pointer scroll is exactly the reading pattern this
+  // guard exists to check, and moving the pointer would arm the torch,
+  // which only ever adds MORE light (never a hidden risk of less — see
+  // task-14d-report.md's contrast-ratio-under-dimming analysis), masking
+  // the one thing this test is supposed to catch.
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  const viewportHeight = page.viewportSize()!.height;
+
+  for (let y = 0; y < height; y += NO_VOID_STEP_PX) {
+    await page.evaluate((yy) => window.scrollTo(0, yy), y);
+    // Lazy-decoded AVIFs and the video's own scroll-seek both need a beat
+    // to settle before a screenshot reflects the real, settled frame.
+    await page.waitForTimeout(NO_VOID_SETTLE_MS);
+
+    const buf = await page.screenshot();
+    const { data } = await sharp(buf).greyscale().raw().toBuffer({
+      resolveWithObject: true,
+    });
+    let sum = 0;
+    let bright = 0;
+    for (let i = 0; i < data.length; i++) {
+      sum += data[i];
+      if (data[i] > 128) bright += 1;
+    }
+    const meanLum = sum / data.length / 255;
+    const brightShare = bright / data.length;
+
+    expect(
+      meanLum,
+      `${viewportLabel} y=${y}: mean luminance ${(meanLum * 100).toFixed(2)}% is below the ${(NO_VOID_MEAN_LUMINANCE_FLOOR * 100).toFixed(0)}% no-void floor — this viewport reads as void`,
+    ).toBeGreaterThanOrEqual(NO_VOID_MEAN_LUMINANCE_FLOOR);
+    expect(
+      brightShare,
+      `${viewportLabel} y=${y}: only ${(brightShare * 100).toFixed(2)}% of pixels clear mid-grey (need ${(NO_VOID_BRIGHT_PIXEL_SHARE_FLOOR * 100).toFixed(1)}%) — no text or lit paint appears present`,
+    ).toBeGreaterThanOrEqual(NO_VOID_BRIGHT_PIXEL_SHARE_FLOOR);
+  }
+
+  // Sanity: the loop above ran at least once and actually reached the
+  // bottom of the page, not just the first viewport-height.
+  expect(height).toBeGreaterThan(viewportHeight);
+}
+
+test("no viewport goes void on an idle-pointer scroll — 1440x900", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await assertNoVoidAcrossScroll(page, "desktop 1440x900");
+});
+
+test("no viewport goes void on an idle-pointer scroll — 390x844", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await assertNoVoidAcrossScroll(page, "mobile 390x844");
+});
+
 for (const id of ACTS) {
   test(`text in act ${id} clears AA contrast behind its statement`, async ({
     page,
@@ -1367,8 +1492,10 @@ async function expectIgniteClearsAA(
 
 /** Navigates fresh and arms the torch — the worst-case brightness *while
  *  the lamp effect is running*: `.plate-dark`'s filter rises from
- *  brightness(0.32) to brightness(0.56) once
- *  `[data-torch="on"][data-lamp="on"]` (globals.css), the brightest the
+ *  brightness(0.38) to brightness(0.65) once
+ *  `[data-torch="on"][data-lamp="on"]` (globals.css; P1 floor lock
+ *  re-derived both values from the pre-existing 0.32/0.56 pair — see the
+ *  comment on that rule in globals.css), the brightest the
  *  unlit floor ever gets in the with-JS, motion-on experience. Task 20
  *  fix: this is NOT the brightest background a `.ignite` element can ever
  *  sit on overall, as an earlier version of this comment claimed — that's

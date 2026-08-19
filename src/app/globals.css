@@ -231,10 +231,34 @@ section[id] {
 
 [data-lamp="on"] .plate-dark {
   display: block;
-  /* A Wright of Derby is already mostly black. 0.18 erased it; this keeps
-     the unlit field clearly subordinate while leaving the painting legible
-     as a painting. */
-  filter: brightness(0.32) saturate(0.85);
+  /* A Wright of Derby is already mostly black. 0.18 erased it; 0.32 kept
+     the unlit field clearly subordinate but measured too dark at the
+     site's own darkest bands (P1 floor lock, audit prompt pack): a
+     no-pointer, 700px-step scroll probe at 1440x900 (no-black-viewport
+     tests, tests/lamplight.spec.ts) measured the about act's step at
+     L=9.2% mean greyscale luminance, the darkest of any act.
+
+     Raised to 0.38, the bottom of the range the brief's own measured
+     baseline suggested (0.38-0.44), because the top of that range — and
+     every value up to the brief's stated 0.5 do-not-exceed ceiling —
+     measured as flat, not better: swept 0.38 through 0.50 against the
+     about act's own step and got L≈9.4%-9.9% across the entire range,
+     never reaching the brief's aspirational ≥10% target for that one
+     step. Root cause, measured directly: a large share of that step's
+     frame is the acts-meet-in-the-dark transition gradient
+     (`.plate::after`, ground-to-transparent at each act's top/bottom
+     14%) and `.scrim`'s own protected ground band, neither of which
+     this filter touches — no brightness value in the allowed range can
+     move pixels this rule never paints. See the P1 floor report for the
+     full sweep. 0.38 is the value that buys the real, page-wide lift the
+     CI floor test locks in for the same cost as 0.50: every no-pointer
+     step at both viewports clears 6% mean luminance and 0.5% of pixels
+     above mid-grey with real margin (worst measured this build: desktop
+     L=9.06% / 3.46% bright, mobile L=9.41% / 5.61% bright) — pushing
+     brightness higher for a step this filter structurally can't reach
+     10% on would only thin the reveal's contrast for every act it does
+     touch, for zero further gain on the one it doesn't. */
+  filter: brightness(0.38) saturate(0.85);
 }
 /* `.plate-motion` paints above `.plate-lit` (document order), so it MUST
    carry the identical mask or it would show the video at full brightness
@@ -529,9 +553,23 @@ section[id] {
    selector with no space. `[data-torch="on"] [data-lamp="on"]` is a
    descendant combinator that requires data-lamp on a DIFFERENT element
    nested inside one carrying data-torch — html has no ancestor, so that
-   selector can never match, in any state. */
+   selector can never match, in any state.
+
+   P1 floor lock: re-derived for the new 0.38 base (was 0.32→0.56).
+   Measured, not guessed, the same way task-14d originally tuned this
+   value: a `.plate-dark` patch outside both lights' pools (hero's
+   upper-left roofline), luminance with no torch at all vs. torch armed
+   and parked far from the patch (its full outside-beam dim zone) —
+   armed/base ratio at the shipped 0.32→0.56 pair measured 1.134 with
+   this patch (a different, more central patch task-14d used measured a
+   different absolute ratio, 0.96 — the *shape* of "close to 1, i.e. a
+   torch-dimmed plate reads about the same as an un-torched one" is what
+   carries over, not one universal number, since CSS `brightness()`
+   scales linearly while WCAG relative luminance does not). Swept
+   0.38→{0.62, 0.65, 0.68, 0.70}: 0.65 reproduced the shipped pair's own
+   ratio most closely (1.130 vs. 1.134), so that's what ships. */
 [data-torch="on"][data-lamp="on"] .plate-dark {
-  filter: brightness(0.56) saturate(0.85);
+  filter: brightness(0.65) saturate(0.85);
 }
 
 /* ── The authored moment ────────────────────────────────────────────────

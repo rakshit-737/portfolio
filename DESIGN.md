@@ -610,6 +610,28 @@ never gates the copy in the first place, since it only exists once
 `data-lamp="on"` is set. A reduced-motion visitor sees exactly the same
 fully-lit, fully-present page a no-JS visitor does.
 
+**The Lamp-Dramatizes-Never-Gates Rule.** The lamp dramatizes the record;
+it never gates it — an idle-pointer scroll (no cursor movement at all,
+just scrolling) must read every act. Nothing on the page is ever
+withheld until the pointer finds it: `data-seen` (the one thing that
+gates copy visibility) is set purely by scroll intersection
+(`Lamp.tsx`'s `IntersectionObserver` callback), never by pointer
+position, and the lamp's masked pool is strictly additive on top of an
+always-visible dimmed ambient layer (`[data-lamp="on"] .plate-dark`,
+`globals.css`) — never a second gate a reader has to find the light to
+get past. The ambient floor is `brightness(0.38)` (`brightness(0.65)`
+once the torch's own page-wide dimming wash is also active, re-derived
+to hold the same brightness parity the un-torched floor has), raised
+from an original 0.32 during the P1 floor lock once a no-pointer scroll
+probe measured the site's darkest bands too close to the edge. Two CI
+tests (`tests/lamplight.spec.ts`, "no viewport goes void on an
+idle-pointer scroll") lock this in at both 1440×900 and 390×844: every
+700px scroll step must clear 6% mean greyscale luminance and put at
+least 0.5% of pixels above mid-grey, with no pointer ever moving during
+the check — a scrolling-only reader is the exact population this rule
+protects, and the exact population the published audit's disproven
+"100% pure black" claim would have affected if it had been true.
+
 ## Do's and Don'ts
 
 ### Do:
