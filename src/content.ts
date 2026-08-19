@@ -130,7 +130,11 @@ export const hero = {
  * the scheduler and warden acts further down the page.
  */
 export const heroStats: HeadlineNumber[] = [
-  { value: "3", label: "systems built end-to-end — code → CI → deploy" },
+  // "requirements → CI" and not "→ deploy": one of the three counted
+  // systems (the scheduler) is a research study whose end state is a
+  // reproducible pipeline and manuscript, not a deployment — the label
+  // must be true of all three it counts.
+  { value: "3", label: "systems built end-to-end — requirements → CI" },
   { value: "9.07", label: "CGPA / 10 — VIT Chennai" },
   {
     value: "6",
