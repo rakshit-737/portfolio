@@ -538,6 +538,33 @@ render bone-with-JS or ember-without — a standing contradiction, never
 emphasis. Bars grow from `scaleX(0)` once, on approach, via a DOM attribute
 rather than React state.
 
+### Exhibit
+A framed "museum plate" for real evidence (`Exhibit.tsx`): a doubled bone
+hairline frame — an outer `rule` border, a 3px gutter, then an inner
+`rule-soft` border around an opaque `ground` chamber, the same doubled-rule
+grammar the wax-seal cartouche and the provenance line already use — holds
+the artifact itself, with a mono `.label` caption underneath carrying a
+provenance line for it. Always a child of an act's `.scrim` content layer
+(rendered by the call site, same as `Statement`/`Rail`/`Provenance`),
+sitting above the plate stack — never inserted into `Plate.tsx`'s own
+four-layer stack, so an exhibit stays ambiently visible on first paint and
+is never masked by the lamp. Capped at `max-w-2xl` by default so it can't
+grow past a standard act's `.scrim` protected band; `wide` opts a specific
+exhibit out of that cap for content that already sits safely at full width
+inside its own act's scrim (only the scheduler's chart currently does).
+
+Three exhibits ship: Warden's typed terminal (mono text on a `ground`
+chamber, composed at render time from real rows in
+`caseStudies.warden.evidence` via `exhibits.warden.rows` — never hand-typed
+— with the block verdict's `100` carrying `.ignite`, zero image assets);
+the scheduler's `BenchmarkChart`, reframed with `wide` and no change to its
+data, semantics, or accessible table structure, its former title/unit/
+source figcaption now the exhibit's own caption
+(`exhibits.scheduler.caption`); and PlantPal+'s screenshot gallery, which
+renders nothing until the owner supplies real AVIF/WebP captures under
+`public/exhibits/` (see that folder's `README.md`) — the same
+pending-asset convention a certificate scan with no scan yet already uses.
+
 ### Diagram Flow
 A pipeline on a hairline rail, structurally unchanged. The verdict stage is
 now marked with a `signal` fill and `ground` text — the same local
@@ -618,6 +645,16 @@ through `ogText()` (`src/lib/ogFonts.ts`), which flattens it to a caret
 exponent before it reaches the card.
 
 ### Named Rules
+
+**The Museum-Plate Rule.** An exhibit presents the actual product — a real
+terminal capture, a real chart, a real screenshot — never a recreation or
+a mockup standing in for one; an exhibit with no real capture yet (a
+raster shot the owner hasn't supplied) renders nothing, the same
+convention `certificateImage()`/`certificateThumb()` already use for a
+certificate scan that hasn't arrived. If a future exhibit's raster assets
+ever push an act over the media budget, evidence outranks atmosphere: drop
+that act's scroll-scrubbed motion clip before shrinking or dropping the
+exhibit.
 
 **The One Moment (Per Act) Rule.** An act's copy resolves into place —
 opacity and a small translate — the first time it intersects the viewport,

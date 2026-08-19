@@ -8,6 +8,7 @@ import BenchmarkChart from "@/components/BenchmarkChart";
 import { BracketLink } from "@/components/Bracket";
 import CommandPalette from "@/components/CommandPalette";
 import CopyEmailButton from "@/components/CopyEmailButton";
+import Exhibit from "@/components/Exhibit";
 import Metric from "@/components/Metric";
 import Nav from "@/components/Nav";
 import Plate, { narrowSrcset, narrowTiers, srcset } from "@/components/Plate";
@@ -21,9 +22,11 @@ import {
   acts,
   archive,
   benchmarkChart,
+  caseStudies,
   certifications,
   contact,
   education,
+  exhibits,
   featuredProjects,
   hero,
   heroStats,
@@ -50,6 +53,20 @@ if (!foundCiToken) {
   throw new Error('hero.provenance.tokens is missing its "tested in CI" entry');
 }
 const ciToken: (typeof hero.provenance.tokens)[number] = foundCiToken;
+
+// The warden exhibit's terminal lines are resolved against the real
+// evidence table here, not hand-copied, so they can never drift from it —
+// a label in `exhibits.warden.rows` that stops matching a row fails the
+// build loudly instead of silently dropping a line.
+const wardenExhibitRows = exhibits.warden.rows.map((label) => {
+  const row = caseStudies.warden.evidence.find((e) => e.label === label);
+  if (!row) {
+    throw new Error(
+      `exhibits.warden.rows references a label not in caseStudies.warden.evidence: "${label}"`,
+    );
+  }
+  return row;
+});
 
 const personJsonLd = {
   "@context": "https://schema.org",
@@ -101,6 +118,19 @@ function certificateThumb(image: string): { avif: string; webp: string } | null 
   const stem = image.replace(/\.[^./]+$/, "");
   const avif = `${stem}-thumb.avif`;
   const webp = `${stem}-thumb.webp`;
+  const has = (p: string) => existsSync(join(process.cwd(), "public", p));
+  return has(avif) && has(webp) ? { avif, webp } : null;
+}
+
+/** A plantpal exhibit shot's AVIF/WebP pair under `public/exhibits/`,
+ *  named by its `stem` (`exhibits.plantpal.shots`, src/content.ts). The
+ *  owner-supplied capture may not exist yet — checked at build time,
+ *  exactly like `certificateThumb()` above, so a shot with no capture
+ *  renders nothing rather than a broken image or a placeholder. See
+ *  public/exhibits/README.md. */
+function exhibitShotAssets(stem: string): { avif: string; webp: string } | null {
+  const avif = `${stem}.avif`;
+  const webp = `${stem}.webp`;
   const has = (p: string) => existsSync(join(process.cwd(), "public", p));
   return has(avif) && has(webp) ? { avif, webp } : null;
 }
@@ -400,6 +430,82 @@ export default async function Home() {
                     ))}
                   </dl>
                 )}
+
+                {project.id === "warden" && (
+                  <Exhibit caption={exhibits.warden.caption}>
+                    <pre className="font-mono text-[0.8125rem] leading-relaxed whitespace-pre-wrap tabular-nums sm:text-sm">
+                      {wardenExhibitRows.map((row) => {
+                        // Every evidence value is "risk <n> — <verdict>"
+                        // verbatim (src/content.ts) — parsed, never
+                        // retyped, so the terminal can't drift from it.
+                        const match = row.value.match(/^risk (\d+) — (.+)$/);
+                        return (
+                          <span key={row.label} className="mb-4 block last:mb-0">
+                            <span className="block">
+                              $ warden scan {row.label}
+                            </span>
+                            <span className="block pl-4">
+                              {match ? (
+                                <>
+                                  {"→ risk "}
+                                  {match[2] === "block" ? (
+                                    <span className="ignite" data-value={match[1]}>
+                                      {match[1]}
+                                    </span>
+                                  ) : (
+                                    match[1]
+                                  )}
+                                  {` — ${match[2]}`}
+                                </>
+                              ) : (
+                                `→ ${row.value}`
+                              )}
+                            </span>
+                          </span>
+                        );
+                      })}
+                    </pre>
+                  </Exhibit>
+                )}
+
+                {project.id === "plantpal" &&
+                  (() => {
+                    // Dormant until the owner drops real captures
+                    // (public/exhibits/README.md) — an absent AVIF/WebP
+                    // pair renders nothing, the same convention a pending
+                    // certificate scan already uses, so the build always
+                    // succeeds whether or not any shot exists yet.
+                    const shots = exhibits.plantpal.shots.flatMap((s) => {
+                      const assets = exhibitShotAssets(s.stem);
+                      return assets ? [{ ...s, assets }] : [];
+                    });
+                    if (shots.length === 0) return null;
+                    return (
+                      <Exhibit caption={exhibits.plantpal.caption}>
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                          {shots.map((s) => (
+                            <picture key={s.stem}>
+                              <source
+                                srcSet={withBase(s.assets.avif)}
+                                type="image/avif"
+                              />
+                              <source
+                                srcSet={withBase(s.assets.webp)}
+                                type="image/webp"
+                              />
+                              <img
+                                src={withBase(s.assets.webp)}
+                                alt={s.alt}
+                                className="block w-full border border-rule-soft"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            </picture>
+                          ))}
+                        </div>
+                      </Exhibit>
+                    );
+                  })()}
 
                 <Provenance
                   className="mt-8"

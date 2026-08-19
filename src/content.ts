@@ -569,6 +569,78 @@ export const benchmarkChart: {
   ],
 } as const;
 
+/**
+ * Exhibit copy — the framed "museum plate" artifacts rendered inside each
+ * act's `.scrim` content layer (`Exhibit.tsx`), presenting the actual
+ * product rather than only describing it. Nothing here is a new claim:
+ * warden's `rows` are labels resolved against `caseStudies.warden.evidence`
+ * at render time (`src/app/page.tsx`), so the terminal can never drift from
+ * that table, and the scheduler's caption is composed directly from
+ * `benchmarkChart` above. The plantpal shots are placeholders — see the
+ * dormant-render note at the call site and `public/exhibits/README.md`.
+ */
+export interface WardenExhibit {
+  caption: string;
+  /** Labels selected from `caseStudies.warden.evidence`, in display
+   *  order. Resolved against that table at render time; a label that
+   *  stops matching a row fails the build loudly rather than silently
+   *  dropping a line. */
+  rows: string[];
+}
+
+export interface SchedulerExhibit {
+  caption: string;
+}
+
+export interface PlantpalExhibitShot {
+  /** Path stem under `public/exhibits/`, unbased, no extension. The
+   *  render site checks for `${stem}.avif` and `${stem}.webp` and skips
+   *  the shot entirely when either is missing — the same convention a
+   *  pending certificate scan already uses (`certificateThumb()`,
+   *  src/app/page.tsx). */
+  stem: string;
+  /** Placeholder, condensed from `featuredProjects[2].oneLiner` and
+   *  `caseStudies.plantpal.approach` — rewrite once the real screenshot
+   *  exists to describe what that specific image actually shows. */
+  alt: string;
+}
+
+export interface PlantpalExhibit {
+  caption: string;
+  shots: PlantpalExhibitShot[];
+}
+
+export const exhibits: {
+  warden: WardenExhibit;
+  scheduler: SchedulerExhibit;
+  plantpal: PlantpalExhibit;
+} = {
+  warden: {
+    caption:
+      "WARDEN CLI GATE — VERDICTS FROM THE EVIDENCE TABLE · SYNTHETIC ATTACK SAMPLES",
+    rows: ["requests", "numpy", "typosquat + install-time exfil (synthetic)"],
+  },
+  scheduler: {
+    // The chart's own former title/unit/source lines, concatenated — see
+    // the P3 brief: "its existing caption/source line becomes the exhibit
+    // caption."
+    caption: `${benchmarkChart.title} · ${benchmarkChart.unit} · source: ${benchmarkChart.source}`,
+  },
+  plantpal: {
+    caption: "PLANTPAL+ — DAILY DASHBOARD & STREAKS, FROM THE LIVE APP",
+    shots: [
+      {
+        stem: "/exhibits/plantpal-dashboard",
+        alt: "PlantPal+'s daily dashboard, unifying plant-care, workout, and nutrition tasks in one view.",
+      },
+      {
+        stem: "/exhibits/plantpal-streaks",
+        alt: "PlantPal+'s streaks screen, showing consecutive-day counts across plant care, workouts, and meals.",
+      },
+    ],
+  },
+};
+
 export const moreProjects: MoreProject[] = [
   {
     name: "Taintwall — AI Agent Tool-Boundary Firewall",
