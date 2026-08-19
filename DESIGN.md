@@ -308,9 +308,11 @@ against the ember contrast gate's L≤0.058 ceiling, before `.scrim-wide`).
 
 **The hero, specifically.** Stacked top to bottom: the kicker (`hero.role`,
 `.label`), the name (`.statement`, Newsreader), one plain-English
-positioning line (`hero.positioning`, `.prose-field`, ≤14 words condensed
-from `about.paragraphs[0]` — no number, no proper noun, parseable in three
-seconds), the VERIFIED strip, the stat rail, then exactly two CTAs — a
+positioning line (`hero.positioning`, mono default voice — not
+`.prose-field`, which is reserved for the acts with body prose and stays at
+zero on hero — ≤14 words condensed from `about.paragraphs[0]` — no number,
+no proper noun, parseable in three seconds), the VERIFIED strip, the stat
+rail, then exactly two CTAs — a
 filled "Read the Warden case file" and an outline "Résumé". The VERIFIED
 strip is not a badge: every token (`hero.provenance.tokens`,
 `src/content.ts`) is its own link to a real receipt — the Warden case

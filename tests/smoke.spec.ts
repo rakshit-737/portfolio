@@ -7,7 +7,7 @@ test("index renders with hero and evidence", async ({ page }) => {
     page.getByRole("heading", { level: 1, name: "Rakshit Rameshbabu" }),
   ).toBeVisible();
   // Proof above the fold: the hero stat strip.
-  await expect(page.getByText("45,432").first()).toBeVisible();
+  await expect(page.locator("#hero").getByText("9.07")).toBeVisible();
 });
 
 test("command palette opens with Ctrl+K or / and jumps to a section", async ({
