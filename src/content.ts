@@ -322,6 +322,10 @@ export interface CaseStudy {
   evidence: CaseEvidenceRow[];
   outcome: string[];
   next: string[];
+  /** One line under the act's "Read the case file" button — condensed
+   *  verbatim from this study's own `outcome[0]`, never a new claim. Each
+   *  entry below names the exact sentence(s) it draws from. */
+  teaser: string;
 }
 
 /**
@@ -390,6 +394,11 @@ export const caseStudies: Record<string, CaseStudy> = {
       "PEP 503 registry proxy for inline blocking",
       "Analyst-override retraining loops",
     ],
+    // Condensed verbatim from outcome[0]: "requests and flask score low;
+    // numpy ... lands at 40, medium, not blocked; all three synthetic
+    // malicious samples score 100 and are blocked."
+    teaser:
+      "requests scores low, numpy lands at 40 — all three synthetic samples score 100 and are blocked.",
   },
   scheduler: {
     id: "scheduler",
@@ -449,6 +458,11 @@ export const caseStudies: Record<string, CaseStudy> = {
       "Finish the LaTeX manuscript, in progress at phases_22_30/phase_28_manuscript/manuscript.tex.",
       "Per-job attributes that satisfy the non-degeneracy condition — runtime estimates, user history, partition identity — define what any non-degenerate successor feature set must contain.",
     ],
+    // Condensed verbatim from outcome[0]: "the learned score is a function
+    // of requested job size alone" and "...establishes that a size sort is
+    // equivalent to the XGBoost pipeline" (p = 2.6×10⁻¹⁶, also outcome[0]).
+    teaser:
+      "the learned score is a function of requested job size alone — a size sort is statistically equivalent to the full XGBoost pipeline, p = 2.6×10⁻¹⁶.",
   },
   plantpal: {
     id: "plantpal",
@@ -513,6 +527,11 @@ export const caseStudies: Record<string, CaseStudy> = {
       "Add a purge sweep after the 30-day deletion window",
       "Make custom foods deletable and add push notification retry",
     ],
+    // Condensed verbatim from outcome[0]: "the web app is live on GitHub
+    // Pages, and the API deploys via a one-click Render Blueprint" and
+    // "All 307 tests ... run in CI on every push and PR."
+    teaser:
+      "the web app is live on GitHub Pages, the API deploys via a one-click Render Blueprint, and all 307 tests run in CI on every push and PR.",
   },
 };
 

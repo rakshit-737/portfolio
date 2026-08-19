@@ -226,6 +226,19 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }}
       />
+
+      {/* Information scent: the case files are the densest content on the
+          site and sit several viewports below the fold. `next/link`
+          prefetch is forbidden here (Next 16's export prefetch 404s — a
+          smoke test guards it), so this is a plain `<link rel="prefetch">`
+          per route instead — a body-ok link type, so it needs no <head>
+          hoisting to take effect. */}
+      {featuredProjects
+        .filter((p) => caseStudies[p.id])
+        .map((p) => (
+          <link key={p.id} rel="prefetch" href={withBase(`/projects/${p.id}/`)} />
+        ))}
+
       <Nav />
       <CommandPalette />
 
@@ -530,6 +543,13 @@ export default async function Home() {
                     </BracketLink>
                   )}
                 </div>
+
+                {/* One-line teaser, condensed verbatim from the case
+                    study's own `outcome[0]` (src/content.ts) — never a new
+                    claim. Not print-hidden: it's record, not chrome. */}
+                <p className="mt-3 max-w-[46ch] text-sm leading-relaxed">
+                  {caseStudies[project.id].teaser}
+                </p>
               </div>
             </Act>
           );

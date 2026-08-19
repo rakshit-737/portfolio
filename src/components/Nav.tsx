@@ -2,9 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Menu, Search, X } from "lucide-react";
-import { links, navSections } from "@/content";
+import { acts, links, navSections, type ActId } from "@/content";
 import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
 import { withBase } from "@/lib/base";
+
+// The eight acts, in their declared order — `acts` is a `Record<ActId,
+// …>` object literal, so `Object.keys` walks it in that same insertion
+// order (hero first, contact last), giving each act a stable 1..8 index
+// with no second, literal ordering to drift from `content.ts`.
+const ACT_IDS = Object.keys(acts) as ActId[];
 
 /**
  * The field's top rail. The active section is marked by inversion — the
@@ -66,6 +72,13 @@ export default function Nav() {
     };
   }, [open]);
 
+  // `active` is one of `navSections`' ids (a subset of `ACT_IDS`) once the
+  // existing scroll-spy observer above has fired at least once, or "" at
+  // rest before that — which is exactly the hero, act 01. No second
+  // observer: this reads the same `active` state the section links
+  // already use for `aria-current`.
+  const actNumber = ACT_IDS.indexOf((active || "hero") as ActId) + 1;
+
   const openPalette = () => window.dispatchEvent(new Event(OPEN_PALETTE_EVENT));
 
   // scroll-behavior: smooth was dropped from <html> so it can't fight the
@@ -90,13 +103,26 @@ export default function Nav() {
         aria-label="Main"
         className="mx-auto flex h-14 max-w-[110rem] items-center justify-between gap-6 px-5 sm:px-8"
       >
-        <a
-          href="#top"
-          className="flex shrink-0 items-center gap-3 font-mono text-sm font-semibold tracking-tight"
-        >
-          <span aria-hidden="true" className="cap h-4 w-7 opacity-80" />
-          Rakshit Rameshbabu
-        </a>
+        <div className="flex shrink-0 items-center gap-4">
+          <a
+            href="#top"
+            className="flex items-center gap-3 font-mono text-sm font-semibold tracking-tight"
+          >
+            <span aria-hidden="true" className="cap h-4 w-7 opacity-80" />
+            Rakshit Rameshbabu
+          </a>
+          {/* Current-act indicator — presentational only, driven by the
+              scroll-spy state above (no second observer). Its accessible
+              name comes from `aria-current` on the matching section link
+              instead, so this stays aria-hidden rather than doubling that
+              announcement. */}
+          <span
+            aria-hidden="true"
+            className="label hidden tabular-nums lg:inline-block"
+          >
+            {String(actNumber).padStart(2, "0")}/{String(ACT_IDS.length).padStart(2, "0")}
+          </span>
+        </div>
 
         <div className="hidden items-center gap-1 lg:flex">
           {navSections.map((s) => (

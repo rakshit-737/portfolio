@@ -8,7 +8,13 @@ import {
   CornerDownLeft,
   Search,
 } from "lucide-react";
-import { featuredProjects, links, moreProjects, navSections } from "@/content";
+import {
+  caseStudies,
+  featuredProjects,
+  links,
+  moreProjects,
+  navSections,
+} from "@/content";
 import { withBase } from "@/lib/base";
 
 /** Nav (or anything else) can open the palette by dispatching this event. */
@@ -19,12 +25,22 @@ const RECENTS_MAX = 4;
 
 interface Command {
   id: string;
-  group: "recent" | "sections" | "repositories" | "actions";
+  group: "recent" | "sections" | "case-files" | "repositories" | "actions";
   label: string;
   hint?: string;
   keywords?: string;
   run: () => void;
 }
+
+/** A case-file page's own section anchors (`CaseSection` slugs in
+ *  src/app/projects/[id]/page.tsx) — the same five on every case file. */
+const CASE_SECTIONS = [
+  { slug: "problem", title: "Problem" },
+  { slug: "approach", title: "Approach" },
+  { slug: "decisions", title: "Decisions" },
+  { slug: "evidence", title: "Evidence" },
+  { slug: "outcome", title: "Outcome" },
+] as const;
 
 /**
  * Subsequence fuzzy match: every query character must appear in order.
@@ -104,6 +120,11 @@ export default function CommandPalette() {
     const external = (url: string) => () => {
       window.open(url, "_blank", "noopener,noreferrer");
     };
+    // A case-file section is a different route, not an in-page anchor —
+    // navigate the tab itself rather than opening a second one.
+    const navigate = (url: string) => () => {
+      window.location.href = url;
+    };
 
     const repos = [
       ...featuredProjects
@@ -119,6 +140,20 @@ export default function CommandPalette() {
       ...navSections.map((s) => ({ id: s.id, label: s.label })),
     ];
 
+    const caseFileSections = featuredProjects
+      .filter((p) => caseStudies[p.id])
+      .flatMap((p) => {
+        const name = p.name.split("—")[0].trim();
+        return CASE_SECTIONS.map((sec) => ({
+          id: `case-${p.id}-${sec.slug}`,
+          group: "case-files" as const,
+          label: `${name} — ${sec.title}`,
+          hint: `#${sec.slug}`,
+          keywords: `case file study ${p.id} ${sec.title}`,
+          run: navigate(withBase(`/projects/${p.id}/#${sec.slug}`)),
+        }));
+      });
+
     return [
       ...sections.map((s) => ({
         id: `section-${s.id}`,
@@ -127,6 +162,7 @@ export default function CommandPalette() {
         hint: `#${s.id}`,
         run: jump(s.id),
       })),
+      ...caseFileSections,
       ...repos.map((r) => ({
         id: `repo-${r.name}`,
         group: "repositories" as const,

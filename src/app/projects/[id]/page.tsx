@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { BracketLink } from "@/components/Bracket";
 import DiagramFlow from "@/components/DiagramFlow";
@@ -18,10 +18,22 @@ export const dynamicParams = false;
 const SHELL = "mx-auto w-full max-w-[88rem] px-5 sm:px-8 lg:px-12";
 const GRID = "grid gap-x-12 gap-y-6 lg:grid-cols-[13rem_minmax(0,1fr)]";
 
+// The three case-file routes, in the order `featuredProjects` already
+// declares them (warden, scheduler, plantpal) — the same order
+// `generateStaticParams` below walks. Prev/next and "the other case
+// files" both cycle through this one list rather than a second, literal
+// ordering that could drift from it.
+const caseOrder = featuredProjects
+  .filter((p) => caseStudies[p.id])
+  .map((p) => p.id);
+
+/** "Warden — Software Supply-Chain Firewall" → "Warden" — the same
+ *  trim CommandPalette.tsx already applies to a project name for a
+ *  compact link label. */
+const shortName = (name: string) => name.split("—")[0].trim();
+
 export function generateStaticParams() {
-  return featuredProjects
-    .filter((p) => caseStudies[p.id])
-    .map((p) => ({ id: p.id }));
+  return caseOrder.map((id) => ({ id }));
 }
 
 export async function generateMetadata({
@@ -96,6 +108,23 @@ export default async function CaseStudyPage({
 
   const live = project.repoUrl ? await fetchRepoLive(project.repoUrl) : null;
 
+  // Prev/next cycles Warden ↔ Scheduler ↔ PlantPal; "the other case
+  // files" links whichever two aren't this page.
+  const orderIndex = caseOrder.indexOf(project.id);
+  const prevProject = featuredProjects.find(
+    (p) => p.id === caseOrder[(orderIndex - 1 + caseOrder.length) % caseOrder.length],
+  )!;
+  const nextProject = featuredProjects.find(
+    (p) => p.id === caseOrder[(orderIndex + 1) % caseOrder.length],
+  )!;
+  const otherProjects = featuredProjects.filter(
+    (p) => caseOrder.includes(p.id) && p.id !== project.id,
+  );
+
+  // "act 03" — the numeral half of `acts[id].label` ("act 03 — warden"),
+  // never retyped.
+  const actNumeral = acts[project.id].label.split(" — ")[0];
+
   const caseRail: RailItem[] = [
     { value: project.timeframe, label: "timeframe" },
     ...(live?.stars
@@ -164,6 +193,16 @@ export default async function CaseStudyPage({
       </header>
 
       <main>
+        <nav aria-label="Breadcrumb" className={`${SHELL} pt-5`}>
+          <a
+            href={withBase(`/#${project.id}`)}
+            className="label -mx-2 inline-flex items-center gap-2 px-2 py-1 transition-colors hover:bg-signal hover:text-ground"
+          >
+            <ArrowLeft size={11} aria-hidden="true" />
+            the record · {actNumeral}
+          </a>
+        </nav>
+
         <div className="relative isolate h-[60svh] overflow-hidden">
           {/* No scroll mechanics here — this banner has no `[data-act]`
               ancestor, so Lamp.tsx's rAF loop never finds it and nothing
@@ -346,9 +385,63 @@ export default async function CaseStudyPage({
             ))}
           </ul>
         </CaseSection>
+
+        <section
+          aria-labelledby="other-case-files-title"
+          className="border-t border-rule py-12 sm:py-16"
+        >
+          <div className={SHELL}>
+            <h2
+              id="other-case-files-title"
+              className="label border-b border-rule pb-3"
+            >
+              Next: the other case files
+            </h2>
+            <ul className="mt-6">
+              {otherProjects.map((p) => (
+                <li
+                  key={p.id}
+                  className="border-b border-rule-soft py-6 last:border-b-0"
+                >
+                  <a
+                    href={withBase(`/projects/${p.id}/`)}
+                    className="font-mono text-lg leading-none font-semibold tracking-tight underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+                  >
+                    {shortName(p.name)}
+                  </a>
+                  <p className="prose-field mt-2 text-[0.9375rem]">
+                    {p.oneLiner}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
       </main>
 
       <footer className="border-t border-rule">
+        <nav aria-label="Case file navigation" className="border-b border-rule-soft">
+          <div
+            className={`${SHELL} flex items-center justify-between gap-4 py-6`}
+          >
+            <a
+              href={withBase(`/projects/${prevProject.id}/`)}
+              className="label -mx-2 flex items-center gap-2 px-2 py-1 transition-colors hover:bg-signal hover:text-ground"
+            >
+              <ArrowLeft size={12} aria-hidden="true" />
+              <span className="sr-only">Previous case file: </span>
+              {shortName(prevProject.name)}
+            </a>
+            <a
+              href={withBase(`/projects/${nextProject.id}/`)}
+              className="label -mx-2 flex items-center gap-2 px-2 py-1 text-right transition-colors hover:bg-signal hover:text-ground"
+            >
+              <span className="sr-only">Next case file: </span>
+              {shortName(nextProject.name)}
+              <ArrowRight size={12} aria-hidden="true" />
+            </a>
+          </div>
+        </nav>
         <div
           className={`${SHELL} flex flex-wrap items-center justify-between gap-4 py-10`}
         >

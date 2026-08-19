@@ -501,7 +501,33 @@ No radius, no shadow, no blur — unchanged.
 ### Navigation
 Sticky top rail, 3.5rem tall, solid `ground`, bottom `rule`. The active
 section swaps to `signal` ground / `ground` text on scroll-spy — the same
-per-control colour swap `Bracket` uses, not a page-region flip.
+per-control colour swap `Bracket` uses, not a page-region flip. Beside the
+brand link, at `lg` and up, a small `NN/08` act indicator (`.label`,
+tabular figures) reads off the same scroll-spy state — no second
+`IntersectionObserver`. Purely presentational: `aria-hidden`, since the
+position it states is already announced by `aria-current="location"` on
+the matching section link.
+
+### Case-file cross-links
+Every case file (`/projects/[id]/`) opens with a breadcrumb — "← the
+record · act 0N", the numeral read straight off `acts[id].label` — back
+to its own act on the index (`/#<id>`, not just `/`). It closes with two
+distinct devices, both cycling `featuredProjects`' own declared order
+(Warden → Scheduler → PlantPal → Warden) so neither can drift from a
+second, literal ordering: a prev/next rail in the footer for reading the
+record straight through, and a "Next: the other case files" block naming
+whichever two studies aren't the current page, for a reader who arrived
+on one case file directly and wants the others. A one-line teaser
+(`caseStudies[id].teaser`, `src/content.ts`) sits under each project act's
+"Read the case file" button on the index — condensed verbatim from that
+study's own `outcome[0]`, never a new claim; every entry's source
+sentence is named in a comment beside it. The command palette carries the
+same three case files as deep links, one per `CaseSection` (Problem /
+Approach / Decisions / Evidence / Outcome), so a reader can jump straight
+to a section from anywhere on the site. The three case-file routes also
+carry a `<link rel="prefetch">` each, emitted from the index — a
+body-ok link type, unlike the `next/link` prefetch this Next.js version's
+static export can't serve (a smoke test guards that 404).
 
 ### Provenance line
 Unchanged in role: every act and every record carries one — date, status,
