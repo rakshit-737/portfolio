@@ -77,7 +77,7 @@ const html = readFileSync("out/index.html", "utf8");
 // down to whichever known asset root the URL actually contains, the same
 // way for every candidate this file ever resolves, rather than each call
 // site re-deriving its own prefix-stripping rule.
-const ASSET_ROOTS = ["art", "certificates"];
+const ASSET_ROOTS = ["art", "certificates", "exhibits"];
 function resolveOutPath(url) {
   const rel = url.replace(/^\/+/, "").split("/");
   const rootIndex = rel.findIndex((seg) => ASSET_ROOTS.includes(seg));
