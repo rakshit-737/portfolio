@@ -181,7 +181,7 @@ export default async function CaseStudyPage({
         >
           <a
             href={withBase("/")}
-            className="label -mx-2 flex items-center gap-2 px-2 py-1 transition-colors hover:bg-signal hover:text-ground"
+            className="label -mx-2 flex min-h-11 items-center gap-2 px-2 py-4 transition-colors hover:bg-signal hover:text-ground"
           >
             <ArrowLeft size={13} aria-hidden="true" />
             back to the index
@@ -196,7 +196,7 @@ export default async function CaseStudyPage({
         <nav aria-label="Breadcrumb" className={`${SHELL} pt-5`}>
           <a
             href={withBase(`/#${project.id}`)}
-            className="label -mx-2 inline-flex items-center gap-2 px-2 py-1 transition-colors hover:bg-signal hover:text-ground"
+            className="label -mx-2 inline-flex min-h-11 items-center gap-2 px-2 py-4 transition-colors hover:bg-signal hover:text-ground"
           >
             <ArrowLeft size={11} aria-hidden="true" />
             the record · {actNumeral}
@@ -420,7 +420,7 @@ export default async function CaseStudyPage({
           >
             <a
               href={withBase(`/projects/${prevProject.id}/`)}
-              className="label -mx-2 flex items-center gap-2 px-2 py-1 transition-colors hover:bg-signal hover:text-ground"
+              className="label -mx-2 flex min-h-11 items-center gap-2 px-2 py-4 transition-colors hover:bg-signal hover:text-ground"
             >
               <ArrowLeft size={12} aria-hidden="true" />
               <span className="sr-only">Previous case file: </span>
@@ -428,7 +428,7 @@ export default async function CaseStudyPage({
             </a>
             <a
               href={withBase(`/projects/${nextProject.id}/`)}
-              className="label -mx-2 flex items-center gap-2 px-2 py-1 text-right transition-colors hover:bg-signal hover:text-ground"
+              className="label -mx-2 flex min-h-11 items-center gap-2 px-2 py-4 text-right transition-colors hover:bg-signal hover:text-ground"
             >
               <span className="sr-only">Next case file: </span>
               {shortName(nextProject.name)}

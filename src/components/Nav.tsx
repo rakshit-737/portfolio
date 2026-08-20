@@ -161,19 +161,24 @@ export default function Nav() {
           </a>
         </div>
 
-        <div className="flex items-center gap-1 md:hidden">
+        <div className="flex items-center md:hidden">
+          {/* 44px minimum tap target (WCAG 2.5.5) — the icon itself stays
+              small (18px), so the extra hit area comes from `min-h-11
+              min-w-11` centring, the same device `Bracket.tsx` and the
+              certificate lightbox's close button already use, not from
+              inflating the icon. */}
           <button
             type="button"
             onClick={openPalette}
             aria-label="Search the field"
-            className="p-2"
+            className="flex min-h-11 min-w-11 items-center justify-center"
           >
             <Search size={18} aria-hidden="true" />
           </button>
           <button
             type="button"
             ref={menuButtonRef}
-            className="-mr-2 p-2"
+            className="-mr-1.5 flex min-h-11 min-w-11 items-center justify-center"
             aria-expanded={open}
             aria-controls={open ? "mobile-menu" : undefined}
             aria-label={open ? "Close menu" : "Open menu"}
@@ -194,7 +199,7 @@ export default function Nav() {
                   key={s.id}
                   href={`#${s.id}`}
                   aria-current={active === s.id ? "location" : undefined}
-                  className={`label border-b border-rule-soft px-2 py-3.5 last:border-b-0 ${
+                  className={`label border-b border-rule-soft px-2 py-4 last:border-b-0 ${
                     active === s.id ? "bg-signal text-ground" : ""
                   }`}
                   onClick={(e) => {
@@ -208,7 +213,7 @@ export default function Nav() {
               <a
                 href={withBase(links.resume)}
                 download
-                className="label mt-3 bg-signal px-3 py-3 text-center text-ground"
+                className="label mt-3 bg-signal px-3 py-4 text-center text-ground"
                 onClick={() => setOpen(false)}
               >
                 Download résumé

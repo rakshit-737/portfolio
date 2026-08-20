@@ -414,7 +414,7 @@ export default function CommandPalette() {
                   tabIndex={-1}
                   onMouseEnter={() => setSelected(i)}
                   onClick={() => run(c)}
-                  className={`flex cursor-pointer items-center justify-between gap-4 px-4 py-2.5 font-mono text-sm ${
+                  className={`flex min-h-11 cursor-pointer items-center justify-between gap-4 px-4 py-3 font-mono text-sm ${
                     i === selected ? "bg-signal text-ground" : ""
                   }`}
                 >

@@ -23,11 +23,20 @@ export default function Provenance({
     <ul className={`flex flex-wrap items-center gap-x-3 gap-y-2 ${className}`}>
       {segments.map((s, i) => {
         const chip = s.tone === "pass" || s.tone === "fail";
+        // Padding, not font size: a pass/fail chip is the one provenance
+        // token styled as a real badge (background or outline, not just an
+        // underline), so it's the one worth nudging toward a real tap
+        // target. Not the full 44px (WCAG 2.5.5, AAA) — these sit inline in
+        // a dense receipt line with 12px gaps between neighbours (see the
+        // `gap-x-3` on the list above); a 44px-tall badge in a 12px gap
+        // would overlap its neighbours' hit areas, mis-tapping the wrong
+        // record. py-1.5 clears the 24px WCAG 2.5.8 (AA) floor instead,
+        // which the gap between chips can actually accommodate.
         const content = (
           <span
             className={
               chip
-                ? `inline-flex items-center gap-1.5 px-1.5 py-0.5 ${
+                ? `inline-flex items-center gap-1.5 px-1.5 py-1.5 ${
                     s.tone === "pass"
                       ? "bg-signal text-ground"
                       : "border border-signal"

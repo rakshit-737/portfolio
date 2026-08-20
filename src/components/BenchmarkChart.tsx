@@ -93,13 +93,13 @@ export default function BenchmarkChart() {
               <tr key={p.name} className="border-b border-rule-soft">
                 <th
                   scope="row"
-                  className="w-full py-2.5 pr-4 pl-2 text-left font-mono text-[0.8125rem] leading-tight font-normal sm:w-[15rem] sm:min-w-[15rem]"
+                  className="w-[46%] py-2.5 pr-3 pl-2 text-left font-mono text-[0.8125rem] leading-tight font-normal sm:w-[15rem] sm:min-w-[15rem] sm:pr-4"
                 >
                   {p.name}
                 </th>
                 <td className="py-2.5 pr-2 align-middle sm:w-full">
                   <span className="flex items-center gap-3">
-                    <span className="relative block h-2.5 grow bg-signal/12">
+                    <span className="relative block h-2.5 min-w-8 grow bg-signal/12">
                       <span
                         className={`bar-grow absolute inset-y-0 left-0 block ${p.highlight ? "bg-signal" : "bg-signal/55"}`}
                         style={

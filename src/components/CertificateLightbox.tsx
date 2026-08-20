@@ -67,7 +67,15 @@ export default function CertificateLightbox({
           requestAnimationFrame(() => closeRef.current?.focus());
         }}
         aria-label={triggerLabel}
-        className="inline-block border border-rule p-1 transition-colors hover:border-signal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+        // `min-w-11`: the thumbnail is `w-auto`, sized from the lazy-loaded
+        // image's own intrinsic ratio — before that image has decoded (a
+        // real window on a slow mobile connection, or simply a keyboard
+        // user tabbing here faster than the image can load) the `<img>`
+        // has no ratio to size from and the button collapses to little
+        // more than its own border/padding, well under a usable tap
+        // target. The floor is invisible once the thumbnail has loaded
+        // (every real certificate scan renders wider than 44px at `h-20`).
+        className="inline-block min-h-11 min-w-11 border border-rule p-1 transition-colors hover:border-signal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
       >
         {thumbnail}
       </button>
