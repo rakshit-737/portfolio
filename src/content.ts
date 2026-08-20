@@ -51,8 +51,13 @@ export interface MoreProject {
 
 export const site = {
   title: "Rakshit Rameshbabu — Software & Security Engineer",
+  /** P13: the meta-description budget is 155 characters — the original
+   *  copy here ran 203. This is `hero.role` + `hero.positioning` (both
+   *  below) joined verbatim, not new copy; `site` is declared before
+   *  `hero` in this module so the join is hardcoded rather than
+   *  referenced, but both source strings are unchanged. 136 chars. */
   description:
-    "Software & Security Engineer — B.Tech (Cyber Security) @ VIT Chennai. Full-stack products, backend systems, security research, and applied ML, taken end-to-end from requirements to CI-tested deployments.",
+    "Software & Security Engineer — B.Tech (Cyber Security) @ VIT Chennai. I build full-stack products and backend systems, taken end-to-end.",
   /** Override with NEXT_PUBLIC_SITE_URL at build time (see README).
    *  Fallback is the real GitHub Pages project URL — absolute OG/sitemap
    *  URLs stay valid even when the env var is missing. */
@@ -149,7 +154,11 @@ export const links = {
     url: "https://linkedin.com/in/rakshit-rameshbabu",
   },
   email: "rakshitoffl@gmail.com",
-  resume: "/resume.pdf",
+  /** P13: every on-site link now points at the named file — clearer in a
+   *  browser's download tray than "resume.pdf". The old `/resume.pdf` path
+   *  (`public/resume.pdf`, byte-identical copy) is kept serving too, so any
+   *  link to it from outside this repo doesn't break. */
+  resume: "/rakshit-rameshbabu-resume.pdf",
 } as const;
 
 /**

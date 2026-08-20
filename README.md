@@ -58,6 +58,16 @@ CI (`.github/workflows/ci.yml`) enforces, on every push and PR:
   routes 200, internal links resolve, plate credits render, the lamp turns
   on and moves with scroll) plus an axe accessibility scan that must report
   zero violations
+- `tests/seo.spec.ts` — per-page title/description/canonical, OG/Twitter
+  cards (real 1200×630 PNGs, absolute URLs), JSON-LD (`Person` + `WebSite`
+  on `/`, `SoftwareSourceCode` per case study), sitemap/robots correctness
+  under `site.url`, the GitHub Pages 404/deep-link export shape, and both
+  résumé paths
+- `tests/hirepath.spec.ts` — the thirty-second recruiter path: land on `/`,
+  the hero states who this is in one click's reach of the Warden case file,
+  the résumé resolves as a real PDF, and a `mailto:` contact link exists —
+  gated on interaction count, not wall-clock (CI timing is noisy; DOM-ready
+  timing is still logged, non-blocking)
 - `scripts/check-lighthouse.mjs` — Lighthouse category minimums (mobile +
   desktop) and a CLS cap; thresholds are a ratchet, raised as numbers
   improve, never lowered to pass.
