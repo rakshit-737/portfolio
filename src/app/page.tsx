@@ -6,6 +6,7 @@ import { GithubIcon, LinkedinIcon } from "@/components/icons";
 import Act from "@/components/Act";
 import BenchmarkChart from "@/components/BenchmarkChart";
 import { BracketLink } from "@/components/Bracket";
+import CertificateLightbox from "@/components/CertificateLightbox";
 import CommandPalette from "@/components/CommandPalette";
 import CopyEmailButton from "@/components/CopyEmailButton";
 import Exhibit from "@/components/Exhibit";
@@ -23,6 +24,7 @@ import {
   archive,
   benchmarkChart,
   caseStudies,
+  type Certification,
   certifications,
   contact,
   education,
@@ -67,6 +69,32 @@ const wardenExhibitRows = exhibits.warden.rows.map((label) => {
   }
   return row;
 });
+
+// P8: the ledger's certifications group presents `content.ts`'s
+// `certifications` array in a different order than it's declared in —
+// Azure Fundamentals leads (the heaviest external, verified credential),
+// and the three Anthropic course completions render together under a
+// lighter "Coursework" subheading so they don't dilute the two
+// awarded/verified credentials above them. This is a render-order split
+// only; `certifications` itself is untouched, and the two derived lists
+// are checked back against its length so a future entry can't silently
+// vanish from both.
+const courseworkCertifications = certifications.filter(
+  (c) => c.organiser === "Anthropic",
+);
+const leadCertifications = certifications
+  .filter((c) => c.organiser !== "Anthropic")
+  .sort((a, b) =>
+    a.reason === "Azure Fundamentals" ? -1 : b.reason === "Azure Fundamentals" ? 1 : 0,
+  );
+if (
+  leadCertifications.length + courseworkCertifications.length !==
+  certifications.length
+) {
+  throw new Error(
+    "leadCertifications/courseworkCertifications lost or duplicated an entry from certifications",
+  );
+}
 
 const personJsonLd = {
   "@context": "https://schema.org",
@@ -133,6 +161,96 @@ function exhibitShotAssets(stem: string): { avif: string; webp: string } | null 
   const webp = `${stem}.webp`;
   const has = (p: string) => existsSync(join(process.cwd(), "public", p));
   return has(avif) && has(webp) ? { avif, webp } : null;
+}
+
+function certKey(c: Certification): string {
+  return `${c.title}-${c.reason}-${c.awardedTo}`;
+}
+
+/** P8: one ledger certifications row — shared by the lead credentials and
+ *  the Coursework subgroup so the two lists can't drift in markup. The
+ *  thumbnail (when the scan file exists) is the row's receipt chip and
+ *  now opens in `CertificateLightbox`'s native `<dialog>` instead of
+ *  navigating to the bare PNG a plain `<a>` used to. */
+function CertificationRow({ c }: { c: Certification }) {
+  const image = certificateImage(c.image);
+  const thumb = image ? certificateThumb(image) : null;
+  const scanAlt = c.event
+    ? `Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for ${c.reason} at ${c.event}`
+    : `Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for completing "${c.reason}", issued by ${c.organiser}`;
+
+  return (
+    <li className="border-b border-rule py-6">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div className="min-w-0">
+          <h4 className="font-mono text-base leading-snug font-semibold tracking-tight">
+            {c.title}
+          </h4>
+          <p className="prose-field mt-1.5 text-sm">
+            {c.awardedTo}
+            {c.registration ? ` — reg. ${c.registration}` : ""}
+          </p>
+        </div>
+        {image && (
+          <CertificateLightbox
+            fullSrc={withBase(image)}
+            alt={scanAlt}
+            triggerLabel={`View the "${c.title}" certificate scan`}
+            thumbnail={
+              thumb ? (
+                <picture>
+                  <source srcSet={withBase(thumb.avif)} type="image/avif" />
+                  <source srcSet={withBase(thumb.webp)} type="image/webp" />
+                  <img
+                    src={withBase(thumb.webp)}
+                    alt={scanAlt}
+                    className="block h-20 w-auto"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </picture>
+              ) : (
+                <img
+                  src={withBase(image)}
+                  alt={scanAlt}
+                  className="block h-20 w-auto"
+                  loading="lazy"
+                  decoding="async"
+                />
+              )
+            }
+          />
+        )}
+      </div>
+      <p className="prose-field mt-2 text-[0.9375rem]">
+        {c.event ? (
+          <>
+            Awarded for securing {c.reason} at {c.event}, organized by{" "}
+            {c.organiser}.
+          </>
+        ) : (
+          <>
+            Completed &ldquo;{c.reason}&rdquo;, issued by {c.organiser}.
+          </>
+        )}
+        {c.partners && c.partners.length > 0 && (
+          <> Delivered in partnership with {c.partners.join(", ")}.</>
+        )}
+      </p>
+      <Provenance
+        className="mt-3"
+        segments={[
+          ...(c.date ? [{ label: c.date }] : []),
+          ...(c.verificationUrl
+            ? [{ label: "verify", href: c.verificationUrl }]
+            : []),
+          ...(c.signatories ?? []).map((s) => ({
+            label: `${s.name} — ${s.role}`,
+          })),
+        ]}
+      />
+    </li>
+  );
 }
 
 export default async function Home() {
@@ -606,235 +724,231 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className={`${SHELL} scrim scrim-wide relative z-10 py-24`}>
+          <div className={`${SHELL} scrim scrim-wide relative z-10 py-16`}>
             <Statement id="ledger-title">{acts.ledger.statement}</Statement>
 
-            <h3 className="label mt-16 border-b border-rule pb-2">Archive</h3>
-            <ul>
-              {moreProjects.map((project, i) => (
-                <li
-                  key={project.name}
-                  className="grid gap-x-12 gap-y-4 border-b border-rule py-9 lg:grid-cols-[22rem_minmax(0,1fr)]"
-                >
-                  <div>
-                    <h3 className="font-mono text-base leading-snug font-semibold tracking-tight">
-                      {project.name}
-                    </h3>
-                    <Provenance
-                      className="mt-3"
-                      segments={[
-                        ...project.evidence,
-                        ...liveSegments(moreLive[i]),
-                      ]}
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="prose-field text-[0.9375rem]">
-                      <Metric text={project.description} />
-                    </p>
-                    <ul
-                      aria-label="Technologies"
-                      className="mt-4 flex flex-wrap gap-2"
-                    >
-                      {project.tech.map((t) => (
-                        <li
-                          key={t}
-                          className="label border border-rule px-2 py-1 normal-case"
-                        >
-                          {t}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </li>
-              ))}
-
-              <li className="grid gap-x-12 gap-y-4 border-b border-rule py-9 lg:grid-cols-[22rem_minmax(0,1fr)]">
-                <div>
-                  <h3 className="font-mono text-base leading-snug font-semibold tracking-tight">
-                    {archive.title}
-                  </h3>
-                  <Provenance className="mt-3" segments={[...archive.evidence]} />
-                </div>
-                <div>
-                  <p className="prose-field text-[0.9375rem]">
-                    {archive.description}
-                  </p>
-                  <div className="print-hidden mt-5">
-                    <BracketLink href={archive.url} small external>
-                      Browse all repositories
-                      <ArrowUpRight size={12} aria-hidden="true" />
-                    </BracketLink>
-                  </div>
-                </div>
-              </li>
-            </ul>
-
-            <h3 className="label mt-16 border-b border-rule pb-2">Achievements</h3>
-            <ul>
-              {achievements.map((a) => (
-                <li
-                  key={a.title}
-                  className="flex flex-col gap-3 border-b border-rule py-7 sm:flex-row sm:items-baseline sm:justify-between sm:gap-10"
-                >
-                  <div className="min-w-0">
-                    <h3 className="font-mono text-base leading-snug font-semibold tracking-tight">
-                      {a.title}
-                    </h3>
-                    <p className="prose-field mt-2 text-sm">{a.detail}</p>
-                  </div>
-                  <Provenance
-                    className="shrink-0 sm:justify-end"
-                    segments={[
-                      { label: a.date },
-                      ...(a.certificateUrl
-                        ? [{ label: "certificate", href: withBase(a.certificateUrl) }]
-                        : []),
-                    ]}
-                  />
-                </li>
-              ))}
-            </ul>
-
-            <h3 className="label mt-16 border-b border-rule pb-2">
-              Certifications
-            </h3>
-            <ul>
-              {certifications.map((c) => {
-                const image = certificateImage(c.image);
-                const thumb = image ? certificateThumb(image) : null;
-                const scanAlt = c.event
-                  ? `Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for ${c.reason} at ${c.event}`
-                  : `Scan of the "${c.title}" certificate, awarded to ${c.awardedTo} for completing "${c.reason}", issued by ${c.organiser}`;
-                return (
-                  <li
-                    key={`${c.title}-${c.reason}-${c.awardedTo}`}
-                    className="grid gap-x-12 gap-y-4 border-b border-rule py-9 lg:grid-cols-[22rem_minmax(0,1fr)]"
+            {/* P8: entries in a capped-width left column, the sticky plate
+                behind it showing through the right — a real two-track grid
+                below `md` (48rem), a single stacked column above it. Kept
+                as one direct `.scrim` child (with the credit line below as
+                a second) so the act's own one-authored-moment reveal still
+                fires as two beats rather than one per group. */}
+            <div className="mt-10 md:grid md:grid-cols-[minmax(0,46rem)_1fr] md:gap-x-16">
+              <div>
+                {/* 1. Capability matrix — text chips, not images, so a
+                    recruiter's ctrl-F still finds every line. Leads the
+                    ledger: it's the one-screen scan a reader does first. */}
+                <section aria-labelledby="ledger-skills-heading">
+                  <h3
+                    id="ledger-skills-heading"
+                    className="label border-b border-rule pb-2"
                   >
-                    <div>
-                      <h3 className="font-mono text-base leading-snug font-semibold tracking-tight">
-                        {c.title}
-                      </h3>
-                      <p className="prose-field mt-2 text-sm">
-                        {c.awardedTo}
-                        {c.registration ? ` — reg. ${c.registration}` : ""}
-                      </p>
-                      {image && (
-                        <a
-                          href={withBase(image)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 inline-block border border-rule p-1"
-                        >
-                          {thumb ? (
-                            <picture>
-                              <source
-                                srcSet={withBase(thumb.avif)}
-                                type="image/avif"
-                              />
-                              <source
-                                srcSet={withBase(thumb.webp)}
-                                type="image/webp"
-                              />
-                              <img
-                                src={withBase(thumb.webp)}
-                                alt={scanAlt}
-                                className="block h-28 w-auto"
-                                loading="lazy"
-                                decoding="async"
-                              />
-                            </picture>
-                          ) : (
-                            <img
-                              src={withBase(image)}
-                              alt={scanAlt}
-                              className="block h-28 w-auto"
-                              loading="lazy"
-                              decoding="async"
-                            />
-                          )}
-                        </a>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="prose-field text-[0.9375rem]">
-                        {c.event ? (
-                          <>
-                            Awarded for securing {c.reason} at {c.event},
-                            organized by {c.organiser}.
-                          </>
-                        ) : (
-                          <>
-                            Completed &ldquo;{c.reason}&rdquo;, issued by{" "}
-                            {c.organiser}.
-                          </>
-                        )}
-                        {c.partners && c.partners.length > 0 && (
-                          <> Delivered in partnership with {c.partners.join(", ")}.</>
-                        )}
-                      </p>
-                      <Provenance
-                        className="mt-4"
-                        segments={[
-                          ...(c.date ? [{ label: c.date }] : []),
-                          ...(c.verificationUrl
-                            ? [{ label: "verify", href: c.verificationUrl }]
-                            : []),
-                          ...(c.signatories ?? []).map((s) => ({
-                            label: `${s.name} — ${s.role}`,
-                          })),
-                        ]}
-                      />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                    Skills
+                  </h3>
+                  <dl className="mt-4 grid gap-x-10 gap-y-6 sm:grid-cols-2">
+                    {skills.map(({ group, items }) => (
+                      <div key={group}>
+                        <dt className="label">{group}</dt>
+                        <dd className="mt-2">
+                          <ul className="flex flex-wrap gap-2">
+                            {items.map((item) => (
+                              <li
+                                key={item}
+                                className="label border border-rule px-2.5 py-1.5 normal-case"
+                              >
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
 
-            <h3 className="label mt-16 border-b border-rule pb-2">Skills</h3>
-            <dl className="mt-4">
-              {skills.map(({ group, items }) => (
-                <div
-                  key={group}
-                  className="grid gap-x-12 gap-y-3 border-b border-rule py-6 lg:grid-cols-[14rem_minmax(0,1fr)]"
+                {/* 2. Achievements — Cyber Secure 360's First Prize already
+                    leads in content.ts; presentation order matches it. */}
+                <section
+                  aria-labelledby="ledger-achievements-heading"
+                  className="mt-14"
                 >
-                  <dt className="label">{group}</dt>
-                  <dd>
-                    <ul className="flex flex-wrap gap-2">
-                      {items.map((item) => (
-                        <li
-                          key={item}
-                          className="label border border-rule px-2.5 py-1.5 normal-case"
-                        >
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </dd>
-                </div>
-              ))}
-            </dl>
+                  <h3
+                    id="ledger-achievements-heading"
+                    className="label border-b border-rule pb-2"
+                  >
+                    Achievements
+                  </h3>
+                  <ul>
+                    {achievements.map((a) => (
+                      <li key={a.title} className="border-b border-rule py-6">
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                          <h4 className="font-mono text-base leading-snug font-semibold tracking-tight">
+                            {a.title}
+                          </h4>
+                          <span className="label shrink-0 tabular-nums">
+                            {a.date}
+                          </span>
+                        </div>
+                        <p className="prose-field mt-1.5 text-sm">{a.detail}</p>
+                        {a.certificateUrl && (
+                          <Provenance
+                            className="mt-3"
+                            segments={[
+                              {
+                                label: "certificate",
+                                href: withBase(a.certificateUrl),
+                              },
+                            ]}
+                          />
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
 
-            <h3 className="label mt-16 border-b border-rule pb-2">Education</h3>
-            <ul>
-              {education.map((e) => (
-                <li
-                  key={e.degree}
-                  className="grid gap-x-10 gap-y-2 border-b border-rule py-7 sm:grid-cols-[minmax(0,1fr)_10rem_9rem] sm:items-baseline"
+                {/* 3. Education. */}
+                <section
+                  aria-labelledby="ledger-education-heading"
+                  className="mt-14"
                 >
-                  <div>
-                    <h3 className="font-mono text-base leading-snug font-semibold tracking-tight">
-                      {e.degree}
-                    </h3>
-                    <p className="prose-field mt-1.5 text-sm">{e.institution}</p>
-                  </div>
-                  <p className="label">{e.period}</p>
-                  <p className="font-mono text-lg leading-none tracking-tight tabular-nums sm:text-right">
-                    {e.score}
-                  </p>
-                </li>
-              ))}
-            </ul>
+                  <h3
+                    id="ledger-education-heading"
+                    className="label border-b border-rule pb-2"
+                  >
+                    Education
+                  </h3>
+                  <ul>
+                    {education.map((e) => (
+                      <li
+                        key={e.degree}
+                        className="grid gap-x-6 gap-y-2 border-b border-rule py-6 sm:grid-cols-[minmax(0,1fr)_7rem] sm:items-baseline"
+                      >
+                        <div>
+                          <h4 className="font-mono text-base leading-snug font-semibold tracking-tight">
+                            {e.degree}
+                          </h4>
+                          <p className="prose-field mt-1.5 text-sm">
+                            {e.institution}
+                          </p>
+                          <p className="label mt-1.5">{e.period}</p>
+                        </div>
+                        <p className="font-mono text-lg leading-none tracking-tight tabular-nums sm:text-right">
+                          {e.score}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+
+                {/* 4. Certifications — Azure Fundamentals leads; the three
+                    Anthropic course completions render together under a
+                    lighter "Coursework" subheading (see the
+                    leadCertifications/courseworkCertifications split
+                    above) so the two awarded/verified credentials aren't
+                    diluted by three completion certificates. Each scan's
+                    thumbnail is the entry's receipt chip — the receipt
+                    itself opens in CertificateLightbox's <dialog> now,
+                    never as a bare-PNG navigation. */}
+                <section
+                  aria-labelledby="ledger-certifications-heading"
+                  className="mt-14"
+                >
+                  <h3
+                    id="ledger-certifications-heading"
+                    className="label border-b border-rule pb-2"
+                  >
+                    Certifications
+                  </h3>
+                  <ul>
+                    {leadCertifications.map((c) => (
+                      <CertificationRow key={certKey(c)} c={c} />
+                    ))}
+                  </ul>
+                  {courseworkCertifications.length > 0 && (
+                    <>
+                      <p className="label mt-8 border-b border-rule-soft pb-2 normal-case tracking-[0.13em]">
+                        Coursework
+                      </p>
+                      <ul>
+                        {courseworkCertifications.map((c) => (
+                          <CertificationRow key={certKey(c)} c={c} />
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </section>
+
+                {/* 5. Archive projects, last — compact ruled rows: date ·
+                    title · one-line description (CSS-truncated, never
+                    rewritten) · tech + repo/CI chips in the same
+                    Provenance grammar every other record on the site
+                    uses. */}
+                <section
+                  aria-labelledby="ledger-archive-heading"
+                  className="mt-14"
+                >
+                  <h3
+                    id="ledger-archive-heading"
+                    className="label border-b border-rule pb-2"
+                  >
+                    Archive
+                  </h3>
+                  <ul>
+                    {moreProjects.map((project, i) => (
+                      <li key={project.name} className="border-b border-rule py-6">
+                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                          <span className="label shrink-0 tabular-nums">
+                            {project.timeframe}
+                          </span>
+                          <h4 className="font-mono text-base leading-snug font-semibold tracking-tight">
+                            {project.name}
+                          </h4>
+                        </div>
+                        <p className="prose-field mt-1.5 truncate text-[0.9375rem]">
+                          <Metric text={project.description} />
+                        </p>
+                        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+                          <ul aria-label="Technologies" className="flex flex-wrap gap-2">
+                            {project.tech.map((t) => (
+                              <li
+                                key={t}
+                                className="label border border-rule px-2 py-1 normal-case"
+                              >
+                                {t}
+                              </li>
+                            ))}
+                          </ul>
+                          <Provenance
+                            segments={[
+                              ...project.evidence,
+                              ...liveSegments(moreLive[i]),
+                            ]}
+                          />
+                        </div>
+                      </li>
+                    ))}
+
+                    <li className="border-b border-rule py-6">
+                      <h4 className="font-mono text-base leading-snug font-semibold tracking-tight">
+                        {archive.title}
+                      </h4>
+                      <p className="prose-field mt-1.5 truncate text-[0.9375rem]">
+                        {archive.description}
+                      </p>
+                      <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <Provenance segments={[...archive.evidence]} />
+                        <div className="print-hidden">
+                          <BracketLink href={archive.url} small external>
+                            Browse all repositories
+                            <ArrowUpRight size={12} aria-hidden="true" />
+                          </BracketLink>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </section>
+              </div>
+            </div>
 
             <Provenance
               className="mt-12"

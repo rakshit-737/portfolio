@@ -301,7 +301,8 @@ just above the fold. Each act's content sits inside `.scrim`, a gradient
 that guards text from the painted midtone behind it — a left-to-right guard
 on wide screens, top-to-bottom on narrow ones (`≤48rem`), widened
 (`.scrim-wide`) for a reading column that runs wider than the standard
-band: the ledger's two-column archive grid, and the scheduler act, whose
+band: the ledger's own capped-width entries column (see Ledger below), and
+the scheduler act, whose
 widest headline number ("p = 2.6×10⁻¹⁶") pushes its `headlineNumbers` row
 past the standard scrim's protected zone (measured directly: L=0.086 lit,
 against the ember contrast gate's L≤0.058 ceiling, before `.scrim-wide`).
@@ -590,6 +591,51 @@ source figcaption now the exhibit's own caption
 renders nothing until the owner supplies real AVIF/WebP captures under
 `public/exhibits/` (see that folder's `README.md`) — the same
 pending-asset convention a certificate scan with no scan yet already uses.
+
+### Ledger
+The seventh act (P8) is a dense instrument rather than a flat run of lists:
+its content sits in a capped-width left column (`md:grid-cols-[minmax(0,46rem)_1fr]`,
+`md` = 48rem) with the sticky `dovedale` plate showing through the open
+right track, collapsing to one stacked column below `md` — the same
+breakpoint `.scrim-wide`'s own narrow-viewport gradient already switches
+at. Content, top to bottom:
+
+1. **Capability matrix** — `skills`' six groups (Languages, Core CS,
+   Backend & Frameworks, Databases & Infra, Security, AI-Native Workflow)
+   as grouped text chips in a `sm:grid-cols-2` matrix, not images, so the
+   whole set scans (and ctrl-Fs) in roughly one screen. Leads the act.
+2. **Achievements** — Cyber Secure 360's First Prize already leads in
+   `content.ts`; presentation follows.
+3. **Education.**
+4. **Certifications** — Azure Fundamentals leads (a render-order split
+   only, `leadCertifications`/`courseworkCertifications` in `page.tsx`,
+   commented at the split); the three Anthropic course completions (AI
+   Fluency, Claude 101, Claude Code in Action) render together under a
+   lighter "Coursework" subheading (`border-rule-soft`, not a fourth
+   heading level) so they don't dilute the two awarded/verified
+   credentials above them.
+5. **Archive** (Taintwall, SentinelCore, Web App Security Suite, then the
+   "Full archive" GitHub tile) — last, and the one group whose rows are
+   genuinely compact: a mono date, the title, a CSS-`truncate`d one-line
+   description (never rewritten — the source copy is unchanged), then the
+   existing tech-chip list and `Provenance` grammar.
+
+Every group is a `<section aria-labelledby>` naming its own `h3`; every
+record inside a group — an achievement, a degree, a certification, an
+archive project — is an `h4`, not a second `h3`. This replaces the flat
+h3-only outline the act previously shipped (every record and every group
+heading at the same level) with a real two-level structure, still legal
+under axe and under the "act statement is h2, groups are h3" rule.
+
+Certificate thumbnails (`CertificateLightbox.tsx`) open the full-resolution
+scan in a native `<dialog>` instead of navigating to a bare PNG: `showModal()`
+supplies focus-trapping and Escape-to-close for free, a click on the
+dialog's own backdrop area closes it, and focus returns to the triggering
+thumbnail on close via the dialog's native `close` event — no new
+dependency. The full-resolution `<img>` is only mounted once the dialog is
+actually open, so the thumbnail stays the only certificate-image cost paid
+at page load. No radius, no shadow: a single hairline `border-rule` frame,
+the same grammar as every other bordered surface on the site.
 
 ### Diagram Flow
 A pipeline on a hairline rail, structurally unchanged. The verdict stage is

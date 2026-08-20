@@ -621,6 +621,20 @@ section[id] {
   transform: scaleX(0);
 }
 
+/* Certificate lightbox (CertificateLightbox.tsx): a native <dialog>, so
+   the only rules this needs are its own centering (Tailwind's preflight
+   zeroes every element's margin, which would otherwise defeat the UA's
+   own auto-centering of a modal dialog) and its backdrop — Escape,
+   focus-on-open and the top-layer painting all come from the browser,
+   not from this stylesheet. No radius, no shadow: a single hairline
+   frame, the same grammar as every other bordered surface on the site. */
+.certificate-lightbox {
+  margin: auto;
+}
+.certificate-lightbox::backdrop {
+  background: color-mix(in srgb, var(--color-ground) 85%, transparent);
+}
+
 /* ── Print: the field on paper ───────────────────────────────────────── */
 
 @media print {
