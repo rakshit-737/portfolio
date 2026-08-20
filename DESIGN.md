@@ -616,9 +616,15 @@ at. Content, top to bottom:
    credentials above them.
 5. **Archive** (Taintwall, SentinelCore, Web App Security Suite, then the
    "Full archive" GitHub tile) — last, and the one group whose rows are
-   genuinely compact: a mono date, the title, a CSS-`truncate`d one-line
-   description (never rewritten — the source copy is unchanged), then the
-   existing tech-chip list and `Provenance` grammar.
+   genuinely compact: a mono date, the title, a one-line description
+   (never rewritten — the source copy is unchanged), then the existing
+   tech-chip list and `Provenance` grammar. The description is
+   CSS-`truncate`d to one line *only* when it carries no `**metric**`
+   span — Taintwall's row (`measured **43% → 0% exfiltration**`) skips
+   truncation and wraps instead, so the single-line cutoff can never land
+   mid-clause and hide the exact number `**text**` exists to headline
+   (AGENTS.md's "marks the single strongest metric" rule). Rows without a
+   metric keep the one-line truncated grammar.
 
 Every group is a `<section aria-labelledby>` naming its own `h3`; every
 record inside a group — an achievement, a degree, a certification, an

@@ -904,7 +904,23 @@ export default async function Home() {
                             {project.name}
                           </h4>
                         </div>
-                        <p className="prose-field mt-1.5 truncate text-[0.9375rem]">
+                        {/* Single-line `truncate` collides with the
+                            `**metric**` emphasis convention (AGENTS.md:
+                            "marks the single strongest metric") when the
+                            bold span lands late in the sentence — a
+                            row-length cutoff would hide the very number
+                            it's meant to headline. Rows carrying a metric
+                            skip truncation and wrap instead (`Metric`
+                            still renders it as a bold mono chip); rows
+                            without one keep the brief's one-line
+                            truncated row. */}
+                        <p
+                          className={`prose-field mt-1.5 text-[0.9375rem] ${
+                            project.description.includes("**")
+                              ? ""
+                              : "truncate"
+                          }`}
+                        >
                           <Metric text={project.description} />
                         </p>
                         <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">

@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import sharp from "sharp";
 
@@ -1704,3 +1705,88 @@ for (const id of ACTS) {
     await ctx.close();
   });
 }
+
+// P8 review fix: the ledger's certificate lightbox (CertificateLightbox.tsx)
+// shipped with no automated coverage of its focus contract or its
+// "full-res loads only on open" claim, despite the brief requiring both.
+// These tests exercise the Azure Fundamentals certification row — the
+// leading entry in `leadCertifications`, so it's the first thumbnail
+// trigger in document order and needs no extra scrolling to reach.
+const AZURE_TRIGGER_LABEL =
+  'View the "Microsoft Certified: Azure Fundamentals" certificate scan';
+const AZURE_SCAN_URL_RE = /\/certificates\/azure-fundamentals\.png$/;
+
+test("the certificate lightbox opens focused, loads the full scan only on open, and Escape closes it with focus returned", async ({
+  page,
+}) => {
+  const requested: string[] = [];
+  page.on("request", (r) => {
+    if (AZURE_SCAN_URL_RE.test(r.url())) requested.push(r.url());
+  });
+
+  await page.goto("/");
+  const trigger = page.getByRole("button", { name: AZURE_TRIGGER_LABEL });
+  await trigger.scrollIntoViewIfNeeded();
+
+  // The thumbnail (AVIF/WebP) is page-load cost; the full-res PNG must not
+  // have been requested before the dialog opens.
+  expect(requested).toEqual([]);
+
+  await trigger.click();
+
+  const dialog = page.getByRole("dialog", { name: /Azure Fundamentals/i });
+  await expect(dialog).toBeVisible();
+
+  // Focus contract: focus moved inside the dialog, not left on the page
+  // body or stranded on the trigger.
+  const closeButton = dialog.getByRole("button", { name: "Close certificate" });
+  await expect(closeButton).toBeFocused();
+
+  // The full-res scan is only requested once the dialog is actually open.
+  await expect(dialog.getByRole("img")).toBeVisible();
+  expect(requested).toEqual([expect.stringMatching(AZURE_SCAN_URL_RE)]);
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  // Escape must not have fired a second, redundant fetch of the scan.
+  expect(requested).toHaveLength(1);
+});
+
+test("the certificate lightbox closes on a backdrop click and returns focus to the trigger", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const trigger = page.getByRole("button", { name: AZURE_TRIGGER_LABEL });
+  await trigger.scrollIntoViewIfNeeded();
+  await trigger.click();
+
+  const dialog = page.getByRole("dialog", { name: /Azure Fundamentals/i });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("img")).toBeVisible();
+
+  // A click landing on the dialog's own ::backdrop resolves its target to
+  // the dialog element itself — click near the viewport corner, well
+  // outside the centred, size-capped dialog box.
+  await page.mouse.click(2, 2);
+
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test("axe: no violations on / with a certificate lightbox open", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const trigger = page.getByRole("button", { name: AZURE_TRIGGER_LABEL });
+  await trigger.scrollIntoViewIfNeeded();
+  await trigger.click();
+
+  const dialog = page.getByRole("dialog", { name: /Azure Fundamentals/i });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("img")).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
