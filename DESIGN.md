@@ -361,7 +361,14 @@ with `--lamp-r`'s literal fallback (26vmax), exactly the "lamp static and
 centred" the spec asks for (§5.2). Below it, sections follow the previous
 system's grammar unchanged: a `13rem` sticky title column
 (`lg:sticky lg:top-24`) against a fluid content column, separated by
-`border-t border-rule`, `3rem`–`4rem` of vertical padding.
+`border-t border-rule`, `3rem`–`4rem` of vertical padding. Every one of
+these sections (`.case-section`) carries `content-visibility: auto` with
+`contain-intrinsic-size: auto 640px` — pure prose/table content, no
+`[data-act]`, nothing Lamp.tsx ever scrubs, so a section well outside the
+viewport skips layout and paint entirely rather than staying live, scroll
+after scroll (P6-perf). The landing acts do not carry this: an act's own
+rect-reading, `data-seen` reveal gate, and the ledger's sticky plate were
+not verified safe under content-visibility's containment.
 
 **Breakpoints.** Tailwind's defaults, at the same three thresholds as
 before: `sm` (640px) turns on the wider gutter, `md` (768px) turns on the
@@ -715,7 +722,12 @@ default) once a clear majority of that window is slow, and re-arms it once
 the ratio falls back to a small minority — the first time. A second trip in
 the same session latches the guard, so a device that genuinely can't hold
 frame budget in steady state gets one clean, permanent fallback rather than
-an unrecovering ~3s oscillation between masked and fully-lit.
+an unrecovering ~3s oscillation between masked and fully-lit. Idle-stop
+(P6-perf): with no scroll and no pointer movement for 600ms, and the
+pointer-lerp chase already settled, `tick` stops scheduling its own next
+frame instead of calling `requestAnimationFrame` again — a genuinely idle
+tab costs nothing per frame. Scroll, pointermove, and resize all wake it
+back up.
 
 ### Torch
 The page-wide cursor flashlight (`Torch.tsx`), desktop-only
@@ -732,6 +744,10 @@ plate's unlit floor while active
 (`[data-torch="on"][data-lamp="on"] .plate-dark`) so the torch's dimming
 wash and the lamp's own unlit floor don't compound into a darker painting
 than either produces alone — this selector must be compound (no space);
+idle-stop (P6-perf): disarming already made the torch invisible, but the
+loop used to keep running underneath it regardless — `tick` now also stops
+scheduling once disarmed and its radius chase has settled, and the next
+real `pointermove` restarts it, same as `Lamp.tsx`;
 `data-lamp` and `data-torch` are both on `<html>`, which has no ancestor, so
 a descendant-combinator version of this rule can never match.
 

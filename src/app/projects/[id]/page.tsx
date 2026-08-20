@@ -81,7 +81,7 @@ function CaseSection({
     <section
       id={slug}
       aria-labelledby={`${slug}-title`}
-      className="border-t border-rule py-12 sm:py-16"
+      className="case-section border-t border-rule py-12 sm:py-16"
     >
       <div className={`${SHELL} ${GRID}`}>
         <h2
@@ -382,7 +382,7 @@ export default async function CaseStudyPage({
 
         <section
           aria-labelledby="other-case-files-title"
-          className="border-t border-rule py-12 sm:py-16"
+          className="case-section border-t border-rule py-12 sm:py-16"
         >
           <div className={SHELL}>
             <h2

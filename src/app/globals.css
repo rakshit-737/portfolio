@@ -121,6 +121,26 @@ section[id] {
   letter-spacing: -0.02em;
 }
 
+/* P6-perf: below-fold case-file reading sections (Problem / Approach /
+   Decisions / Evidence / Outcome, plus the "other case files" footer list
+   on `/projects/[id]/`) skip layout and paint entirely while scrolled well
+   out of view, and get it back once they approach the viewport — pure
+   prose/table content with no scroll-driven JS reading its geometry
+   (`Lamp.tsx` only ever queries `[data-act]`, and no case-file section
+   carries that attribute). `auto 640px` lets the browser remember each
+   section's real rendered height after its first layout and use that as
+   the off-screen placeholder from then on, rather than a fixed guess that
+   would either overshoot (wasted reserved space) or undershoot (a layout
+   jump on approach) a specific section's actual content. Deliberately NOT
+   applied to the landing acts (`Act.tsx`) — those carry the lamp's own
+   rect-reading, `data-seen` reveal gating, and (on the ledger act) a
+   sticky plate, none of which this task verified stays correct under
+   content-visibility's layout containment; see the P6 report. */
+.case-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 640px;
+}
+
 /* A metric inside a bullet — the single strongest number in a `**bold**`
    run, rendered by Metric.tsx. Mono and semibold, never dimmed; body copy
    has no contrast headroom for an ember ::after layer, so this does not

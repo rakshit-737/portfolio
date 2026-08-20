@@ -29,6 +29,26 @@ import { POINTER_LERP, createFrameBudgetGuard } from "@/lib/motion";
  * page into masked mode by setting `data-lamp="on"`, so a no-JS visitor and
  * a reduced-motion visitor both get a handsome static painted page rather
  * than a black one.
+ *
+ * Idle-stop: the loop is not unconditional. With no scroll and no pointer
+ * movement for IDLE_MS, and the pointer-lerp chase already settled to
+ * within CHASE_EPS of its target (so stopping never freezes a visibly
+ * mid-flight lamp), `tick` simply declines to schedule its own next frame
+ * instead of calling `requestAnimationFrame` again — a genuinely idle tab
+ * costs nothing per frame rather than one rect-read + write per visible
+ * act, forever. `wake()` is the single place that restarts it: called from
+ * every input the loop needs to react to (scroll, pointermove, resize), it
+ * timestamps the activity and, if the loop had stopped, resets `last` to 0
+ * before requesting a new frame — `last = 0` matters because
+ * `guard.sample` reads `now - last` as the frame's own dt, and a stale
+ * `last` from before the idle gap would otherwise read as one huge,
+ * spuriously "slow" frame. The frame-budget guard itself needs no other
+ * accommodation: it already only mutates its rolling window from inside
+ * `sample`, which simply isn't called while the loop is stopped, so
+ * `startedAt`/`tripped`/`tripCount`/`latched` all sit exactly where idle-
+ * stop found them and resume from there — "persisted across stop/start" is
+ * the guard's default behaviour, not something this component has to ask
+ * for.
  */
 export default function Lamp() {
   useEffect(() => {
@@ -55,6 +75,22 @@ export default function Lamp() {
     // suspended the page falls back to the default, JS-free "fully lit"
     // rendering (`data-lamp` absent) rather than a frozen mid-reveal frame.
     let suspended = false;
+    // Idle-stop: how long the loop may go with no scroll and no pointer
+    // movement before it stops scheduling its own next frame. ~600ms is
+    // long enough that ordinary reading pauses (a beat between scroll
+    // gestures) don't thrash it on and off, short enough that a reader who
+    // has actually stopped isn't still paying a per-frame cost a second
+    // later.
+    const IDLE_MS = 600;
+    // The pointer-lerp chase (`smooth` below) must have visibly converged
+    // on the pointer's raw position before the loop is allowed to stop —
+    // otherwise stopping mid-chase would freeze the lamp partway through
+    // its glide toward the cursor instead of at rest. In the same
+    // viewport-fraction space `smooth`/`pointer` already use; 0.0008 is
+    // well under a visible pixel at any realistic viewport width.
+    const CHASE_EPS = 0.0008;
+    let lastActivity = 0;
+    let stopped = false;
     // Each act's `.ignite` elements, gathered once per collect() rather
     // than queried inside the per-frame loop — see the class doc comment.
     const igniteByAct = new Map<HTMLElement, HTMLElement[]>();
@@ -98,11 +134,28 @@ export default function Lamp() {
       { rootMargin: "10% 0px" },
     );
 
+    /** Timestamps the activity and, if the loop had actually stopped,
+     *  restarts it. `last = 0` before restarting is deliberate — see the
+     *  "Idle-stop" doc comment above the component for why a stale `last`
+     *  from before the idle gap would otherwise read as one spuriously
+     *  slow frame to the guard. */
+    const wake = (now: number) => {
+      lastActivity = now;
+      if (stopped) {
+        stopped = false;
+        last = 0;
+        frame = requestAnimationFrame(tick);
+      }
+    };
+
     const onPointer = (e: PointerEvent) => {
       pointer.x = e.clientX / window.innerWidth;
       pointer.y = e.clientY / window.innerHeight;
       pointer.active = true;
+      wake(e.timeStamp);
     };
+
+    const onScroll = () => wake(performance.now());
 
     // Suspends rather than tears down: a device that can't hold frame
     // budget gets the lamp turned off (the page falls back to the default
@@ -220,20 +273,45 @@ export default function Lamp() {
           }
         }
       }
+
+      // Idle-stop: no scroll/pointer activity for IDLE_MS, and the
+      // pointer-lerp chase (if it applies at all on this device) has
+      // visibly settled — both required, so stopping never freezes the
+      // lamp mid-glide. `wake()` above is the only path back in; it is
+      // called from every input this loop reacts to (scroll, pointermove,
+      // resize).
+      const idle = now - lastActivity > IDLE_MS;
+      const chaseSettled =
+        !fine ||
+        !pointer.active ||
+        (Math.abs(pointer.x - smooth.x) < CHASE_EPS &&
+          Math.abs(pointer.y - smooth.y) < CHASE_EPS);
+      if (idle && chaseSettled) {
+        stopped = true;
+        return;
+      }
       frame = requestAnimationFrame(tick);
+    };
+
+    const onResize = () => {
+      collect();
+      wake(performance.now());
     };
 
     const teardown = () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
       window.removeEventListener("pointermove", onPointer);
-      window.removeEventListener("resize", collect);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
     };
 
     root.setAttribute("data-lamp", "on");
     collect();
+    lastActivity = performance.now();
     window.addEventListener("pointermove", onPointer, { passive: true });
-    window.addEventListener("resize", collect, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
     frame = requestAnimationFrame(tick);
 
     return () => {

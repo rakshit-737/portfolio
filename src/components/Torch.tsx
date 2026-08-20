@@ -47,6 +47,20 @@ import { POINTER_LERP, createFrameBudgetGuard } from "@/lib/motion";
  * branch below already snaps the smoothed position instead of sweeping in
  * from wherever it was left, which is correct for both "first ever move"
  * and "move after an idle disarm").
+ *
+ * Idle-stop: disarming (above) already makes the torch invisible
+ * (`data-torch` removed, `.torch` fades to `opacity: 0`), but the rAF loop
+ * used to keep running underneath regardless, writing `--torch-x`/`-y`
+ * every frame and sampling the frame-budget guard for an effect nobody can
+ * see. `tick` now stops scheduling its own next frame once `!active` AND
+ * `smooth.r` has actually converged to `targetRadius` (`R_EPS`, the same
+ * threshold already used below to skip redundant `--torch-r` writes) — the
+ * radius is checked because it is the one quantity that keeps chasing a
+ * target regardless of `active` (`dx`/`dy` only chase while `active`, so
+ * they are already at rest the instant `active` goes false). `wake()` is
+ * the only way back in, called from the top of `onPointer` — every real
+ * pointermove both re-arms the torch and, if the loop had stopped,
+ * restarts it.
  */
 export default function Torch() {
   useEffect(() => {
@@ -118,6 +132,15 @@ export default function Torch() {
     // "on" only when both are true, so every place that changes either one
     // goes through `syncArmed` rather than setting the attribute directly.
     let suspended = false;
+    // Idle-stop: whether the rAF loop has actually stopped scheduling
+    // itself (distinct from `!active`/disarmed — see the class doc
+    // comment). `wake()` is the only path back in.
+    let stopped = false;
+    // Shared by the settle check (below `active`) and the redundant-write
+    // guard on `--torch-r` — once `smooth.r` is this close to its target,
+    // neither writing it again nor scheduling another frame to chase it
+    // further would be visible.
+    const R_EPS = 0.1;
 
     const syncArmed = () => {
       if (active && !suspended) {
@@ -165,7 +188,20 @@ export default function Torch() {
       idleTimer = setTimeout(disarm, IDLE_MS);
     };
 
+    /** If the loop had actually stopped, restarts it. Called from every
+     *  real pointermove — see the "Idle-stop" doc comment above the
+     *  component. `last = 0` avoids the resumed loop's first `guard.sample`
+     *  reading the idle gap itself as one huge, spuriously slow frame. */
+    const wake = () => {
+      if (stopped) {
+        stopped = false;
+        last = 0;
+        frame = requestAnimationFrame(tick);
+      }
+    };
+
     const onPointer = (e: PointerEvent) => {
+      wake();
       raw.dx = e.clientX - window.innerWidth / 2;
       raw.dy = e.clientY - window.innerHeight / 2;
       if (!active) {
@@ -220,11 +256,18 @@ export default function Torch() {
       // radius repaints the overlay. It only actually needs to move
       // while easing toward a new target (hover in/out), so skip the
       // write once it has visibly converged.
-      if (Math.abs(smooth.r - lastWrittenR) > 0.1) {
+      if (Math.abs(smooth.r - lastWrittenR) > R_EPS) {
         root.style.setProperty("--torch-r", `${smooth.r.toFixed(1)}px`);
         lastWrittenR = smooth.r;
       }
 
+      // Idle-stop: disarmed, and the radius chase (the one quantity that
+      // keeps moving regardless of `active`) has settled — see the class
+      // doc comment. `wake()` above is the only path back in.
+      if (!active && Math.abs(smooth.r - targetRadius) < R_EPS) {
+        stopped = true;
+        return;
+      }
       frame = requestAnimationFrame(tick);
     };
 

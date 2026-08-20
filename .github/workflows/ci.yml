@@ -51,3 +51,26 @@ jobs:
           npx serve out -l 4573 &
           sleep 3
           node scripts/check-lighthouse.mjs http://localhost:4573/
+
+      # P6-perf item 5: measurement, not a gate. Never wired into the job's
+      # pass/fail — `if: always()` runs it even if the Lighthouse gate
+      # above failed, and `continue-on-error: true` means a problem inside
+      # this step itself (e.g. the throwaway server not coming up in time)
+      # can't fail the job either. scripts/scroll-trace.mjs documents the
+      # ratchet thresholds (LCP, TBT) a later hard gate would enforce.
+      - name: Scroll-trace report (non-blocking)
+        if: always()
+        continue-on-error: true
+        run: |
+          npx serve out -l 4574 &
+          sleep 3
+          node scripts/scroll-trace.mjs http://localhost:4574/ | tee scroll-trace.log
+
+      - name: Upload scroll-trace report
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: scroll-trace-report
+          path: scroll-trace.log
+          if-no-files-found: ignore
