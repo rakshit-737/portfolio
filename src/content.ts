@@ -33,6 +33,12 @@ export interface FeaturedProject {
   /** `**text**` marks the bullet's single strongest metric — rendered amber. */
   bullets: string[];
   headlineNumbers?: HeadlineNumber[];
+  /** One line rendered directly under `headlineNumbers`, glossing the
+   *  block's own widest/hardest-to-parse value. Verbatim-or-condensed
+   *  from existing copy only — never a new claim. Optional: only the
+   *  scheduler card carries one today (its p-value needs a gloss the
+   *  other two cards' numbers don't). */
+  headlineNumbersCaption?: string;
   tech: string[];
   repoUrl: string | null; // null → disabled "coming soon" button
   /** The signature element: mono provenance line on every card. */
@@ -222,8 +228,11 @@ export const featuredProjects: FeaturedProject[] = [
     id: "scheduler",
     name: "Proactive Feasibility Scheduler",
     timeframe: "Research, 2026–Present",
+    // P12: reordered so the outcome leads — was "An evaluation study of
+    // ML-based GPU-cluster job scheduling — and a proven negative result."
+    // Same two clauses, swapped around the dash; no claim added or removed.
     oneLiner:
-      "An evaluation study of ML-based GPU-cluster job scheduling — and a proven negative result.",
+      "A proven negative result — an evaluation study of ML-based GPU-cluster job scheduling.",
     bullets: [
       "End-to-end research pipeline: discrete-event cluster simulator, XGBoost wait-time regressor, **14-policy benchmark** (FCFS, SJF, EASY/conservative backfill, SRPT, HRRN, ML) with Holm-adjusted significance testing.",
       "Core finding: the learned scheduler is structurally degenerate — its queue ordering collapses to a sort by requested job size. Verified across **45,432 real dispatch instants with zero counterexamples**; equivalence established with paired TOST (p = 2.6×10⁻¹⁶) rather than difference tests.",
@@ -234,6 +243,13 @@ export const featuredProjects: FeaturedProject[] = [
       { value: "45,432", label: "dispatch instants" },
       { value: "p = 2.6×10⁻¹⁶", label: "paired TOST" },
     ],
+    // P12 §3: condensed verbatim from `caseStudies.scheduler.decisions[0]`'s
+    // body ("Running a paired TOST equivalence test instead makes the tie
+    // the finding: sorting by requested size is statistically equivalent to
+    // the full XGBoost pipeline, p = 2.6×10⁻¹⁶.") — glosses what the p-value
+    // above actually means, in plain English.
+    headlineNumbersCaption:
+      "Sorting by requested size is statistically equivalent to the full XGBoost pipeline.",
     tech: [
       "Python",
       "XGBoost",
@@ -984,17 +1000,70 @@ export type ActId =
  * line each act carries — every one approved by the owner and traceable
  * to copy elsewhere in this file or to a linked repo. `plate` names the
  * painting the act is set in (see src/lib/art.ts).
+ *
+ * `kicker` (P12) is an optional plain-English line rendered as a `.label`
+ * directly above `statement` — the first beat a non-engineer's eye hits,
+ * with `statement` staying the poetic/technical second beat. Every kicker
+ * is a condensation of copy already in this file, cited at its own entry.
+ * Three acts carry none, deliberately:
+ * - hero: already gets its plain-English line from P2 (`hero.role` above
+ *   the name, `hero.positioning` below it) — a second kicker here would
+ *   duplicate that, not add to it.
+ * - ledger: its statement already fully condenses the one candidate
+ *   source sentence (`archive.description`); no second sentence in this
+ *   file summarizes the ledger's contents without repeating the statement.
+ * - contact: its statement (`contact.headline`) is already plain English,
+ *   and the only other candidate source, `contact.body`, renders verbatim
+ *   as body copy two lines below — a kicker drawn from it would just
+ *   repeat that sentence within the same screenful.
  */
 export const acts: Record<
   ActId,
-  { label: string; statement: string; plate: PlateId }
+  { label: string; statement: string; plate: PlateId; kicker?: string }
 > = {
   hero: { label: "act 01 — the record", statement: "Rakshit Rameshbabu", plate: "blacksmith" },
-  about: { label: "act 02 — the work", statement: "End to end, from written requirements to CI-tested deployments.", plate: "alchemist" },
-  warden: { label: "act 03 — warden", statement: "Judges what a package would actually do.", plate: "forge" },
-  scheduler: { label: "act 04 — the scheduler", statement: "The answer is a proven negative result.", plate: "orrery" },
-  plantpal: { label: "act 05 — plantpal+", statement: "No second implementation to drift.", plate: "kitten" },
-  research: { label: "act 06 — the finding", statement: "The honest baseline is not FIFO.", plate: "anatomy" },
+  about: {
+    label: "act 02 — the work",
+    statement: "End to end, from written requirements to CI-tested deployments.",
+    plate: "alchemist",
+    // Condensed from `about.paragraphs[1]`: "My work sits at the
+    // intersection of software engineering, security, and applied ML."
+    kicker: "Software engineering, security, and applied ML.",
+  },
+  warden: {
+    label: "act 03 — warden",
+    statement: "Judges what a package would actually do.",
+    plate: "forge",
+    // From `featuredProjects[0].oneLiner`: "Behavioral firewall for
+    // open-source dependencies."
+    kicker: "A firewall for open-source packages",
+  },
+  scheduler: {
+    label: "act 04 — the scheduler",
+    statement: "The answer is a proven negative result.",
+    plate: "orrery",
+    // From `caseStudies.scheduler.problem[0]`'s research question ("can
+    // machine learning improve GPU-cluster job scheduling") and the
+    // study's own "proven negative result" framing (oneLiner, problem[1]).
+    kicker: "Can ML schedule GPU clusters better? A proven no.",
+  },
+  plantpal: {
+    label: "act 05 — plantpal+",
+    statement: "No second implementation to drift.",
+    plate: "kitten",
+    // From `featuredProjects[2].oneLiner`: "unifying plant care, fitness,
+    // and nutrition."
+    kicker: "One app for plants, fitness, and food",
+  },
+  research: {
+    label: "act 06 — the finding",
+    statement: "The honest baseline is not FIFO.",
+    plate: "anatomy",
+    // Condensed from `caseStudies.scheduler.decisions[3].body` ("it is a
+    // sort by requested size... Judged against that ML-free control, the
+    // learned scheduler adds nothing").
+    kicker: "The ML scheduler doesn't beat a simple size sort.",
+  },
   ledger: { label: "act 07 — the ledger", statement: "Everything public lives on GitHub.", plate: "dovedale" },
   contact: { label: "act 08 — the close", statement: "Open to internships and full-time roles in software and security engineering.", plate: "latour" },
 };

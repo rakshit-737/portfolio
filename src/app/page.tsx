@@ -467,6 +467,11 @@ export default async function Home() {
           <Plate id={acts.about.plate} />
 
           <div className={`${SHELL} scrim relative z-10 py-24`}>
+            {/* P12: plain-English kicker, first beat — the statement stays
+                the second, poetic one. `acts.about.kicker`, src/content.ts. */}
+            {acts.about.kicker && (
+              <p className="label mb-4">{acts.about.kicker}</p>
+            )}
             <Statement id="about-title">{acts.about.statement}</Statement>
 
             <div className="mt-10 grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -542,6 +547,10 @@ export default async function Home() {
                 className={`${SHELL} scrim ${project.id === "scheduler" ? "scrim-wide" : ""} relative z-10 py-24`}
               >
                 <p className="label">{project.timeframe}</p>
+                {/* P12: plain-English kicker, first beat — the statement
+                    stays the second, poetic one. `acts[id].kicker`,
+                    src/content.ts. */}
+                {act.kicker && <p className="label mt-2">{act.kicker}</p>}
                 <Statement id={`${project.id}-title`}>{act.statement}</Statement>
 
                 <p className="prose-field mt-8">{project.oneLiner}</p>
@@ -560,6 +569,16 @@ export default async function Home() {
                       </div>
                     ))}
                   </dl>
+                )}
+
+                {/* P12 §3: glosses the p-value headline number directly
+                    above (`headlineNumbers[2]` on the scheduler card) in
+                    plain English. `project.headlineNumbersCaption`,
+                    src/content.ts. */}
+                {project.headlineNumbersCaption && (
+                  <p className="prose-field mt-4 text-sm">
+                    {project.headlineNumbersCaption}
+                  </p>
                 )}
 
                 {project.id === "warden" && (
@@ -682,6 +701,12 @@ export default async function Home() {
           <Plate id={acts.research.plate} />
 
           <div className={`${SHELL} scrim relative z-10 py-24`}>
+            {/* P12: plain-English kicker, first beat — the statement stays
+                the second, poetic one. `acts.research.kicker`,
+                src/content.ts. */}
+            {acts.research.kicker && (
+              <p className="label mb-4">{acts.research.kicker}</p>
+            )}
             <Statement id="research-title">{acts.research.statement}</Statement>
 
             <figure className="mt-10 grid gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_20rem]">

@@ -307,6 +307,20 @@ widest headline number ("p = 2.6×10⁻¹⁶") pushes its `headlineNumbers` row
 past the standard scrim's protected zone (measured directly: L=0.086 lit,
 against the ember contrast gate's L≤0.058 ceiling, before `.scrim-wide`).
 
+**The kicker (P12).** Five of the eight acts (about, warden, scheduler,
+plantpal, research) open with a `kicker` — one plain-English `.label` line,
+directly above `.statement`, that a non-engineer parses in three seconds
+before reaching the poetic/technical statement below it. Every kicker is a
+condensation of copy already in `src/content.ts` (`acts[id].kicker`, cited
+at its own entry) — never a new claim. Three acts carry none, deliberately:
+hero already gets its plain-English line from `hero.role`/`hero.positioning`
+(see below) and a second kicker would duplicate it; ledger and contact each
+have only one candidate source sentence in this file, and that sentence is
+already fully spent by the act's own statement or its immediately-following
+body copy — a kicker drawn from it would just repeat something the act
+already says. A new act that wants a kicker needs a real second sentence to
+condense, not a restatement of its own statement.
+
 **The hero, specifically.** Stacked top to bottom: the kicker (`hero.role`,
 `.label`), the name (`.statement`, Newsreader), one plain-English
 positioning line (`hero.positioning`, mono default voice — not
