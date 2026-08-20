@@ -51,8 +51,7 @@ CI (`.github/workflows/ci.yml`) enforces, on every push and PR:
   entry; the build never contacts Wikimedia
 - `npm run typecheck` and `npm run lint` — zero errors
 - `npm run budget` — gzipped-JS ceiling per exported page plus a media-weight
-  ceiling for the landing page's paintings and scroll-scrubbed video clips
-  (`scripts/check-budget.mjs`)
+  ceiling for the landing page's paintings (`scripts/check-budget.mjs`)
 - `npm test` — Playwright smoke tests against `./out` (page renders, ⌘K
   palette opens and jumps, anchors navigate, résumé resolves, case-study
   routes 200, internal links resolve, plate credits render, the lamp turns
