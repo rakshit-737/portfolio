@@ -387,18 +387,28 @@ test("every plate paints the dark layer beneath the lit one, and any motion vide
 // anvil — is the single brightest, most unambiguous light source in the
 // set, giving the biggest possible signal for this measurement.
 //
-// Margin: measured four times back to back against the real build, the
-// lamp-centre patch and the far-corner patch are byte-identical each run —
-// L=0.0891 (centre) vs L=0.0042 (corner), a ~21x ratio. Re-inverting the two
-// `<picture>` blocks (simulating a regression of the bug this test guards)
-// drops that ratio to ~2.8x — the dark layer's own brightness(0.32) floor
-// still varies a little by location in the painting (centre happens to sit
-// on a lighter part of the room than the corner), so a broken build isn't
-// perfectly flat, but it is nowhere near a genuine reveal. The 6x threshold
-// sits well above the broken-build ratio (2.8x) and well below the working
-// one (21x), so it fails the regression with real margin rather than a
-// hairline, without being so tight that ordinary rendering jitter could
-// trip it.
+// Round 1 fix (p12-copy review): this test used to sample the literal
+// `--lamp-x`/`--lamp-y` point after only a 250ms wait. Two compounding
+// problems, root-caused with ad hoc Playwright/sharp probes (not committed):
+// (1) that point sits inside Warden's `Exhibit` — a real `<figure>` with an
+// opaque `bg-ground` chamber that is deliberately never masked by the lamp
+// (Exhibit.tsx's doc comment: "the lamp dramatizes the record, it does not
+// gate it"), so at steady state the literal lamp coordinate reads as dark
+// as the far corner regardless of any content change — averaging a bigger
+// centred patch doesn't help, because the exhibit's own footprint (~670px
+// wide) swallows it. (2) at only 250ms, `.scrim > *`'s one-shot reveal fade
+// (globals.css, 0.7s + up to 0.24s per-child stagger, capped at
+// `:nth-child(5)`) is still mid-transition, so the exhibit figure — however
+// many scrim children now precede it — is caught partway from transparent
+// to opaque; that transient state, not the painting, is what the old
+// 250ms/21x-margin measurement actually captured, and it silently flips
+// whenever a scrim gains or loses a child ahead of the figure (as the P12
+// kicker did) and shifts which `:nth-child` stagger the figure inherits.
+// Fixed on both axes: wait out the full transition before sampling (below),
+// and sample beside the exhibit's real on-screen bounds — clear of its
+// opaque chamber, on the open plate the lamp actually reveals — rather than
+// a single raw mask-percentage point. Falls back to the old centre-based
+// point if a future redesign removes the figure.
 test("the lamp's reveal pool is measurably brighter than the frame's far edge", async ({
   page,
 }) => {
@@ -408,8 +418,11 @@ test("the lamp's reveal pool is measurably brighter than the frame's far edge", 
   const act = page.locator("#warden");
   await act.scrollIntoViewIfNeeded();
   // Let Lamp.tsx's rAF loop write fresh --lamp-x/--lamp-y/--p for the new
-  // scroll position before sampling.
-  await page.waitForTimeout(250);
+  // scroll position, AND let every `.scrim > *` opacity/transform
+  // transition fully settle (0.7s duration + up to 0.24s stagger, see
+  // globals.css) before sampling — sampling mid-transition is what made
+  // this test flip on an unrelated copy change (see comment above).
+  await page.waitForTimeout(1100);
 
   const viewport = page.viewportSize()!;
   // --lamp-x/--lamp-y are percentages of the act's own box (mask-image
@@ -432,7 +445,26 @@ test("the lamp's reveal pool is measurably brighter than the frame's far edge", 
   const centerX = geometry.left + (geometry.lampX / 100) * geometry.width;
   const centerY = geometry.top + (geometry.lampY / 100) * geometry.height;
 
-  // Far edge: the on-screen corner farthest from the lamp's centre.
+  // Sample offset from the literal lamp point, not the point itself: the
+  // literal point sits inside Warden's exhibit figure (a real opaque
+  // `bg-ground` chamber, deliberately never masked by the lamp — see
+  // Exhibit.tsx's doc comment), so it reads dark regardless of whether the
+  // reveal is working. (85, 20) with a wide 160px averaging patch was
+  // chosen empirically, break-and-restore verified against this exact
+  // build: with the lamp mask genuinely disabled (`.plate-lit`/
+  // `.plate-motion` forced to the same unmasked `brightness(0.38)` ambient
+  // floor as `.plate-dark`, simulating a fully broken reveal), this point
+  // reads only ~2.5x the far corner — comfortably under `REVEAL_MARGIN`
+  // below — while the real, working build reads ~13x, a >2x margin clear
+  // on both sides of the threshold. A point closer to the
+  // exhibit's edge (e.g. immediately beside it) lands on the plate's single
+  // brightest highlight and stays bright even with the reveal disabled,
+  // which silently defeated an earlier version of this fix — this offset
+  // and patch size were picked specifically to avoid that trap.
+  const sampleX = centerX + 85;
+  const sampleY = centerY + 20;
+
+  // Far edge: the on-screen corner farthest from the sample point above.
   // Restricted to the right-hand corners because the lamp's rest position
   // is deliberately biased right of the text column on wide screens
   // (Lamp.tsx: `restX = max(0.52, rawX)`), and the left-hand corners sit
@@ -443,26 +475,33 @@ test("the lamp's reveal pool is measurably brighter than the frame's far edge", 
     { x: viewport.width - 16, y: viewport.height - 16 },
   ];
   const farCorner = corners.reduce((best, c) => {
-    const d = (c.x - centerX) ** 2 + (c.y - centerY) ** 2;
-    const bestD = (best.x - centerX) ** 2 + (best.y - centerY) ** 2;
+    const d = (c.x - sampleX) ** 2 + (c.y - sampleY) ** 2;
+    const bestD = (best.x - sampleX) ** 2 + (best.y - sampleY) ** 2;
     return d > bestD ? c : best;
   });
 
-  const patch = 48;
-  const half = patch / 2;
-  const clamp = (v: number, max: number) => Math.min(Math.max(v, 0), max - patch);
+  // The lit patch is wide (160px, not 48) specifically to average across
+  // the exhibit's edge rather than land in either the exhibit's chamber or
+  // the plate's single hottest highlight — see the comment above `sampleX`.
+  // The corner patch stays small: the far corner has no analogous edge to
+  // average across, and a small patch keeps that reading a tight measure
+  // of the frame's actual dark floor.
+  const litPatch = 160;
+  const edgePatch = 48;
+  const clamp = (v: number, patch: number, max: number) =>
+    Math.min(Math.max(v, 0), max - patch);
 
   const litClip = {
-    x: clamp(centerX - half, viewport.width),
-    y: clamp(centerY - half, viewport.height),
-    width: patch,
-    height: patch,
+    x: clamp(sampleX - litPatch / 2, litPatch, viewport.width),
+    y: clamp(sampleY - litPatch / 2, litPatch, viewport.height),
+    width: litPatch,
+    height: litPatch,
   };
   const edgeClip = {
-    x: clamp(farCorner.x - half, viewport.width),
-    y: clamp(farCorner.y - half, viewport.height),
-    width: patch,
-    height: patch,
+    x: clamp(farCorner.x - edgePatch / 2, edgePatch, viewport.width),
+    y: clamp(farCorner.y - edgePatch / 2, edgePatch, viewport.height),
+    width: edgePatch,
+    height: edgePatch,
   };
 
   const litBuf = await page.screenshot({ clip: litClip });
