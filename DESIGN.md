@@ -245,9 +245,14 @@ every number column aligns without per-element opt-in.
   display line each of the eight acts carries — the owner's name in the
   hero, and one sentence per act after it (`Statement.tsx`, `.statement`).
   Never more than one line's worth of thought.
-- **Title** (600, Chivo Mono, tracking -0.025em): case-file section titles
-  (1.125rem, `lg:sticky`), and — one step smaller, at 1rem — every record
-  title: ledger archive names, achievement titles, education degrees, the
+- **Case heading** (600, Chivo Mono, 1.375rem, line-height 1.2, tracking
+  -0.02em, `.case-heading`): the case-file section titles — Problem,
+  Approach, Decisions, Evidence, Outcome (`CaseSection`, `lg:sticky`). Its
+  own rung between `.statement` and the Title tier below, so a section
+  title no longer sits nearly flush with the 1rem record titles nested
+  inside it.
+- **Title** (600, Chivo Mono, tracking -0.025em, 1rem): every record
+  title — ledger archive names, achievement titles, education degrees, the
   benchmark chart's own heading.
 - **Number** (600, Chivo Mono, 1.5rem rising to 1.875rem at `sm`, tabular,
   line-height none): a measurement the lamp can light — hero rail values,

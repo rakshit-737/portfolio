@@ -86,7 +86,7 @@ function CaseSection({
       <div className={`${SHELL} ${GRID}`}>
         <h2
           id={`${slug}-title`}
-          className="font-mono text-lg leading-none font-semibold tracking-[-0.03em] lg:sticky lg:top-24 lg:self-start"
+          className="case-heading lg:sticky lg:top-24 lg:self-start"
         >
           {title}
         </h2>
@@ -231,12 +231,10 @@ export default async function CaseStudyPage({
                   ...liveSegments(live),
                 ])}
               />
-              <div className="mt-7 min-w-0">
-                <p className="prose-field">{project.oneLiner}</p>
-              </div>
+              <p className="prose-field mt-8">{project.oneLiner}</p>
 
               {project.headlineNumbers && (
-                <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-5 border-y border-rule py-5">
+                <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-6 border-y border-rule py-6">
                   {project.headlineNumbers.map((n) => (
                     <div key={n.label}>
                       <dd className="font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl">
@@ -249,7 +247,7 @@ export default async function CaseStudyPage({
               )}
 
               {project.repoUrl && (
-                <div className="print-hidden mt-9">
+                <div className="print-hidden mt-10">
                   <BracketLink href={project.repoUrl} external>
                     View repository
                     <ArrowUpRight size={12} aria-hidden="true" />

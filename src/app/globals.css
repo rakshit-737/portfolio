@@ -100,6 +100,27 @@ section[id] {
   text-wrap: balance;
 }
 
+/* A case-file section heading (Problem / Approach / Decisions / Evidence /
+   Outcome) — one defined step between `.statement` (2.2rem–5.5rem,
+   Newsreader) and the 1rem record-title tier nested inside these sections
+   (achievement/education/archive `h4`s, the case-file's own `dd`
+   decision titles). Before this primitive the section title sat at an
+   ad-hoc 1.125rem, barely a step above the 1rem titles it contains — this
+   gives the section grid its own rung rather than two tiers reading as
+   one. Mono, not Newsreader: the One-Statement Rule keeps the display
+   serif to `.statement` and case-file `h1`s only, and the Monospace
+   Default Rule makes Chivo Mono the fallback for everything that isn't
+   prose. Deliberately short of the 1.5rem/1.875rem `.ignite` "Number"
+   tier (Rail.tsx, headline numbers) so a section title is never
+   mistaken for a lit measurement. */
+.case-heading {
+  font-family: var(--font-mono);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
 /* A metric inside a bullet — the single strongest number in a `**bold**`
    run, rendered by Metric.tsx. Mono and semibold, never dimmed; body copy
    has no contrast headroom for an ember ::after layer, so this does not
