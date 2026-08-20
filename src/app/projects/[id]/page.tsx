@@ -212,12 +212,8 @@ export default async function CaseStudyPage({
               activates here too, just with every custom property at its
               unset default — a static pool centred at 50%/50% with
               `--lamp-r`'s literal fallback (26vmax), the spec's own "lamp
-              static and centred" (§5.2). `motion={false}` is the one
-              thing this banner genuinely opts out of: it keeps Plate.tsx
-              from ever emitting the scroll-scrubbed <video> the
-              landing-page act for the same plate carries, since nothing
-              here would ever scrub it either. */}
-          <Plate id={acts[project.id].plate} priority motion={false} />
+              static and centred" (§5.2). */}
+          <Plate id={acts[project.id].plate} priority />
           <div className={`${SHELL} scrim absolute inset-x-0 bottom-0 z-10 pb-12`}>
             <p className="label">{project.timeframe}</p>
             <h1 className="statement mt-4">{project.name}</h1>

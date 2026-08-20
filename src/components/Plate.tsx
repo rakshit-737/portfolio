@@ -36,35 +36,12 @@ function lqip(id: PlateId): string {
   return readFileSync(join(process.cwd(), "public", "art", `${id}-lqip.txt`), "utf8").trim();
 }
 
-/** The plate's motion clip, if the lockfile carries one for it. Absent
- *  entirely (not just hidden) whenever there's nothing to promote. */
-function motionSrc(id: PlateId): string | null {
-  return `${id}-motion.webm` in lock ? withBase(`/art/${id}-motion.webm`) : null;
-}
-
 export default function Plate({
   id,
   priority = false,
-  motion: motionEnabled = true,
 }: {
   id: PlateId;
   priority?: boolean;
-  /** Whether this instance may render its scroll-scrubbed video, if the
-   *  plate has one. Defaults `true` because every landing-page act wants
-   *  it when the plate has one — Lamp.tsx scrubs `video.currentTime` from
-   *  scroll there. The case-file banner (`projects/[id]/page.tsx`) passes
-   *  `false` explicitly: it has no `[data-act]` ancestor, so nothing ever
-   *  scrubs it — Lamp.tsx's rAF loop only ever finds elements under
-   *  `[data-act]`, and the banner isn't one. (It still carries the lamp's
-   *  CSS mask, just static and centred — every custom property the mask
-   *  reads falls back to its unset default once `data-lamp="on"` is set
-   *  globally, which spec §5.2 calls for directly.) A clip here would only
-   *  ever paint one static frame identical to the still beneath it — a
-   *  real download (180–239kB per case file) that nothing ever plays.
-   *  Gating in `Plate` itself, rather than filtering `promoteVideos()` by
-   *  ancestor, means the banner never emits a `<video>` element at all —
-   *  there is nothing for any query to find. */
-  motion?: boolean;
 }) {
   const plate = plates[id];
   const widest = Math.max(...tiers(id, "avif"));
@@ -78,7 +55,6 @@ export default function Plate({
     fetchPriority: priority ? ("high" as const) : ("auto" as const),
   };
   const hasNarrow = narrowTiers(id, "avif").length > 0;
-  const motion = motionEnabled ? motionSrc(id) : null;
 
   return (
     <div
@@ -91,15 +67,13 @@ export default function Plate({
         } as React.CSSProperties
       }
     >
-      {/* The full stack, in paint order (four layers, all `position:
+      {/* The full stack, in paint order (three layers, all `position:
           absolute; inset: 0`, no `z-index` — document order IS paint
           order): 1. `.plate-dark`, the dimmed still; 2. `.plate-lit`, the
           full-brightness still, masked to the lamp's pool; 3.
-          `.plate-motion`, the scrubbed video, masked identically, standing
-          in for `.plate-lit` inside the pool while it plays; 4.
           `.plate::after`, the act-edge dissolve gradient, unconditional and
-          always last so it can fade every layer beneath it to ground at the
-          act's top and bottom edges regardless of what's playing.
+          always last so it can fade the layers beneath it to ground at the
+          act's top and bottom edges.
 
           Paint order matters as much as the alt split: whichever element is
           later in the DOM paints on top. `.plate-dark` MUST come first and
@@ -160,29 +134,6 @@ export default function Plate({
         <source srcSet={srcset(id, "webp")} sizes="100vw" type="image/webp" />
         <img className="plate-lit" src={fallback} alt={plate.alt} {...common} />
       </picture>
-      {/* The motion layer, after both pictures — see the paint-order note
-          above. Decorative and duplicates the still beneath it, so it is
-          `aria-hidden` and carries no accessible name. It never plays
-          itself: no `autoplay`, no `loop`, no `controls` — scroll is its
-          only clock (Lamp.tsx). No `src` in the markup, only `data-src`:
-          a `<video preload="metadata">` fetches metadata the instant it
-          has a `src`, even with `display: none`, so with JavaScript
-          disabled the element must stay inert rather than merely hidden.
-          Lamp promotes `data-src` to `src` once it turns the lamp on, and
-          removes the element outright under reduced motion — "absent",
-          not "hidden", in both those states. */}
-      {motion && (
-        <video
-          className="plate-motion"
-          data-src={motion}
-          preload="metadata"
-          muted
-          playsInline
-          aria-hidden="true"
-          tabIndex={-1}
-          disablePictureInPicture
-        />
-      )}
     </div>
   );
 }

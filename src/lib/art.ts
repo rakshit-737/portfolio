@@ -50,13 +50,6 @@ export interface Plate {
    *  for plates whose subject falls outside the band a phone shows under
    *  the landscape crop. Same coordinate space as `crop`. */
   cropNarrow?: { x: number; y: number; w: number; h: number };
-  /** How this plate moves when scrubbed. `from`/`to` are crop-relative
-   *  centres (0-1) and scales; the drift runs from one to the other across
-   *  the act's scroll. Chosen per painting, toward what it is about. */
-  motion?: {
-    from: { x: number; y: number; scale: number };
-    to: { x: number; y: number; scale: number };
-  };
 }
 
 /** Widths emitted per plate. A variant is skipped when it would upscale. */
@@ -92,10 +85,6 @@ export const plates: Record<PlateId, Plate> = {
     lamp: { x: 0.48, y: 0.62 },
     alt: "A blacksmith's shop at night, a bar of white-hot iron on the anvil the only source of light, throwing hard shadows across the smiths, apprentices, and the timber frame of the shop.",
     framing: { wide: "58% 55%", narrow: "50% 40%" },
-    motion: {
-      from: { x: 0.48, y: 0.5, scale: 1.0 },
-      to: { x: 0.48, y: 0.62, scale: 1.12 },
-    },
   },
   alchemist: {
     id: "alchemist",
@@ -117,10 +106,6 @@ export const plates: Record<PlateId, Plate> = {
     // the native frame — verified by eye against a 500px preview — running
     // from just above his head to the floor.
     cropNarrow: { x: 0.28, y: 0.42, w: 0.5, h: 0.56 },
-    // No `motion`: Step 7 measured total media at 4140 kB against the
-    // 3500 kB ceiling with all eight plates carrying motion, so the
-    // spread was cut back to the hero plus the three project acts
-    // (blacksmith, forge, orrery, kitten). See the Task 14b report.
   },
   forge: {
     id: "forge",
@@ -137,10 +122,6 @@ export const plates: Record<PlateId, Plate> = {
     lamp: { x: 0.44, y: 0.58 },
     alt: "A working forge at night, a white-hot ingot on the anvil throwing hard light across the smith, his family, and the timber frame of the shop.",
     framing: { wide: "72% 55%", narrow: "56% 24%" },
-    motion: {
-      from: { x: 0.44, y: 0.46, scale: 1.0 },
-      to: { x: 0.44, y: 0.58, scale: 1.12 },
-    },
   },
   orrery: {
     id: "orrery",
@@ -155,10 +136,6 @@ export const plates: Record<PlateId, Plate> = {
     lamp: { x: 0.52, y: 0.54 },
     alt: "A philosopher lecturing on a brass orrery, a lamp standing in for the sun at its centre and lighting the listening faces from below.",
     framing: { wide: "58% 45%", narrow: "50% 26%" },
-    motion: {
-      from: { x: 0.52, y: 0.46, scale: 1.0 },
-      to: { x: 0.52, y: 0.54, scale: 1.1 },
-    },
   },
   kitten: {
     id: "kitten",
@@ -176,10 +153,6 @@ export const plates: Record<PlateId, Plate> = {
     lamp: { x: 0.5, y: 0.6 },
     alt: "Two girls bent over a kitten by candlelight, absorbed in a small domestic ritual repeated night after night.",
     framing: { wide: "64% 42%", narrow: "56% 30%" },
-    motion: {
-      from: { x: 0.5, y: 0.48, scale: 1.0 },
-      to: { x: 0.5, y: 0.6, scale: 1.1 },
-    },
   },
   anatomy: {
     id: "anatomy",
@@ -196,7 +169,6 @@ export const plates: Record<PlateId, Plate> = {
     lamp: { x: 0.42, y: 0.6 },
     alt: "Surgeons crowded around a dissection table as Dr Tulp lifts the tendons of a forearm with forceps, everyone watching the evidence rather than the body.",
     framing: { wide: "68% 56%", narrow: "54% 28%" },
-    // No `motion` — see the note on `alchemist` above (Step 7 spread cut).
   },
   dovedale: {
     id: "dovedale",
@@ -214,7 +186,6 @@ export const plates: Record<PlateId, Plate> = {
     lamp: { x: 0.62, y: 0.36 },
     alt: "A river valley under a full moon, the water carrying a cold band of reflected light between dark banks.",
     framing: { wide: "64% 32%", narrow: "58% 18%" },
-    // No `motion` — see the note on `alchemist` above (Step 7 spread cut).
   },
   latour: {
     id: "latour",
@@ -231,9 +202,6 @@ export const plates: Record<PlateId, Plate> = {
     lamp: { x: 0.55, y: 0.45 },
     alt: "A woman shields a single candle flame with her cupped hand as a young girl reads beside her, both faces lit by the flame alone.",
     framing: { wide: "60% 45%", narrow: "50% 30%" },
-    // No `motion` — see the note on `alchemist` above (Step 7 spread cut).
-    // The close keeps the same still-only treatment the plate it replaces
-    // (academy) had.
   },
 };
 

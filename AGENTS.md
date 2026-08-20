@@ -41,8 +41,8 @@ the authority on the visual system; this is the short version.
   (`creditOf()` / `withCredit()`, `src/lib/credit.ts`) — art is sourced the
   way code is.
 - **The lamp** (`Lamp.tsx`) is the one moving part: a single rAF loop, an
-  `IntersectionObserver`, and a pointermove listener, writing `--p` / `--pe`
-  / `--lamp-x` / `--lamp-y` onto each visible act; everything visual is CSS
+  `IntersectionObserver`, and a pointermove listener, writing `--p` /
+  `--lamp-x` / `--lamp-y` onto each visible act; everything visual is CSS
   reading those properties. **The default, JS-free state is fully lit** —
   the mask exists only once the client sets `data-lamp="on"` on `<html>`, so
   a no-JS or reduced-motion visitor gets a painted page, not a black one.
@@ -50,10 +50,12 @@ the authority on the visual system; this is the short version.
   flashlight sharing the same pointer and lerp constant (`POINTER_LERP`,
   `src/lib/motion.ts`) as the lamp — one light, two renderings. It raises the
   plate's unlit floor while active so the two effects don't compound.
-- Four of the eight acts (hero, warden, scheduler, plantpal) carry
-  scroll-scrubbed motion clips (`.plate-motion`, a `<video>` seeked from
-  scroll progress, never played); the other four ship stills only — the
-  spread was cut back from all eight to hold the media budget.
+- **The paintings themselves never move.** Every plate is a still image;
+  there is no push-in, no zoom, and no scroll-scrubbed video anywhere on
+  the site — removed 2026-08-20 (`feat: the light is the only moving thing
+  — remove every zoom`) after the owner saw the shipped zoom/push-in live
+  and asked for it gone, keeping only the lamp's light as a moving part.
+  All eight acts ship stills only.
 - Fonts: Newsreader carries the eight act statements (`Statement.tsx`,
   `.statement`); Chivo Mono carries everything else, **including every
   number at every size**; Chivo (sans) carries reading passages
@@ -61,10 +63,10 @@ the authority on the visual system; this is the short version.
 - **One authored moment per act, once.** An act's copy resolves into place
   on its first intersection (`data-seen`, set once, never replayed on
   scroll-back). There are no other entrance animations.
-- **Document order is paint order** in the four-layer plate stack
-  (`.plate-dark` → `.plate-lit` → `.plate-motion` → `.plate::after`, all
-  `position: absolute` with no `z-index`). Reordering these layers makes the
-  lamp invisible — three tests guard it.
+- **Document order is paint order** in the three-layer plate stack
+  (`.plate-dark` → `.plate-lit` → `.plate::after`, all `position: absolute`
+  with no `z-index`). Reordering these layers makes the lamp invisible —
+  a structural and a behavioural test both guard it.
 
 ## Hard rules
 
@@ -78,10 +80,9 @@ the authority on the visual system; this is the short version.
   `withBase` / `NEXT_PUBLIC_BASE_PATH` (Next 16's export prefetch 404s on
   `next/link` here; a smoke test guards it).
 - No heavy dependencies (no UI kits, no animation frameworks). New
-  dependencies need a one-line justification. `sharp` and `ffmpeg-static` are
-  devDependencies — the art pipeline (`scripts/fetch-art.mjs`) uses them to
-  crop plates and encode the scroll-scrubbed motion clips at build time
-  only; neither ships to the client.
+  dependencies need a one-line justification. `sharp` is a devDependency —
+  the art pipeline (`scripts/fetch-art.mjs`) uses it to crop plates at
+  build time only; it never ships to the client.
 - Accessibility non-negotiable: full keyboard path, visible focus, correct
   landmarks/heading order, WCAG AA contrast (ember included — it carries
   body-sized numbers, not just large text), reduced-motion everywhere. The
@@ -107,9 +108,8 @@ the authority on the visual system; this is the short version.
 - `npm test` — Playwright smoke + axe against `./out` (build first)
 - `npm run budget` — gzipped-JS and media-weight ceilings
   (`scripts/check-budget.mjs`)
-- `npm run art` — fetches, crops, and encodes the eight plates from
-  Wikimedia Commons into `public/art/`; run manually and commit the result,
-  never in CI
+- `npm run art` — fetches and crops the eight plates from Wikimedia Commons
+  into `public/art/`; run manually and commit the result, never in CI
 - `npm run check:art` — verifies every committed plate file's sha256 against
   `src/lib/art.lock.json`; this is the CI gate, not `npm run art`
 - CI: `.github/workflows/ci.yml` (quality gate) and `deploy-pages.yml`

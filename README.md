@@ -32,10 +32,10 @@ static file server, e.g. `npx serve out`.
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm test` | Playwright smoke + axe scan against `./out` (build first) |
 | `npm run budget` | Gzipped-JS and landing-page media weight ceilings (`scripts/check-budget.mjs`) |
-| `npm run art` | Fetches, crops, and encodes the eight plates from Wikimedia Commons into `public/art/`, and writes `src/lib/art.lock.json` |
+| `npm run art` | Fetches and crops the eight plates from Wikimedia Commons into `public/art/`, and writes `src/lib/art.lock.json` |
 | `npm run check:art` | Verifies every committed plate file's sha256 against the lockfile — this is the CI gate |
 
-`public/art/` (the plate images and motion clips) and `src/lib/art.lock.json`
+`public/art/` (the plate stills) and `src/lib/art.lock.json`
 are **committed to the repo**. `npm run art` is never run in CI — it hits
 the Wikimedia Commons API and is slow and network-dependent. It's a manual,
 occasional step: run it locally, review the output, and commit the result
@@ -154,9 +154,12 @@ all eight paintings with their Commons sources; tokens live in
   Ember appears only on hover and focus, never at rest — it has the least
   contrast headroom on this palette, so it is an accent and not a text colour.
   Focus is styled distinctly from hover so keyboard state is never ambiguous.
-- Four of the eight acts (hero, warden, scheduler, plantpal) also carry a
-  short scroll-scrubbed video, seeked by scroll position and never played on
-  a timer; the other four ship stills only, to hold the media budget.
+- Every act is a still painting — no zoom, no push-in, no scroll-scrubbed
+  video. An earlier build carried a short scroll-scrubbed clip on four of
+  the eight acts and a slight scroll-driven push-in on all eight; the owner
+  saw the shipped effect live and asked for the zoom to go, so it was
+  removed entirely (2026-08-20) — the lamp's light is the only thing that
+  still moves.
 - Type: Newsreader carries one display line per act; Chivo Mono carries
   everything else, including every number at every size; Chivo (sans) is
   used only for reading passages. All loaded with `next/font`.
@@ -169,9 +172,8 @@ all eight paintings with their Commons sources; tokens live in
 - Motion: one reveal per act, playing once on first scroll arrival and never
   replayed on scroll-back, plus the lamp/torch's continuous drive and the
   benchmark bars growing once on approach. No per-section entrance
-  animations beyond the one-per-act reveal; everything has a
-  `prefers-reduced-motion` fallback that also removes any motion video from
-  the DOM outright.
+  animations beyond the one-per-act reveal, and no motion on the paintings
+  themselves; everything has a `prefers-reduced-motion` fallback.
 - Case files open with a static, non-interactive painted header — no
   scroll-scrubbing, but still lit by a static, centred lamp mask (there's
   no `[data-act]` ancestor for the scroll-driven one to scrub) — and
@@ -220,10 +222,6 @@ Recorded rather than hidden:
   height-bound and vertical framing has no slack to use. A portrait
   `cropNarrow` was added for it, which helps but does not fully solve it; a
   tighter narrow crop is the real fix.
-- **Scroll-scrubbed motion covers four of the eight acts, not all eight.** The
-  full spread measured 4140 kB against a 3500 kB media ceiling. The four that
-  move are the hero and the three project acts — the work moves, the context
-  holds still.
 - **`Lamp` and `Torch` run one rAF loop each**, sharing a smoothing constant but
   not a loop. Bounded and cleaned up in both, but a single loop with two writers
   would be the cheaper shape whenever either is next touched.

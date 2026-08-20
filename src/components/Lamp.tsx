@@ -7,14 +7,11 @@ import { POINTER_LERP, createFrameBudgetGuard } from "@/lib/motion";
  * The one moving part on the site.
  *
  * A single rAF loop, one passive pointermove listener, one
- * IntersectionObserver. Each frame it writes four custom properties per
- * visible act: `--p` (0→1 linear progress through the act), `--pe` (the
- * same progress eased, for anything that should start and end gently),
- * and `--lamp-x` / `--lamp-y` (the light's position as a percentage of the
- * act box). Everything visual is CSS reading those properties — no React
- * state, no re-renders on scroll. The same loop also drives each act's
- * motion video, if it has one: `video.currentTime` is set from `--pe`, so
- * scroll — not time — is the video's only clock; it is never played.
+ * IntersectionObserver. Each frame it writes three custom properties per
+ * visible act: `--p` (0→1 linear progress through the act) and `--lamp-x` /
+ * `--lamp-y` (the light's position as a percentage of the act box).
+ * Everything visual is CSS reading those properties — no React state, no
+ * re-renders on scroll.
  *
  * The same tick also ignites `.ignite` metrics: a CSS `mask-image` can't do
  * this (a mask's `at var(--lamp-x) var(--lamp-y)` percentages resolve
@@ -28,24 +25,15 @@ import { POINTER_LERP, createFrameBudgetGuard } from "@/lib/motion";
  * already computes for `--lamp-x`/`--lamp-y`), toggling `.is-lit` — spec
  * §4.1: "no per-element observers".
  *
- * The default, JS-free state is "fully lit", with no video at all. This
- * component switches the page into masked mode by setting `data-lamp="on"`,
- * so a no-JS visitor and a reduced-motion visitor both get a handsome
- * static painted page rather than a black one.
+ * The default, JS-free state is "fully lit". This component switches the
+ * page into masked mode by setting `data-lamp="on"`, so a no-JS visitor and
+ * a reduced-motion visitor both get a handsome static painted page rather
+ * than a black one.
  */
 export default function Lamp() {
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (reduce.matches) {
-      // The video is decorative and duplicates the still beneath it — under
-      // reduced motion it must be absent, not merely hidden. Nothing else
-      // in this component runs, so this is a one-time sweep, not a second
-      // observer or loop.
-      for (const v of document.querySelectorAll<HTMLVideoElement>("video.plate-motion")) {
-        v.remove();
-      }
-      return;
-    }
+    if (reduce.matches) return;
 
     const root = document.documentElement;
     const fine = window.matchMedia("(pointer: fine)").matches;
@@ -53,20 +41,6 @@ export default function Lamp() {
     // bottom of the frame rather than the left, so the bias below swaps
     // from "push the light right" to "push the light up".
     const narrow = window.matchMedia("(max-width: 48rem)").matches;
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
-    // Lighthouse's mobile screen emulation doesn't reliably report
-    // `pointer: coarse` (see Torch.tsx, which already relies on this signal
-    // for the same reason), so a touch-class device that fails the coarse
-    // check is still caught here: no hover-capable pointer at all.
-    const noHover = window.matchMedia("(hover: none)").matches;
-    // A metered connection, or a small touch device, is exactly where a
-    // 4-second video loop per act costs the most and is seen the least —
-    // skip promoting any video's `src` at all rather than fetch it unseen.
-    const saveData =
-      (navigator as unknown as { connection?: { saveData?: boolean } }).connection
-        ?.saveData === true;
-    const motionAllowed =
-      !saveData && !((coarse || noHover) && window.innerWidth < 700);
 
     let acts: HTMLElement[] = [];
     const visible = new Set<HTMLElement>();
@@ -99,21 +73,6 @@ export default function Lamp() {
       }
     };
 
-    // Promotes `data-src` to `src` on a single act's motion video — that is
-    // the entire difference between "no request happens without
-    // JavaScript" (the markup carries no `src`) and "the video actually
-    // plays" (JS decides to fetch it). Called from the IntersectionObserver
-    // callback below when that act first arrives, not for every act at
-    // once: a reader sees one act at a time, so only one clip should ever
-    // be in flight, not all four. Guarded by `!v.src` so a later
-    // intersection of the same act (leaving and re-entering) never
-    // re-triggers a load.
-    const promoteVideo = (act: HTMLElement) => {
-      if (!motionAllowed) return;
-      const v = act.querySelector<HTMLVideoElement>("video.plate-motion[data-src]");
-      if (v && !v.src && v.dataset.src) v.src = v.dataset.src;
-    };
-
     const observer = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -124,10 +83,6 @@ export default function Lamp() {
             // the attribute is only ever added, never removed, so the
             // copy-reveal CSS it gates never re-triggers on a later pass.
             if (!el.hasAttribute("data-seen")) el.setAttribute("data-seen", "");
-            // Same reasoning, but for the act's video: promote its `src`
-            // only once it actually arrives, using this observer that
-            // already exists rather than a second one.
-            promoteVideo(el);
           } else {
             visible.delete(el);
             // An act that stops intersecting also stops being ticked, so
@@ -211,10 +166,6 @@ export default function Lamp() {
         // bottom leaves the top.
         const span = r.height + vh;
         const p = Math.min(1, Math.max(0, (vh - r.top) / span));
-        // Eased progress for anything that should start and end gently —
-        // the video scrub and the plate push-in. Raw `--p` stays linear
-        // for the mask, which wants a constant-speed sweep.
-        const eased = p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2;
 
         const rawX = Number(act.dataset.lampX ?? 0.5);
         const rawY = Number(act.dataset.lampY ?? 0.5);
@@ -235,7 +186,6 @@ export default function Lamp() {
         }
 
         act.style.setProperty("--p", p.toFixed(4));
-        act.style.setProperty("--pe", eased.toFixed(4));
         act.style.setProperty("--lamp-x", `${(x * 100).toFixed(2)}%`);
         act.style.setProperty("--lamp-y", `${(y * 100).toFixed(2)}%`);
 
@@ -269,14 +219,6 @@ export default function Lamp() {
             el.classList.toggle("is-lit", dx * dx + dy * dy <= litRadiusSq);
           }
         }
-
-        // Scroll is the video's only clock — it is never played. Seeking
-        // is cheap because the encode is keyframe-dense (Task 14b).
-        const video = act.querySelector<HTMLVideoElement>("video.plate-motion");
-        if (video && video.readyState >= 1 && video.duration) {
-          const t = eased * video.duration;
-          if (Math.abs(video.currentTime - t) > 0.02) video.currentTime = t;
-        }
       }
       frame = requestAnimationFrame(tick);
     };
@@ -290,10 +232,6 @@ export default function Lamp() {
 
     root.setAttribute("data-lamp", "on");
     collect();
-    // No eager promoteVideos() call here: each act's video is promoted by
-    // the IntersectionObserver callback above the first time that act
-    // actually intersects, including any act already visible on load
-    // (the observer fires for pre-existing intersections too).
     window.addEventListener("pointermove", onPointer, { passive: true });
     window.addEventListener("resize", collect, { passive: true });
     frame = requestAnimationFrame(tick);

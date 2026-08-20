@@ -65,12 +65,6 @@
     "width": 24,
     "height": 24
   },
-  "blacksmith-motion.webm": {
-    "sha256": "e537e6f02d3d289864c87897a34288ca1a1ab8c8ca70a779e50722a41ac17149",
-    "bytes": 185818,
-    "width": 1280,
-    "height": 734
-  },
   "alchemist-1280.avif": {
     "sha256": "42102fa04c422207aa44b3afedcfed3acbae180246ad4dd669af6a2d07354a30",
     "bytes": 63100,
@@ -179,12 +173,6 @@
     "width": 24,
     "height": 24
   },
-  "forge-motion.webm": {
-    "sha256": "b401aef36461bebb231b264beff18e7265f7d00624b37ff50bbcdd0071e4cca1",
-    "bytes": 193286,
-    "width": 1280,
-    "height": 988
-  },
   "orrery-1280.avif": {
     "sha256": "ace679a96f533dd19e174572cffd68106907261c550e08f368568711ee7a1a53",
     "bytes": 75960,
@@ -227,12 +215,6 @@
     "width": 24,
     "height": 24
   },
-  "orrery-motion.webm": {
-    "sha256": "c373f879cab3b517ce294696b3e4ca7a21dddec46e9a8c4e4e661423ca8905b7",
-    "bytes": 244246,
-    "width": 1280,
-    "height": 844
-  },
   "kitten-1280.avif": {
     "sha256": "5c75b57925f1d941b0bd9564c4efaafbd25c2ae4d0126cb44c4acc9b32f43312",
     "bytes": 159698,
@@ -262,12 +244,6 @@
     "bytes": 255,
     "width": 24,
     "height": 24
-  },
-  "kitten-motion.webm": {
-    "sha256": "bdd125fbf946b6fd9e6e571351e396fdd9bb482a6759abdddb58d49bbe87bb98",
-    "bytes": 184043,
-    "width": 1280,
-    "height": 980
   },
   "anatomy-1280.avif": {
     "sha256": "98a9fb2b1f8daa738d66c10ee7b7ae2a15729ec94443e869dd7edffc0cd0a1d6",

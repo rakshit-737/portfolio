@@ -26,10 +26,15 @@ for (const pagePath of pages) {
   if (!ok) failed = true;
 }
 
-// Media weight on the landing page: stills plus the scroll-scrubbed motion
-// clips (Task 14b). Counts the largest srcset candidate per plate — the
-// worst case a wide viewport actually downloads — plus one motion webm per
-// plate that has one.
+// Media weight on the landing page: the plate stills only — the
+// scroll-scrubbed motion clips this gate used to also count were removed
+// entirely (the owner asked for the zoom to go; see AGENTS.md/DESIGN.md).
+// Counts the largest srcset candidate per plate — the worst case a wide
+// viewport actually downloads. The `data-src` webm-matching branch below
+// is kept (it now matches nothing — no plate emits a motion clip any
+// more) rather than deleted, since a future plate could reintroduce a
+// non-zoom motion layer under a different mechanism and this branch would
+// already count it correctly; it costs nothing while unused.
 //
 // This Next.js/React build renders the JSX `srcSet` prop verbatim as
 // `srcSet="…"` in the exported HTML rather than lowercasing it to the
@@ -57,18 +62,18 @@ for (const pagePath of pages) {
 // sit beside, and the viewport that skips them (anything wider than
 // 48rem) is, by construction, the one that downloads the most.
 // Important 4 (2026-08 finish review): spec §8 states a 3.0MB landing
-// ceiling. This constant has stood at 3500 since scrubbed motion landed,
-// which is a deliberate decision, not a slipped number — recorded here so
-// it reads as one. The owner set the 3.0MB figure at the original design
-// gate; later, the owner explicitly asked for scroll-scrubbed video on the
-// landing page, which is what pushed real media weight past it (four
-// motion clips, ~130-190kB each). A later, explicit request supersedes an
-// earlier ceiling that predates it — the ceiling was tuned for a page that
-// didn't have this feature yet, not a promise that outlives the feature
-// being added. Raising it to 3500 is the honest number for what the owner
-// actually asked for, not a quiet erosion of the original budget: it is
-// still gated, still fails the build if exceeded, and still requires a
-// deliberate commit to move again.
+// ceiling. This constant was raised to 3500 while the four scroll-scrubbed
+// motion clips (~130-190kB each) were part of the media total — a later,
+// explicit request (scroll-scrubbed video on the landing page) that
+// pushed real weight past the original figure. That request has since
+// been reversed: the owner saw the zoom live and asked for it removed
+// (2026-08-20, see AGENTS.md/DESIGN.md), so the clips are gone and the
+// real media total has dropped well under even the original 3.0MB figure
+// (see the implementer's report for the measured number). Left at 3500
+// rather than lowered back to 3000 here: this task's brief scoped
+// check-budget.mjs to updating the stale comment and reporting the new
+// total, not to re-tuning the ceiling — a deliberate ceiling change is
+// its own commit, same as raising one.
 const MEDIA_BUDGET_KB = 3500;
 const html = readFileSync("out/index.html", "utf8");
 
@@ -87,8 +92,10 @@ function resolveOutPath(url) {
 // Extracts the real worst-case download set from an HTML slice: the
 // widest non-media-gated AVIF `<source>` per `<picture>` (a browser only
 // ever fetches one of AVIF/WebP, and AVIF wins wherever it's supported —
-// see the long comment above), one `data-src` motion webm per plate, and
-// — Task 20 fix — every plain `<img src>` that sits OUTSIDE a `<picture>`
+// see the long comment above), any `data-src="*.webm"` motion clip (none
+// exist today — see the comment above `MEDIA_BUDGET_KB` — but the match
+// costs nothing left in place), and — Task 20 fix — every plain
+// `<img src>` that sits OUTSIDE a `<picture>`
 // entirely. That last rule is what the certificate PNG walked through
 // before this fix: a `<picture>`-wrapped `<img>` is already covered by
 // its sibling `<source>` (the img is only a same-content fallback, never
@@ -147,9 +154,9 @@ if (!mediaOk) failed = true;
 
 // Above-the-fold: spec §8's second ceiling (700kB), never previously
 // gated — only the whole-page media ceiling above was. Scoped to the
-// `#hero` act's own markup (the AVIF still plus its motion clip; hero is
-// the one plate marked `priority`, `fetchPriority="high"`, so it is the
-// only plate a visitor's browser fetches before any scroll), using the
+// `#hero` act's own markup (the AVIF still; hero is the one plate marked
+// `priority`, `fetchPriority="high"`, so it is the only plate a visitor's
+// browser fetches before any scroll), using the
 // exact same candidate-extraction rules as the whole-page gate above so
 // this can't silently drift from what that one counts.
 const HERO_BUDGET_KB = 700;

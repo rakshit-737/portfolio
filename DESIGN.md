@@ -146,9 +146,12 @@ everywhere: body copy, labels, chrome, and — without exception — every
 number at every size, so a measured quantity always reads as an instrument
 reading rather than a headline. Chivo, its proportional sibling, is reserved
 for the passages a reader actually reads rather than scans. Motion is a
-single moving part (the lamp's rAF loop, shared with the torch), one
-per-act reveal that plays once on first arrival, and scroll-scrubbed motion
-on four of the eight acts.
+single moving part — the lamp's rAF loop, shared with the torch — plus one
+per-act copy reveal that plays once on first arrival. The paintings
+themselves never move: an earlier build pushed each plate in slightly on
+scroll and scrubbed four of the eight acts through a baked zoompan video;
+the owner saw both live and asked for the zoom to go, so as of 2026-08-20
+every act is a still and the lamp's light is the only thing that moves.
 
 **Key Characteristics:**
 - Three values — ground, bone signal, ember — no grey, no other hue.
@@ -343,16 +346,15 @@ keeps only its middle value (9.07, the CGPA) visible via `nth-child`,
 stay in the DOM and still ignite once the lamp reaches them at wider
 viewports.
 
-**Case files.** A static, non-interactive plate (`Plate` at `h-[60svh]`, no
-scroll-scrubbing, `motion={false}`) opens each case study as a fixed painted
-header, credited exactly like a landing-page act. It still carries the
-lamp's mask — `data-lamp="on"` is global, set once on `<html>` for the
-whole site — but with no `[data-act]` ancestor for Lamp.tsx's rAF loop to
-find and scrub, every custom property the mask reads sits at its unset
-default: a static pool centred at 50%/50% with `--lamp-r`'s literal
-fallback (26vmax), exactly the "lamp static and centred" the spec asks
-for (§5.2). Below it, sections follow
-the previous system's grammar unchanged: a `13rem` sticky title column
+**Case files.** A static, non-interactive plate (`Plate` at `h-[60svh]`)
+opens each case study as a fixed painted header, credited exactly like a
+landing-page act. It still carries the lamp's mask — `data-lamp="on"` is
+global, set once on `<html>` for the whole site — but with no `[data-act]`
+ancestor for Lamp.tsx's rAF loop to find and scrub, every custom property
+the mask reads sits at its unset default: a static pool centred at 50%/50%
+with `--lamp-r`'s literal fallback (26vmax), exactly the "lamp static and
+centred" the spec asks for (§5.2). Below it, sections follow the previous
+system's grammar unchanged: a `13rem` sticky title column
 (`lg:sticky lg:top-24`) against a fluid content column, separated by
 `border-t border-rule`, `3rem`–`4rem` of vertical padding.
 
@@ -663,15 +665,16 @@ now marked with a `signal` fill and `ground` text — the same local
 colour-swap device as a filled `Bracket`, not the retired region inversion.
 
 ### Plate
-The two-plus-layer painting (`Plate.tsx`): a dimmed still (`.plate-dark`),
-a full-brightness still masked to the lamp's pool (`.plate-lit`), and,
-on four of the eight acts, a scroll-scrubbed video standing in for the lit
-still while it plays (`.plate-motion`). **Document order is paint order** —
-all four layers (the fourth being the act-edge dissolve, `.plate::after`)
-are `position: absolute` with no `z-index`, so whichever is later in the
-markup paints on top; the dark layer must precede the lit layer or the
-lamp's reveal is invisible underneath it. The lit layer carries the plate's
-alt text — it is the layer present in every state, including no-JS.
+The three-layer painting (`Plate.tsx`): a dimmed still (`.plate-dark`) and
+a full-brightness still masked to the lamp's pool (`.plate-lit`) — every
+act, no exceptions; there is no motion layer any more (removed
+2026-08-20, the owner asked the zoom to go). **Document order is paint
+order** — all three layers (the third being the act-edge dissolve,
+`.plate::after`) are `position: absolute` with no `z-index`, so whichever
+is later in the markup paints on top; the dark layer must precede the lit
+layer or the lamp's reveal is invisible underneath it. The lit layer
+carries the plate's alt text — it is the layer present in every state,
+including no-JS.
 Ships AVIF/WebP srcsets per plate, a landscape crop by default and a
 portrait `cropNarrow` where the subject needs it below 48rem, and an
 inlined base64 LQIP as a background while the real image loads.
@@ -690,9 +693,8 @@ more.
 ### Lamp
 The one client component with a moving part (`Lamp.tsx`): a single rAF
 loop, one `IntersectionObserver`, one passive pointermove listener. Writes
-`--p` (linear act progress), `--pe` (eased, for the plate's push-in and the
-motion video's scrub), `--lamp-x`, `--lamp-y` onto every visible act. Sets
-`data-lamp="on"` on `<html>` — the mask CSS is entirely gated on that
+`--p` (linear act progress), `--lamp-x`, `--lamp-y` onto every visible act.
+Sets `data-lamp="on"` on `<html>` — the mask CSS is entirely gated on that
 attribute, so the unstyled default is fully lit. The same tick also drives
 ignition: each visible act's `.ignite` elements are gathered once (not
 re-queried every frame), and every tick compares each one's real screen
@@ -745,8 +747,7 @@ raster shot the owner hasn't supplied) renders nothing, the same
 convention `certificateImage()`/`certificateThumb()` already use for a
 certificate scan that hasn't arrived. If a future exhibit's raster assets
 ever push an act over the media budget, evidence outranks atmosphere: drop
-that act's scroll-scrubbed motion clip before shrinking or dropping the
-exhibit.
+or shrink a plate's still tiers before shrinking or dropping the exhibit.
 
 **The One Moment (Per Act) Rule.** An act's copy resolves into place —
 opacity and a small translate — the first time it intersects the viewport,
@@ -755,12 +756,12 @@ past an act never re-triggers its reveal. The benchmark chart's bars still
 grow once, on approach, exactly as before.
 
 **The Reduced-Motion Rule.** Under `prefers-reduced-motion: reduce`, the
-lamp and torch never initialise (`Lamp.tsx`/`Torch.tsx` return early), every
-`.plate-motion` video is removed from the DOM outright — not merely hidden
-— the plate push-in transform is cancelled, and the act-reveal transition
-never gates the copy in the first place, since it only exists once
-`data-lamp="on"` is set. A reduced-motion visitor sees exactly the same
-fully-lit, fully-present page a no-JS visitor does.
+lamp and torch never initialise (`Lamp.tsx`/`Torch.tsx` return early), and
+the act-reveal transition never gates the copy in the first place, since
+it only exists once `data-lamp="on"` is set. A reduced-motion visitor
+sees exactly the same fully-lit, fully-present page a no-JS visitor does —
+and, since no plate carries motion any more, exactly the same page a
+full-motion visitor sees too.
 
 **The Lamp-Dramatizes-Never-Gates Rule.** The lamp dramatizes the record;
 it never gates it — an idle-pointer scroll (no cursor movement at all,
@@ -854,7 +855,8 @@ plate is licensed `PD-old-100` and its credit line
 
 Each plate's `lamp` field in `src/lib/art.ts` is the light source's rest
 position as the painter actually placed it, so the CSS mask agrees with the
-paint. Four plates (hero/blacksmith, warden/forge, scheduler/orrery,
-plantpal/kitten) also carry a `motion` descriptor and a scrubbed video clip;
-the other four (alchemist, anatomy, dovedale, latour) ship stills only — a
-deliberate cut to hold the media budget under its ceiling, not an oversight.
+paint. All eight plates ship stills only — four of them (hero/blacksmith,
+warden/forge, scheduler/orrery, plantpal/kitten) used to also carry a
+`motion` descriptor and a scrubbed zoompan video clip; that layer was
+removed entirely (2026-08-20) after the owner saw it live and asked for
+the zoom to go, so `src/lib/art.ts` no longer has a `motion` field at all.

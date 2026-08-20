@@ -164,30 +164,14 @@ section[id] {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Scroll pushes the frame in, very slightly. Free — no layout. Eased
-     (--pe), not linear (--p), so the push-in starts and stops gently
-     instead of snapping at the act boundary. The motion video doesn't get
-     this: its own push-in is already baked into the encoded clip
-     (src/lib/art.ts `motion.from/to`), so an extra CSS scale here would
-     double it. */
-  transform: scale(calc(1.04 + var(--pe, 0) * 0.06));
-  transform-origin: center;
 }
 /* Per-plate framing (src/lib/art.ts) — keeps the painting's subject clear
-   of the text column instead of defaulting to dead centre. Shared with
-   `.plate-motion` (fix round, Task 14b) rather than duplicated: the
-   encoded WebM's aspect ratio equals its crop's, so on any container whose
-   aspect differs, `object-fit: cover` alone crops toward centre — exactly
-   the defect this descriptor exists to prevent for the stills. Widening
-   this selector (instead of writing a second rule) also means any future
-   element added to `.plate` inherits the framing for free. */
-.plate img,
-.plate-motion {
+   of the text column instead of defaulting to dead centre. */
+.plate img {
   object-position: var(--framing-wide, 50% 50%);
 }
 @media (max-width: 48rem) {
-  .plate img,
-  .plate-motion {
+  .plate img {
     object-position: var(--framing-narrow, 50% 50%);
   }
 }
@@ -211,22 +195,6 @@ section[id] {
     transparent 86%,
     var(--color-ground) 100%
   );
-}
-
-/* The scroll-scrubbed motion layer. Absent from the DOM entirely (not
-   merely hidden) with no JavaScript and under reduced motion — see
-   Lamp.tsx and Plate.tsx. When present, it stays display:none until the
-   lamp is actually on, the same gate the mask itself uses. */
-.plate-motion {
-  display: none;
-}
-[data-lamp="on"] .plate-motion {
-  display: block;
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 [data-lamp="on"] .plate-dark {
@@ -260,15 +228,7 @@ section[id] {
      touch, for zero further gain on the one it doesn't. */
   filter: brightness(0.38) saturate(0.85);
 }
-/* `.plate-motion` paints above `.plate-lit` (document order), so it MUST
-   carry the identical mask or it would show the video at full brightness
-   across the whole frame — burying the dimmed `.plate-dark` layer beneath
-   it and erasing the lamp's reveal entirely. That is the same class of bug
-   the paint-order tests in tests/lamplight.spec.ts already guard against
-   for the two <picture> layers; this keeps the video inside that same
-   guarantee rather than sitting outside it. */
-[data-lamp="on"] .plate-lit,
-[data-lamp="on"] .plate-motion {
+[data-lamp="on"] .plate-lit {
   /* A pool, not a spot — the lit region has to be big enough to carry a
      subject, not just graze it. */
   --lamp-r: calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax);
@@ -431,12 +391,12 @@ section[id] {
    are percentages of the *act*, not of a `.ignite` element a few characters
    wide — so the mask centred itself somewhere essentially arbitrary,
    determined by the element's own layout width, never by where the lamp
-   actually was. (`.plate-lit`/`.plate-motion` don't have this bug because
-   those elements themselves fill the act box via `inset: 0`, so their own
-   box IS the percentage basis `--lamp-x`/`--lamp-y` were computed against.)
-   `--lamp-r` doubled the problem: it's declared on `.plate-lit`/
-   `.plate-motion`, a sibling subtree, so `.ignite` never inherited it and
-   silently fell back to the literal `26vmax` in the `var()` default.
+   actually was. (`.plate-lit` doesn't have this bug because it fills the
+   act box via `inset: 0`, so its own box IS the percentage basis
+   `--lamp-x`/`--lamp-y` were computed against.) `--lamp-r` doubled the
+   problem: it's declared on `.plate-lit`, a sibling subtree, so `.ignite`
+   never inherited it and silently fell back to the literal `26vmax` in the
+   `var()` default.
 
    The fix (spec §4.1: "comparing each metric's centre against the lamp
    coordinates in the same rAF tick — no per-element observers") moves the
@@ -716,9 +676,6 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-  .plate img {
-    transform: none;
   }
   .torch {
     display: none;

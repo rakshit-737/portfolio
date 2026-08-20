@@ -343,39 +343,28 @@ const CONTRAST_LUMINANCE_CEILING = 0.12;
 // the DOM order regresses, independent of what shade of dim the images
 // happen to render as.
 //
-// Task 14b fix round: extended to cover the third layer, `.plate-motion`
-// (the scrubbed video), which Plate.tsx renders after both `<picture>`
-// blocks. The original assertion only inspected `img` elements, so a future
-// change that dropped the video between the two stills — or before
-// `.plate-dark` — would not have failed it. `.plate-motion` carries the
-// same mask as `.plate-lit` (see globals.css) and stands in for it inside
-// the lamp's pool, so it must paint after both stills or it either hides
-// beneath the dimmed layer or buries the reveal under an unmasked frame.
-test("every plate paints the dark layer beneath the lit one, and any motion video last", async ({
-  page,
-}) => {
+// p0-remove-motion: the plate stack used to carry a third layer,
+// `.plate-motion` (a scroll-scrubbed video baked from a zoompan drift),
+// which this test also asserted always painted last. The owner asked for
+// every zoom removed — the video's entire content was zoom — so Plate.tsx
+// no longer renders it at all; the assertion below is scoped back down to
+// the two stills it originally guarded.
+test("every plate paints the dark layer beneath the lit one", async ({ page }) => {
   await page.goto("/");
   const broken = await page.evaluate(() =>
     [...document.querySelectorAll(".plate")]
       .map((plate, i) => {
-        // Document order among the plate's media layers only — img and
-        // video are the only elements this ordering guarantee governs.
-        const layers = [...plate.querySelectorAll("img, video")];
+        const layers = [...plate.querySelectorAll("img")];
         const dark = layers.findIndex((n) => n.classList.contains("plate-dark"));
         const lit = layers.findIndex((n) => n.classList.contains("plate-lit"));
-        const motion = layers.findIndex((n) => n.classList.contains("plate-motion"));
         const darkAfterLit = dark > -1 && lit > -1 && dark > lit;
-        const motionNotLast = motion > -1 && (motion < dark || motion < lit);
-        return darkAfterLit || motionNotLast ? i : -1;
+        return darkAfterLit ? i : -1;
       })
       .filter((i) => i > -1),
   );
   // Both stills are position:absolute with no z-index, so document order IS
   // paint order. Dark must come first or it covers the lamp's reveal
-  // entirely — the exact bug this task's second pass existed to fix. Where
-  // a motion video exists, it must be last of the three — after both
-  // stills — or it paints beneath one of them instead of standing in for
-  // the lit layer inside the lamp's pool.
+  // entirely — the exact bug this task's second pass existed to fix.
   expect(broken).toEqual([]);
 });
 
@@ -451,9 +440,9 @@ test("the lamp's reveal pool is measurably brighter than the frame's far edge", 
   // Exhibit.tsx's doc comment), so it reads dark regardless of whether the
   // reveal is working. (85, 20) with a wide 160px averaging patch was
   // chosen empirically, break-and-restore verified against this exact
-  // build: with the lamp mask genuinely disabled (`.plate-lit`/
-  // `.plate-motion` forced to the same unmasked `brightness(0.38)` ambient
-  // floor as `.plate-dark`, simulating a fully broken reveal), this point
+  // build: with the lamp mask genuinely disabled (`.plate-lit` forced to
+  // the same unmasked `brightness(0.38)` ambient floor as `.plate-dark`,
+  // simulating a fully broken reveal), this point
   // reads only ~2.5x the far corner — comfortably under `REVEAL_MARGIN`
   // below — while the real, working build reads ~13x, a >2x margin clear
   // on both sides of the threshold. A point closer to the
@@ -600,8 +589,8 @@ async function assertNoVoidAcrossScroll(
 
   for (let y = 0; y < height; y += NO_VOID_STEP_PX) {
     await page.evaluate((yy) => window.scrollTo(0, yy), y);
-    // Lazy-decoded AVIFs and the video's own scroll-seek both need a beat
-    // to settle before a screenshot reflects the real, settled frame.
+    // Lazy-decoded AVIFs need a beat to settle before a screenshot
+    // reflects the real, settled frame.
     await page.waitForTimeout(NO_VOID_SETTLE_MS);
 
     const buf = await page.screenshot();
@@ -816,139 +805,6 @@ for (const id of ACTS) {
     }
   });
 }
-
-// Task 14b: scroll-scrubbed plate motion. The hero act always ships motion
-// (it survives both the full eight-plate spread and the four-plate fallback
-// spread), so it's the fixed point these tests scrub against.
-test("the hero plate scrubs its video with scroll", async ({ page }) => {
-  await page.goto("/");
-  const video = page.locator("#hero video").first();
-  await expect(video).toHaveCount(1);
-  // The video must be inert on its own — scroll is the only clock.
-  expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
-  expect(await video.evaluate((v: HTMLVideoElement) => v.autoplay)).toBe(false);
-
-  const at = () => video.evaluate((v: HTMLVideoElement) => v.currentTime);
-  await page.waitForFunction(
-    () => (document.querySelector("#hero video") as HTMLVideoElement)?.readyState >= 1,
-  );
-  const before = await at();
-  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 0.7));
-  // The rAF loop drives the seek and the actual media seek is async, so
-  // poll the condition itself rather than sleeping a fixed guess — under
-  // parallel workers a flat wait races the loop and flakes.
-  await page.waitForFunction(
-    (prev) =>
-      (document.querySelector("#hero video") as HTMLVideoElement)?.currentTime !== prev,
-    before,
-  );
-  expect(await at()).not.toBe(before);
-});
-
-test("reduced motion renders the still plate and no video", async ({ browser }) => {
-  const ctx = await browser.newContext({ reducedMotion: "reduce" });
-  const page = await ctx.newPage();
-  await page.goto("/");
-  await expect(page.locator("video")).toHaveCount(0);
-  await expect(page.locator(".plate-lit").first()).toBeVisible();
-  await ctx.close();
-});
-
-// Fix round: the other two skip conditions Lamp.tsx computes into
-// `motionAllowed` (a coarse pointer paired with a narrow viewport, and
-// `navigator.connection.saveData`) had no test coverage — only reduced
-// motion did. Unlike reduced motion, neither of these causes Plate.tsx's
-// `<video>` element to be removed from the DOM (Lamp.tsx's `promoteVideos`
-// just never runs), so the assertion here is narrower and more direct: the
-// element exists, but its `src` attribute is never set, so nothing is ever
-// requested. `motionAllowed` gates `promoteVideo` per act now, not a single
-// `promoteVideos()` sweep, but the effect is the same: false means no act's
-// video is ever promoted.
-test("a coarse pointer on a narrow viewport never promotes the video's src", async ({
-  browser,
-}) => {
-  const ctx = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    hasTouch: true,
-    isMobile: true,
-  });
-  const page = await ctx.newPage();
-  // Sanity check on the emulation itself: `motionAllowed`'s condition reads
-  // `matchMedia("(pointer: coarse)")`, not `hasTouch` directly — confirm
-  // this context actually reports coarse before trusting a pass below.
-  await page.goto("/");
-  const coarse = await page.evaluate(() => window.matchMedia("(pointer: coarse)").matches);
-  expect(coarse, "this context did not emulate a coarse pointer — the test below proves nothing").toBe(true);
-
-  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
-  const video = page.locator("#hero video").first();
-  await expect(video).toHaveCount(1);
-  await page.waitForTimeout(300);
-  expect(await video.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).toBeNull();
-  await ctx.close();
-});
-
-test("navigator.connection.saveData never promotes the video's src", async ({ browser }) => {
-  const ctx = await browser.newContext();
-  const page = await ctx.newPage();
-  await page.addInitScript(() => {
-    Object.defineProperty(window.navigator, "connection", {
-      value: { saveData: true },
-      configurable: true,
-    });
-  });
-  await page.goto("/");
-  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
-  const video = page.locator("#hero video").first();
-  await expect(video).toHaveCount(1);
-  await page.waitForTimeout(300);
-  expect(await video.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).toBeNull();
-  await ctx.close();
-});
-
-// Task 22: promoteVideos() used to set `src` on every plate's motion video
-// as soon as the lamp turned on, regardless of which act was actually on
-// screen — four clips (~750 kB) fetched on load for one act a reader could
-// see. Videos are now promoted per act, from the same IntersectionObserver
-// callback that already exists, the first time that act intersects. This
-// asserts the fix directly: on first load only the hero's video (the one
-// act visible) has a `src`; the later acts' videos stay unset until
-// scrolled into view. Reverting to the old eager promoteVideos() call fails
-// the second assertion — `#warden video` would already carry a `src` before
-// any scroll happens.
-test("a plate's motion video is promoted only when its own act arrives", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
-
-  const heroVideo = page.locator("#hero video").first();
-  const wardenVideo = page.locator("#warden video").first();
-  await expect(heroVideo).toHaveCount(1);
-  await expect(wardenVideo).toHaveCount(1);
-
-  // Give the hero's own promotion a moment, then confirm the still-offscreen
-  // warden act has not been promoted alongside it.
-  await page.waitForTimeout(300);
-  expect(await heroVideo.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).not.toBeNull();
-  expect(await wardenVideo.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).toBeNull();
-
-  // Scroll the warden act into view; its video should now be promoted too.
-  await page.locator("#warden").scrollIntoViewIfNeeded();
-  await page.waitForTimeout(300);
-  expect(await wardenVideo.evaluate((v: HTMLVideoElement) => v.getAttribute("src"))).not.toBeNull();
-});
-
-test("without JavaScript no video is requested", async ({ browser }) => {
-  const ctx = await browser.newContext({ javaScriptEnabled: false });
-  const page = await ctx.newPage();
-  const requested: string[] = [];
-  page.on("request", (r) => {
-    if (r.url().endsWith(".webm")) requested.push(r.url());
-  });
-  await page.goto("/");
-  await expect(page.locator(".plate-lit").first()).toBeVisible();
-  expect(requested).toEqual([]);
-  await ctx.close();
-});
 
 // Task 14d: the torch — a page-wide flashlight, unified with the plate lamp
 // so the page never carries two uncorrelated light sources.
@@ -1624,8 +1480,8 @@ test("the torch and lamp survive a normal scroll through every act", async ({
       // frame-budget breaker, not idle-disarm — see the comment above.
       await page.mouse.move(600, 400, { steps: 2 });
       // A reader lingers on each act rather than teleporting through them
-      // — long enough for the act's own video-seek/AVIF-decode work (the
-      // load that used to trip the old breaker) to actually happen.
+      // — long enough for the act's own AVIF-decode work (the load that
+      // used to trip the old breaker) to actually happen.
       await page.waitForTimeout(200);
     }
 
