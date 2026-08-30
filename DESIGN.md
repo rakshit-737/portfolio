@@ -894,3 +894,33 @@ warden/forge, scheduler/orrery, plantpal/kitten) used to also carry a
 `motion` descriptor and a scrubbed zoompan video clip; that layer was
 removed entirely (2026-08-20) after the owner saw it live and asked for
 the zoom to go, so `src/lib/art.ts` no longer has a `motion` field at all.
+
+## Verification (P15)
+
+Every CI gate (`.github/workflows/ci.yml`, run on every push and PR) and
+what it protects, one line each. All must stay green; a gate is fixed or
+its conflict reported — never weakened or its ceiling raised to pass.
+
+| Gate | Command / file | Protects |
+| --- | --- | --- |
+| Art integrity | `npm run check:art` | Every committed plate's sha256 matches `art.lock.json`, both directions (orphans included) — CI never touches Wikimedia. |
+| Type/lint | `tsc --noEmit`, `npm run lint` | Zero type errors, zero lint violations. |
+| Budgets | `npm run budget` | Gzipped JS ≤214kB/page, page media ≤3500kB, above-the-fold media ≤700kB. |
+| Link crawl | `npm run check:links` | Every internal href/src/srcset in every emitted `out/*.html` resolves to a real export file, under either deploy's basePath shape (derived from the build's own `_next` URLs, not assumed); external GitHub links get a non-blocking HEAD check. |
+| Content lint | `npm run check:content` | The stranger test: `dispatch instants`/`SDSC SP2`/`TOST` never render on the index outside `#scheduler`/`#research` — no unexplained insider term on the first screen. |
+| No-void | `tests/lamplight.spec.ts` | An idle-pointer scroll never lets any 1440×900 or 390×844 viewport step below 6% mean luminance / 0.5% bright pixels — the ambient floor holds with no cursor input at all. |
+| Contrast trio | `tests/lamplight.spec.ts`, `tests/a11y.spec.ts` | Palette tokens clear WCAG AA (signal and ember, body-sized); the two brightest painted regions text can overlap at 390px clear the same ceiling; `prefers-contrast: more` swaps the scrim gradient for solid ground. |
+| Paint-order trio | `tests/lamplight.spec.ts` | `.plate-dark` precedes `.plate-lit` in the DOM for every plate (document order is paint order, no z-index to fall back on); the lit pool is measurably brighter than the frame's far edge; the mask reads the lamp's live `--lamp-x`/`--lamp-y` on scroll. |
+| Ignition | `tests/lamplight.spec.ts` | A `.ignite` metric lights to ember only once the lamp's pool reaches its real screen position, and fades back to bone once it leaves — never a second `mask-image`. |
+| Breaker | `tests/motion.spec.ts`, `tests/lamplight.spec.ts` | The shared frame-budget circuit breaker (`src/lib/motion.ts`) trips on a genuinely slow rolling window, recovers once, and latches after a second trip — pinned tick-by-tick with an injected clock; a live scroll proves the lamp and torch both survive a trip/recover cycle. |
+| Torch states | `tests/lamplight.spec.ts` | The torch follows the pointer without blocking interaction, fades out on idle, re-arms on the next real move, stays off for touch/reduced-motion/no-JS, and raises the plate's unlit floor only while armed. |
+| Idle-stop | `tests/idle-stop.spec.ts` | Both rAF loops stop scheduling frames (not just converge) after 600ms of no input, and both resume on the next scroll/pointer move. |
+| Hire-path | `tests/hirepath.spec.ts` | The thirty-second recruiter path: hero states who/what in ≤1 click of the Warden case file, the breadcrumb returns to `/#warden`, Ctrl+K → "scheduler" lands on `#scheduler`, the résumé resolves as a real PDF, and a `mailto:` contact link exists — gated on interaction count, not noisy CI wall-clock. |
+| Mobile journeys | `tests/mobile.spec.ts` | The same case-file and command-palette journeys at a 390×844 touch viewport, with 44px tap targets. |
+| Heading walk | `tests/a11y.spec.ts` | No heading level is ever skipped upward, exactly one `h1` per page, correct landmarks, a working skip link, full keyboard tab order in DOM order, and the command palette traps Tab and returns focus on close. |
+| Reduced-motion / print / no-JS | `tests/lamplight.spec.ts`, `tests/a11y.spec.ts` | The default JS-free and reduced-motion states are fully lit with all copy present; print drops plates/chrome, forces every act's copy visible, and appends external hrefs after their text. |
+| SEO / social | `tests/seo.spec.ts` | Per-page title/description/canonical, real 1200×630 OG/Twitter PNGs at absolute URLs, valid `Person`/`WebSite`/`SoftwareSourceCode` JSON-LD, sitemap/robots correctness under `site.url`, the GitHub Pages 404/deep-link export shape, and both résumé paths. |
+| Axe | `tests/smoke.spec.ts`, `tests/a11y.spec.ts` | Zero automated accessibility violations on `/` and all three case files, including under `prefers-contrast: more`, with a certificate lightbox open. |
+| Art registry unit tests | `tests/art.spec.ts` | Every plate is licensed, credited, alt-texted, crop-bounded inside its native frame, and served without upscaling. |
+| Lighthouse | `scripts/check-lighthouse.mjs` | Mobile + desktop category minimums and a CLS cap — a ratchet, raised as numbers improve, never lowered to pass. |
+| Scroll-trace | `scripts/scroll-trace.mjs` | Non-blocking LCP/TBT measurement report (documents future ratchet thresholds; never gates the build). |

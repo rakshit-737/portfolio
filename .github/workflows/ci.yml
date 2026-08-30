@@ -40,6 +40,12 @@ jobs:
       - name: Performance budget (gzipped JS)
         run: node scripts/check-budget.mjs
 
+      - name: Link integrity crawl (out/)
+        run: npm run check:links
+
+      - name: Content lint (the stranger test)
+        run: npm run check:content
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 

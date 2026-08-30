@@ -52,6 +52,15 @@ CI (`.github/workflows/ci.yml`) enforces, on every push and PR:
 - `npm run typecheck` and `npm run lint` — zero errors
 - `npm run budget` — gzipped-JS ceiling per exported page plus a media-weight
   ceiling for the landing page's paintings (`scripts/check-budget.mjs`)
+- `npm run check:links` — crawls every emitted `out/*.html` file and resolves
+  every internal href/src/srcset to a real export file, correctly under
+  either deploy's basePath shape (derived from the build's own `_next` URLs,
+  not assumed); external GitHub links get a non-blocking HEAD check
+  (`scripts/check-links.mjs`)
+- `npm run check:content` — the stranger test, encoded: fails if an insider
+  term (`dispatch instants`, `SDSC SP2`, `TOST`) renders on the index
+  outside the `#scheduler`/`#research` acts that actually explain it
+  (`scripts/check-content-lint.mjs`)
 - `npm test` — Playwright smoke tests against `./out` (page renders, ⌘K
   palette opens and jumps, anchors navigate, résumé resolves, case-study
   routes 200, internal links resolve, plate credits render, the lamp turns

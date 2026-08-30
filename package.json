@@ -10,6 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
     "budget": "node scripts/check-budget.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check:content": "node scripts/check-content-lint.mjs",
     "scroll-trace": "node scripts/scroll-trace.mjs",
     "art": "node scripts/fetch-art.mjs",
     "check:art": "node scripts/check-art.mjs",

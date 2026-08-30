@@ -73,3 +73,65 @@ test("the recruiter can land, orient, and reach the Warden case file in one clic
 
   expect(interactions, "clicks from landing to the Warden case file").toBeLessThanOrEqual(2);
 });
+
+/**
+ * P15 §1: journey nets for the hire-path, desktop viewport. The touch/mobile
+ * shape of "index → Warden case file → back via breadcrumb" already exists
+ * (tests/mobile.spec.ts, "case-file navigation journey on a touch
+ * viewport") — this is its desktop counterpart, closing the loop the test
+ * above only walks one direction. The Ctrl+K → "scheduler" → #scheduler
+ * journey has no existing coverage at either viewport: smoke.spec.ts's
+ * palette test exercises the same mechanism with different query terms
+ * ("research", "Hero"), and mobile.spec.ts's touch search test also uses
+ * "research" — neither lands on the scheduler target the brief names, so
+ * it's added fresh here (desktop; the touch equivalent of the *mechanism*
+ * is already proven in mobile.spec.ts, just not for this exact term). The
+ * résumé-resolves journey needs no new test — the single test above already
+ * covers it as step (d).
+ */
+test("hero to Warden case file and back via breadcrumb to /#warden — desktop, ≤2 interactions each way", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  let interactions = 0;
+  await page.getByRole("link", { name: "Read the Warden case file" }).click();
+  interactions += 1;
+  expect(interactions, "clicks from landing to the Warden case file").toBeLessThanOrEqual(2);
+  await expect(page).toHaveURL(/\/projects\/warden\/$/);
+
+  const breadcrumb = page.getByRole("link", { name: /the record/ });
+  await expect(breadcrumb).toBeVisible();
+  let backInteractions = 0;
+  await breadcrumb.click();
+  backInteractions += 1;
+  expect(backInteractions, "clicks from the case file back to /#warden").toBeLessThanOrEqual(2);
+
+  await expect(page).toHaveURL(/\/#warden$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Rakshit Rameshbabu" }),
+  ).toBeVisible();
+});
+
+test("Ctrl+K, type 'scheduler', lands on the scheduler act — desktop, 2 interactions", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  let interactions = 0;
+  await page.keyboard.press("Control+k");
+  interactions += 1;
+  const input = page.getByRole("combobox", { name: "Search the field" });
+  await expect(input).toBeFocused();
+
+  await input.fill("scheduler");
+  const option = page.getByRole("option", { name: /Scheduler/ }).first();
+  await expect(option).toBeVisible();
+  await option.click();
+  interactions += 1;
+
+  expect(interactions, "Ctrl+K then a click on the scheduler result").toBeLessThanOrEqual(2);
+  await expect(page).toHaveURL(/#scheduler$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator("#scheduler")).toBeInViewport();
+});
