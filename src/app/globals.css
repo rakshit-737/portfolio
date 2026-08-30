@@ -712,6 +712,26 @@ section[id] {
   }
 }
 
+/* ── prefers-contrast: more — the scrim goes solid ─────────────────────
+   P14: the ordinary scrim is a gradient that fades to transparent so the
+   painting still shows through most of an act's frame; its protected band
+   (measured against the actual column width, see `.scrim`/`.scrim-wide`
+   above) already clears AA everywhere text can sit. A reader who has asked
+   the OS for more contrast is asking for a bigger margin than "clears the
+   4.5:1 floor" — so under this preference the scrim drops the gradient
+   entirely and paints solid `--color-ground` behind the whole protected
+   box, same shape, zero transparency. Painted midtone never touches text
+   in this mode; contrast becomes exactly the palette's own signal/ground
+   ratio (>4.5:1, `tests/lamplight.spec.ts`'s "palette clears WCAG AA"),
+   not a screenshot-measured approximation of one. Documented in DESIGN.md
+   under Colors. */
+@media (prefers-contrast: more) {
+  .scrim::before,
+  .scrim-wide::before {
+    background: var(--color-ground);
+  }
+}
+
 /* ── Reduced motion: the moment is simply already over ───────────────── */
 
 @media (prefers-reduced-motion: reduce) {

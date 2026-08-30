@@ -166,6 +166,12 @@ export default async function CaseStudyPage({
 
   return (
     <>
+      <a
+        href="#top"
+        className="label sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-100 focus:bg-signal focus:px-3 focus:py-2 focus:text-ground"
+      >
+        Skip to content
+      </a>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -192,7 +198,7 @@ export default async function CaseStudyPage({
         </nav>
       </header>
 
-      <main>
+      <main id="top">
         <nav aria-label="Breadcrumb" className={`${SHELL} pt-5`}>
           <a
             href={withBase(`/#${project.id}`)}

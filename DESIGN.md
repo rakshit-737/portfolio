@@ -219,6 +219,19 @@ opacity to signal a state. A pending achievement is a dashed outline
 Fractional alpha belongs only to rules and the lamp/torch's own gradients,
 which are graphics rather than language.
 
+**`prefers-contrast: more` (P14).** The ordinary `.scrim`/`.scrim-wide`
+gradient fades to transparent so the painting still shows through most of
+an act's frame; its protected band already clears AA everywhere text can
+sit (measured against the real column width, not a fixed viewport
+fraction — see Layout below). A reader who has asked the OS for more
+contrast than that gets a stricter guarantee: under
+`@media (prefers-contrast: more)` both scrim gradients drop out entirely
+and paint solid `--color-ground` behind the whole protected box instead —
+same shape, zero transparency, a few lines in `globals.css`. Painted
+midtone never touches text in this mode, so contrast collapses to exactly
+the palette's own signal/ground ratio rather than a screenshot-measured
+approximation of one.
+
 ## Typography
 
 **Display Font:** Newsreader (fallback `Georgia, serif`), optical-size axis
