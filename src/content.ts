@@ -701,6 +701,22 @@ export const moreProjects: MoreProject[] = [
     ],
   },
   {
+    // Every claim transcribed from the repo's README (fetched 2026-08-30);
+    // dates from the GitHub API (created 2026-07-31, last push 2026-08-30).
+    name: "DocForge — Personal Document Studio",
+    timeframe: "Jul 2026",
+    description:
+      "Client-side document studio that turns Markdown into typeset PDFs and Word documents — a live paginated preview that is itself the editing surface, automatic table of contents with real page numbers, per-page footnotes, numeric or author–year citations, cross-references, and LaTeX math exported to Word as real editable equations — in **one self-contained HTML file**: no account, no server, works offline. MIT licensed.",
+    tech: ["JavaScript", "KaTeX"],
+    repoUrl: "https://github.com/rakshit-737/docforge",
+    evidence: [
+      { label: "2026-07" },
+      { label: "active" },
+      { label: "javascript" },
+      { label: "repo", href: "https://github.com/rakshit-737/docforge" },
+    ],
+  },
+  {
     name: "SentinelCore — OS-Level Malware Analysis Framework",
     timeframe: "Aug 2025",
     description:
