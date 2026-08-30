@@ -1,5 +1,60 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { hero } from "../src/content";
+
+declare global {
+  interface Window {
+    __hirepathRecordInteraction?: () => void;
+  }
+}
+
+/**
+ * Review fix (P15 round 1): every "≤N interactions" budget below is derived
+ * from real, trusted DOM events the browser actually dispatched — a
+ * document-level capturing `click`/`keydown` listener, wired through
+ * `page.exposeFunction` so the count lives in Node and survives the full
+ * page navigations these journeys perform — not from a hand-placed
+ * `interactions += 1` sitting next to each `.click()`/`.keyboard.press()`
+ * call. A hand-placed counter can only ever equal the literal number of
+ * such calls the test's author wrote, so `toBeLessThanOrEqual(2)` was true
+ * by construction and could never register a real regression that inserted
+ * an extra required step. This counter instead reflects what the page
+ * actually dispatched, so a future redesign that adds a genuine extra click
+ * or keypress makes the number itself go up, independent of what the test
+ * source happens to say.
+ *
+ * `Locator.fill()` deliberately dispatches no `keydown` events (it sets the
+ * value and fires `input`/`change`, not a key-by-key type), so filling the
+ * palette's query box is not itself counted — matching the brief's own
+ * framing of "type X" as incidental to the click/shortcut interactions
+ * around it, not a budgeted step in its own right. A modifier chord (e.g.
+ * Ctrl+K) dispatches a `keydown` for the modifier key itself before the one
+ * for the letter — the listener skips bare modifier keydowns so a single
+ * shortcut press counts once, matching how a person actually experiences it.
+ */
+async function trackRealInteractions(page: Page): Promise<() => number> {
+  let count = 0;
+  await page.exposeFunction("__hirepathRecordInteraction", () => {
+    count += 1;
+  });
+  await page.addInitScript(() => {
+    const record = () => window.__hirepathRecordInteraction?.();
+    document.addEventListener("click", record, true);
+    // A chord like Ctrl+K dispatches a `keydown` for the modifier itself
+    // ("Control") before the one for the letter key — one physical
+    // key-combo press, two events. Counting the modifier's own keydown
+    // would over-count a single-interaction shortcut, so only the
+    // non-modifier keydown (the "k", carrying `ctrlKey: true`) is recorded.
+    const MODIFIER_KEYS = new Set(["Control", "Shift", "Alt", "Meta"]);
+    document.addEventListener(
+      "keydown",
+      (e) => {
+        if (!MODIFIER_KEYS.has((e as KeyboardEvent).key)) record();
+      },
+      true,
+    );
+  });
+  return () => count;
+}
 
 /**
  * P13: the thirty-second recruiter path, gated. A stranger with no context
@@ -19,6 +74,8 @@ test("the recruiter can land, orient, and reach the Warden case file in one clic
   page,
   request,
 }) => {
+  const realInteractions = await trackRealInteractions(page);
+
   // (a) Land on the index.
   const navStart = Date.now();
   await page.goto("/");
@@ -64,14 +121,15 @@ test("the recruiter can land, orient, and reach the Warden case file in one clic
 
   // (c) Reach the Warden case file — the hero's own CTA row puts it one
   // click away, above the fold, with no scroll or search required.
-  let interactions = 0;
   await page.getByRole("link", { name: "Read the Warden case file" }).click();
-  interactions += 1;
 
   await expect(page).toHaveURL(/\/projects\/warden\/$/);
   await expect(page.getByRole("heading", { level: 1, name: /Warden/ })).toBeVisible();
 
-  expect(interactions, "clicks from landing to the Warden case file").toBeLessThanOrEqual(2);
+  expect(
+    realInteractions(),
+    "clicks from landing to the Warden case file",
+  ).toBeLessThanOrEqual(2);
 });
 
 /**
@@ -92,22 +150,26 @@ test("the recruiter can land, orient, and reach the Warden case file in one clic
 test("hero to Warden case file and back via breadcrumb to /#warden — desktop, ≤2 interactions each way", async ({
   page,
 }) => {
+  const realInteractions = await trackRealInteractions(page);
   await page.goto("/");
 
-  let interactions = 0;
   await page.getByRole("link", { name: "Read the Warden case file" }).click();
-  interactions += 1;
-  expect(interactions, "clicks from landing to the Warden case file").toBeLessThanOrEqual(2);
   await expect(page).toHaveURL(/\/projects\/warden\/$/);
+  expect(
+    realInteractions(),
+    "clicks from landing to the Warden case file",
+  ).toBeLessThanOrEqual(2);
 
   const breadcrumb = page.getByRole("link", { name: /the record/ });
   await expect(breadcrumb).toBeVisible();
-  let backInteractions = 0;
+  const interactionsBeforeReturn = realInteractions();
   await breadcrumb.click();
-  backInteractions += 1;
-  expect(backInteractions, "clicks from the case file back to /#warden").toBeLessThanOrEqual(2);
-
   await expect(page).toHaveURL(/\/#warden$/);
+  expect(
+    realInteractions() - interactionsBeforeReturn,
+    "clicks from the case file back to /#warden",
+  ).toBeLessThanOrEqual(2);
+
   await expect(
     page.getByRole("heading", { level: 1, name: "Rakshit Rameshbabu" }),
   ).toBeVisible();
@@ -116,11 +178,10 @@ test("hero to Warden case file and back via breadcrumb to /#warden — desktop, 
 test("Ctrl+K, type 'scheduler', lands on the scheduler act — desktop, 2 interactions", async ({
   page,
 }) => {
+  const realInteractions = await trackRealInteractions(page);
   await page.goto("/");
 
-  let interactions = 0;
   await page.keyboard.press("Control+k");
-  interactions += 1;
   const input = page.getByRole("combobox", { name: "Search the field" });
   await expect(input).toBeFocused();
 
@@ -128,10 +189,13 @@ test("Ctrl+K, type 'scheduler', lands on the scheduler act — desktop, 2 intera
   const option = page.getByRole("option", { name: /Scheduler/ }).first();
   await expect(option).toBeVisible();
   await option.click();
-  interactions += 1;
 
-  expect(interactions, "Ctrl+K then a click on the scheduler result").toBeLessThanOrEqual(2);
   await expect(page).toHaveURL(/#scheduler$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator("#scheduler")).toBeInViewport();
+
+  expect(
+    realInteractions(),
+    "Ctrl+K then a click on the scheduler result",
+  ).toBeLessThanOrEqual(2);
 });
