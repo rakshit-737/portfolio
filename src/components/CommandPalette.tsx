@@ -95,7 +95,7 @@ export default function CommandPalette() {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [recents, setRecents] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
 
   const close = useCallback(() => {
@@ -386,7 +386,7 @@ export default function CommandPalette() {
           </p>
         )}
 
-        <ul
+        <div
           id="palette-list"
           ref={listRef}
           role="listbox"
@@ -394,7 +394,7 @@ export default function CommandPalette() {
           className="max-h-[52vh] overflow-y-auto py-1"
         >
           {groups.map((g) => (
-            <li
+            <div
               key={g.name}
               role="group"
               aria-labelledby={`palette-group-${g.name}`}
@@ -435,9 +435,9 @@ export default function CommandPalette() {
                   </span>
                 </div>
               ))}
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
 
         {/* Announce copy success to screen readers. */}
         <span aria-live="polite" className="sr-only">

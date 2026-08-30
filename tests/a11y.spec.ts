@@ -376,6 +376,19 @@ test("the command palette opened via Ctrl+K also returns focus to the previously
   await expect(resumeLink).toBeFocused();
 });
 
+test("axe: no violations with the command palette open", async ({ page }) => {
+  // The palette's group wrapper and its listbox previously used
+  // `<li role="group">` inside a `<ul role="listbox">` — role="group" is
+  // not an allowed ARIA role on <li> per the ARIA-in-HTML mapping, which
+  // axe flags as aria-allowed-role. No existing test ever opened the
+  // palette while scanning, so a real, live violation was invisible to CI.
+  await page.goto("/");
+  await page.keyboard.press("Control+k");
+  await expect(page.getByRole("dialog")).toBeVisible();
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
 // ─────────────────────────────────────────────────────────────────────────
 // 4. Assistive text (spot re-verification — the full decorative-layer sweep
 // is already true in the current build; see components read during this
