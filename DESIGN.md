@@ -214,10 +214,18 @@ built. Never name a class `invert` — Tailwind ships an `invert` filter
 utility, and the two silently cancel.
 
 **The No-Dimming Rule.** Text is never dimmed, faded, or set at partial
-opacity to signal a state. A pending achievement is a dashed outline
-(`BracketDisabled`, the pending-certificate row), not low-contrast text.
-Fractional alpha belongs only to rules and the lamp/torch's own gradients,
-which are graphics rather than language.
+opacity to signal a state. The one achievement that used to demonstrate
+this — a "certificate pending" row rendered as a dashed outline
+(`BracketDisabled`) rather than low-contrast text — now has a real scan, so
+the pattern currently has no live example on the site; both the component
+and the render branch that used it were removed rather than kept live for
+nothing (B3, final fix wave). It stays documented at
+`Achievement.certificateUrl`'s and `EvidenceSegment.disabled`'s comments in
+`content.ts` for reintroduction the day a future entry genuinely needs a
+pending state — the rule itself does not change: any control that ever
+needs to mark "not yet available" still does it with a dashed outline, not
+dimmed text. Fractional alpha belongs only to rules and the lamp/torch's
+own gradients, which are graphics rather than language.
 
 **`prefers-contrast: more` (P14).** The ordinary `.scrim`/`.scrim-wide`
 gradient fades to transparent so the painting still shows through most of
@@ -507,10 +515,15 @@ seal is a bordered square holding a solid square, never a circle.
   control — hover/focus only, never at rest. This narrows the
   Ember-Is-Rare Rule above by exactly one component; ember still never
   touches prose, a graphic, or a control's resting state anywhere else.
-- **Disabled** (`BracketDisabled`): the label keeps its place; only the
-  outer ring goes dashed and `rule`-toned rather than the control
-  dimming or disappearing, and the seal never carries `group` hover/focus
-  wiring, so it can't be coaxed into looking interactive.
+- **Disabled** (retired): `BracketDisabled` rendered the label in place
+  with only the outer ring gone dashed and `rule`-toned, rather than the
+  control dimming or disappearing, and the seal never carried `group`
+  hover/focus wiring so it couldn't be coaxed into looking interactive.
+  Removed (B3, final fix wave) once its one call site — a pending
+  "certificate coming soon" row — got a real scan and stopped needing it;
+  see the No-Dimming Rule above for where this pattern is documented for
+  reintroduction rather than rebuilt from scratch if it's ever needed
+  again.
 - **Touch target:** every weight and size keeps a minimum 44×44px hit
   area (`min-h-11` plus the doubled frame's own padding), even where the
   visible label is smaller (`small`).
@@ -615,8 +628,9 @@ the artifact itself, with a mono `.label` caption underneath carrying a
 provenance line for it. Always a child of an act's `.scrim` content layer
 (rendered by the call site, same as `Statement`/`Rail`/`Provenance`),
 sitting above the plate stack — never inserted into `Plate.tsx`'s own
-four-layer stack, so an exhibit stays ambiently visible on first paint and
-is never masked by the lamp. Capped at `max-w-2xl` by default so it can't
+three-layer stack (`.plate-dark` → `.plate-lit` → `.plate::after`), so an
+exhibit stays ambiently visible on first paint and is never masked by the
+lamp. Capped at `max-w-2xl` by default so it can't
 grow past a standard act's `.scrim` protected band; `wide` opts a specific
 exhibit out of that cap for content that already sits safely at full width
 inside its own act's scrim (only the scheduler's chart currently does).

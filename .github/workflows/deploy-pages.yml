@@ -1,7 +1,18 @@
 name: Deploy to GitHub Pages
 
+# F1 (final fix wave): this used to fire on `push: branches: [main]`
+# independently of `ci.yml` — a red quality-gate run did not stop a deploy.
+# Observed live: a push that failed lint/build/tests still shipped to
+# production because this workflow has no knowledge of that failure: two
+# separate `on: push` triggers race the same event with no ordering between
+# them. Gating on `workflow_run` makes this workflow depend on "CI quality
+# gate" actually finishing, and the `if:` below refuses to deploy unless it
+# concluded `success` — so a broken build, a failing test, or a budget
+# breach now blocks the deploy the same way it always should have.
 on:
-  push:
+  workflow_run:
+    workflows: ["CI quality gate"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
   schedule:
@@ -20,8 +31,25 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # `github.event.workflow_run` only exists when this run was triggered by
+    # the `workflow_run` event above — `workflow_dispatch` and `schedule`
+    # carry no such object, so the first half of this OR keeps both of those
+    # triggers working exactly as before (see the brief's "keep
+    # workflow_dispatch and schedule working"). When it IS a workflow_run,
+    # the run must have actually succeeded — a `cancelled`/`failure`
+    # conclusion on "CI quality gate" stops the deploy here.
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Deploy the exact commit CI validated, not whatever `main` points
+          # to by the time this job starts — the two can differ if another
+          # push landed in between. `workflow_dispatch`/`schedule` carry no
+          # `workflow_run` object, so they fall back to the default ref
+          # (the branch this workflow itself runs on).
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
       - uses: actions/setup-node@v4
         with:

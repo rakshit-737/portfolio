@@ -389,12 +389,17 @@ export default async function Home() {
 
             {/* Mobile: the strip collapses to one link at the Actions
                 receipt, so the 390px hero still fits without a second
-                markup branch for the tokens themselves. */}
+                markup branch for the tokens themselves. Ember-on-hover
+                here was a D1 (final fix wave) violation of DESIGN.md's
+                Ember-Is-Rare rule — the Bracket seal is the one sanctioned
+                control exception, not a plain text link — so this uses
+                the site's standard link treatment instead, the same one
+                the contact email link below uses. */}
             <a
               href={ciToken.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="label mt-6 inline-flex items-center gap-1.5 underline decoration-rule underline-offset-4 transition-colors hover:text-ember hover:decoration-ember focus-visible:text-ember sm:hidden"
+              className="label mt-6 inline-flex items-center gap-1.5 underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal sm:hidden"
             >
               verified record
               <ArrowUpRight size={11} aria-hidden="true" />
@@ -419,7 +424,7 @@ export default async function Home() {
                       ? {}
                       : { target: "_blank", rel: "noopener noreferrer" })}
                     aria-describedby={`hero-proof-${i}`}
-                    className="underline decoration-rule underline-offset-4 transition-colors hover:text-ember hover:decoration-ember focus-visible:text-ember"
+                    className="underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
                   >
                     {t.label}
                   </a>
@@ -991,9 +996,14 @@ export default async function Home() {
               </div>
             </div>
 
+            {/* `archive.evidence` renders once already — the "Full archive"
+                row just above, inside the Archive section — so this
+                act-level credit line no longer repeats it (D11, final fix
+                wave); it now carries only the plate credit `withCredit()`
+                always adds. */}
             <Provenance
               className="mt-12"
-              segments={withCredit(acts.ledger.plate, [...archive.evidence])}
+              segments={withCredit(acts.ledger.plate, [])}
             />
           </div>
         </Act>

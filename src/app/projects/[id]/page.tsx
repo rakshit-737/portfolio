@@ -8,7 +8,8 @@ import Plate from "@/components/Plate";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
 import SineLattice from "@/components/SineLattice";
-import { acts, caseStudies, featuredProjects, site } from "@/content";
+import Statement from "@/components/Statement";
+import { acts, caseSections, caseStudies, featuredProjects, site } from "@/content";
 import { withBase } from "@/lib/base";
 import { withCredit } from "@/lib/credit";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
@@ -31,6 +32,16 @@ const caseOrder = featuredProjects
  *  trim CommandPalette.tsx already applies to a project name for a
  *  compact link label. */
 const shortName = (name: string) => name.split("—")[0].trim();
+
+/** D10 (final fix wave): every `<CaseSection slug="…">` call below sources
+ *  its title from `content.ts`'s `caseSections` — the same list
+ *  CommandPalette.tsx derives its jump-to-section commands from — rather
+ *  than hand-typing the title a second time. `slug` stays a literal at
+ *  each call site (it doubles as that section's DOM id), but the title
+ *  text itself can no longer drift from the palette's own copy of it. */
+function sectionTitle(slug: (typeof caseSections)[number]["slug"]): string {
+  return caseSections.find((s) => s.slug === slug)!.title;
+}
 
 export function generateStaticParams() {
   return caseOrder.map((id) => ({ id }));
@@ -222,7 +233,15 @@ export default async function CaseStudyPage({
           <Plate id={acts[project.id].plate} priority />
           <div className={`${SHELL} scrim absolute inset-x-0 bottom-0 z-10 pb-12`}>
             <p className="label">{project.timeframe}</p>
-            <h1 className="statement mt-4">{project.name}</h1>
+            {/* The raw <h1 className="statement"> here used to duplicate
+                what Statement.tsx already does — and left its own `as`
+                prop (added for exactly this call site) never actually
+                passed anywhere (B4/B5/B6/B8, final fix wave). `mt-4`
+                moves to a wrapper since Statement has no className prop
+                of its own. */}
+            <div className="mt-4">
+              <Statement as="h1">{project.name}</Statement>
+            </div>
           </div>
         </div>
 
@@ -282,7 +301,7 @@ export default async function CaseStudyPage({
           </div>
         </section>
 
-        <CaseSection slug="problem" title="Problem">
+        <CaseSection slug="problem" title={sectionTitle("problem")}>
           <div className="prose-field">
             {study.problem.map((p) => (
               <p key={p.slice(0, 32)}>
@@ -292,7 +311,7 @@ export default async function CaseStudyPage({
           </div>
         </CaseSection>
 
-        <CaseSection slug="approach" title="Approach">
+        <CaseSection slug="approach" title={sectionTitle("approach")}>
           <div className="prose-field">
             {study.approach.map((p) => (
               <p key={p.slice(0, 32)}>
@@ -308,7 +327,7 @@ export default async function CaseStudyPage({
           </figure>
         </CaseSection>
 
-        <CaseSection slug="decisions" title="Decisions">
+        <CaseSection slug="decisions" title={sectionTitle("decisions")}>
           <dl className="space-y-9">
             {study.decisions.map((d) => (
               <div key={d.title}>
@@ -324,7 +343,7 @@ export default async function CaseStudyPage({
         </CaseSection>
 
         {/* The numbers — the case file's spine. */}
-        <CaseSection slug="evidence" title="Evidence">
+        <CaseSection slug="evidence" title={sectionTitle("evidence")}>
           <table className="w-full border-collapse">
             <caption className="sr-only">
               Verifiable numbers for {project.name}
@@ -358,7 +377,7 @@ export default async function CaseStudyPage({
           </table>
         </CaseSection>
 
-        <CaseSection slug="outcome" title="Outcome">
+        <CaseSection slug="outcome" title={sectionTitle("outcome")}>
           <div className="prose-field">
             {study.outcome.map((p) => (
               <p key={p.slice(0, 32)}>

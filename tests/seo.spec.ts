@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
-import { caseStudies, featuredProjects, site } from "../src/content";
+import sharp from "sharp";
+import { caseStudies, certifications, featuredProjects, site } from "../src/content";
 
 /**
  * P13 verification: per-page metadata, OG/Twitter cards, JSON-LD, sitemap/
@@ -284,4 +285,46 @@ test.describe("the résumé file", () => {
       .getAttribute("href");
     expect(href).toMatch(/rakshit-rameshbabu-resume\.pdf$/);
   });
+});
+
+// F7 (final fix wave): cheap generated-asset drift coverage, on the same
+// principle as the favicon's own ICO-parsing test (tests/smoke.spec.ts) —
+// a 200 status alone doesn't prove a file is a real image, and neither
+// does mere existsSync: `gen-certificate-thumb.mjs` is a manual, run-and-
+// commit step (like `npm run art`), so it's entirely possible to add a
+// `certifications[].image` entry and forget to run it, leaving the page
+// falling back to the oversized full scan silently (`certificateThumb()`,
+// src/app/page.tsx) with nothing in CI to notice. Driven directly from
+// `certifications` so a future certificate is automatically covered with
+// no second list to keep in sync — no new lockfile machinery, per the
+// brief's "cheap version only".
+test.describe("certificate scans and thumbnails", () => {
+  const withImage = certifications.filter(
+    (c): c is typeof c & { image: string } => Boolean(c.image),
+  );
+
+  for (const cert of withImage) {
+    const stem = cert.image.replace(/\.[^./]+$/, "");
+    const files = [
+      { path: cert.image, label: "full-resolution scan" },
+      { path: `${stem}-thumb.avif`, label: "AVIF thumbnail" },
+      { path: `${stem}-thumb.webp`, label: "WebP thumbnail" },
+    ];
+
+    for (const { path, label } of files) {
+      test(`${cert.title} — ${cert.reason} — ${label} (${path}) exists and decodes as a real image`, async ({
+        request,
+      }) => {
+        const res = await request.get(path);
+        expect(res.status(), path).toBe(200);
+
+        const buf = await res.body();
+        // sharp fully decodes the file rather than just checking a magic
+        // number — a truncated or corrupt file fails here, not silently.
+        const meta = await sharp(buf).metadata();
+        expect(meta.width, `${path} width`).toBeGreaterThan(0);
+        expect(meta.height, `${path} height`).toBeGreaterThan(0);
+      });
+    }
+  }
 });

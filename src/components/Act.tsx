@@ -26,8 +26,10 @@ export default function Act({
    *  scrollport that never scrolls — it can never pin. Every act except
    *  the ledger holds its own painting directly (nothing inside it needs
    *  to pin against anything past the act's own edges), so `"hidden"` is
-   *  the right default there: it clips the plate's own slight push-in
-   *  scale and any scrim bleed. The ledger's plate wrapper genuinely is
+   *  the right default there: it clips any scrim bleed (the plate itself
+   *  has carried no push-in or zoom of any kind since 2026-08-20 — see
+   *  AGENTS.md/DESIGN.md — so this is no longer also clipping a scale
+   *  effect). The ledger's plate wrapper genuinely is
    *  sticky (page.tsx), so it needs a real scrolling ancestor further up
    *  the tree (the document) to pin against — `"visible"` clips only the
    *  horizontal axis (`overflow-x-clip`), so the scrim's own bleed can't

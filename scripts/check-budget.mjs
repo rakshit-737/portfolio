@@ -7,7 +7,15 @@ import { join } from "node:path";
 
 const BUDGET_KB = 214; // 2026-08: 210 baseline + 4 kB for the lamp (rAF + IO)
 
-const pages = ["out/index.html", "out/projects/warden/index.html"];
+// F8 (final fix wave): scheduler and plantpal were never in this list —
+// only the index and warden's case file were ever gated, leaving the
+// other two case-file routes' JS weight entirely unmeasured.
+const pages = [
+  "out/index.html",
+  "out/projects/warden/index.html",
+  "out/projects/scheduler/index.html",
+  "out/projects/plantpal/index.html",
+];
 let failed = false;
 
 for (const pagePath of pages) {

@@ -3,8 +3,12 @@
  * user-agent makes the CSS endpoint return TTF sources, which Satori can
  * consume. Any failure returns null and the caller falls back to the
  * bundled default font — the OG image still renders.
+ *
+ * Module-internal, alongside `OG_MONO` below — nothing outside this file
+ * imports either (B4/B5/B6/B8, final fix wave); `ogFonts()`/`ogFamily()`
+ * are the exported surface OG card call sites actually use.
  */
-export async function loadGoogleFont(
+async function loadGoogleFont(
   family: string,
   weight: number,
 ): Promise<ArrayBuffer | null> {
@@ -28,7 +32,7 @@ export async function loadGoogleFont(
   }
 }
 
-export const OG_MONO = "Chivo Mono";
+const OG_MONO = "Chivo Mono";
 
 /** Satori font entries for the field cards (null-safe). */
 export async function ogFonts() {

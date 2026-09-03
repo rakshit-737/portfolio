@@ -5,14 +5,25 @@
 
 import type { PlateId } from "@/lib/art";
 
-/** Pass/fail only — reserved for verifiable outcomes (tests, CI). */
-export type ChipTone = "pass" | "fail";
+/** Pass/fail only — reserved for verifiable outcomes (tests, CI). Module-
+ *  internal — nothing outside this file imports it (B4/B5/B6/B8, final fix
+ *  wave); un-exported rather than deleted, since `EvidenceSegment.tone`
+ *  below still needs the type name. */
+type ChipTone = "pass" | "fail";
 
 export interface EvidenceSegment {
   label: string;
   tone?: ChipTone;
   href?: string;
-  /** Render as a visibly disabled "coming soon" item. */
+  /** Previously rendered as a visibly-disabled "coming soon" chip
+   *  (`BracketDisabled`, `Provenance.tsx`'s `s.disabled` branch) — both
+   *  deleted (B3, final fix wave) once nothing in this file set this to
+   *  `true` any more and the branch had gone unreachable. The field stays
+   *  on the type rather than being removed outright, the same call this
+   *  file makes for `Achievement.certificateUrl`'s retired `null` state
+   *  below: re-add the render branch alongside it if a future evidence
+   *  segment genuinely needs a pending state — don't leave dead rendering
+   *  code live for a value nothing sets in the meantime. */
   disabled?: boolean;
 }
 
@@ -30,7 +41,24 @@ export interface FeaturedProject {
   name: string;
   timeframe: string;
   oneLiner: string;
-  /** `**text**` marks the bullet's single strongest metric — rendered amber. */
+  /** `**text**` marks the bullet's single strongest metric — rendered as a
+   *  bold mono chip (`Metric.tsx`, `.metric`), not amber: ember is reserved
+   *  for lit numbers only (see AGENTS.md's Ember-Is-Rare rule), and a
+   *  static bullet emphasis is never an ignition.
+   *
+   *  The landing page no longer renders these bullets directly (its cards
+   *  now show `oneLiner`/`headlineNumbers` instead) — `llms.txt`
+   *  (`src/app/llms.txt/route.ts`) is the one remaining consumer, and a
+   *  real one: it is the machine-readable summary of this site an LLM or
+   *  crawler actually reads, so the field stays exported rather than
+   *  getting deleted as dead. B1 (final fix wave) checked whether each
+   *  bullet's claims were already fully covered in its own project's
+   *  `caseStudies[id]` prose and, if not, relocated it verbatim — the
+   *  precedent at `caseStudies.plantpal.approach` — but for warden and
+   *  scheduler specifically, every claim in every bullet was already
+   *  present elsewhere in that project's case study (verified token by
+   *  token, not by eye), so nothing needed relocating there; only plantpal
+   *  actually had bullets nothing else on the site stated. */
   bullets: string[];
   headlineNumbers?: HeadlineNumber[];
   /** One line rendered directly under `headlineNumbers`, glossing the
@@ -40,7 +68,16 @@ export interface FeaturedProject {
    *  other two cards' numbers don't). */
   headlineNumbersCaption?: string;
   tech: string[];
-  repoUrl: string | null; // null → disabled "coming soon" button
+  // Every featured project today has a real repo, so `null` is currently
+  // unused — but the type stays nullable rather than tightened to
+  // `string`, because a future project (a design study, a paper with no
+  // public code) may genuinely have nothing to link. The call sites
+  // (page.tsx, projects/[id]/page.tsx) simply omit the "Repository"
+  // button when this is null, rather than rendering a disabled
+  // placeholder — `BracketDisabled` and the equivalent branch this used to
+  // read (`EvidenceSegment.disabled` in `Provenance.tsx`) were both
+  // deleted (B3, final fix wave) once they had zero call sites left.
+  repoUrl: string | null;
   /** The signature element: mono provenance line on every card. */
   evidence: EvidenceSegment[];
 }
@@ -321,7 +358,9 @@ export const featuredProjects: FeaturedProject[] = [
 export interface DiagramStep {
   label: string;
   sub?: string;
-  /** The single verdict/output node — rendered in amber. */
+  /** The single verdict/output node — rendered as a filled (bone
+   *  background, ground text) chamber, not ember; DiagramFlow.tsx's own
+   *  inversion, distinct from `.ignite`. */
   accent?: boolean;
 }
 
@@ -352,6 +391,26 @@ export interface CaseStudy {
    *  entry below names the exact sentence(s) it draws from. */
   teaser: string;
 }
+
+/**
+ * The five sections every case file renders, in order — the single list
+ * `src/app/projects/[id]/page.tsx`'s `<CaseSection slug="…" title="…">`
+ * calls and `CommandPalette.tsx`'s jump-to-section commands both derive
+ * from (D10, final fix wave: these two files used to each hand-type their
+ * own identical copy of this five-item list — one text change to a title
+ * updated one and not the other silently). Each field of `CaseStudy` above
+ * that a section renders shares that section's own `slug` for a reason:
+ * `problem`/`approach`/`decisions`/`outcome` are direct name matches, and
+ * `evidence` too, even though the section itself blends in the study's
+ * `next` array as well.
+ */
+export const caseSections = [
+  { slug: "problem", title: "Problem" },
+  { slug: "approach", title: "Approach" },
+  { slug: "decisions", title: "Decisions" },
+  { slug: "evidence", title: "Evidence" },
+  { slug: "outcome", title: "Outcome" },
+] as const;
 
 /**
  * Case-study copy. Every claim traces to the linked repo's README or to
@@ -562,10 +621,13 @@ export const caseStudies: Record<string, CaseStudy> = {
 
 /**
  * Research Spotlight — the constructive takeaway from the scheduler study,
- * pulled out as its own section per the site layout.
+ * pulled out as its own section per the site layout. `eyebrow` (a
+ * "Research spotlight" label) was removed here (B2, final fix wave): it
+ * duplicated the role `acts.research.label` already carries on the
+ * rendered page, and this file's own header forbids a dead visible-copy
+ * field — do not re-add it as decoration.
  */
 export const researchSpotlight = {
-  eyebrow: "Research spotlight",
   context:
     "From the Proactive Feasibility Scheduler study — a proven negative result, verified across 45,432 real dispatch instants. LaTeX manuscript in progress.",
   quote:
@@ -742,7 +804,12 @@ export const moreProjects: MoreProject[] = [
   },
 ];
 
-/** Fourth cell of the More Projects grid — balances the 2×2 layout. */
+/** The trailing row after `moreProjects` in the ledger's Archive section
+ *  (`page.tsx`) — a link out to the full GitHub repository list, not
+ *  itself one of the archived projects. Rendered as one more ruled row in
+ *  that section's list, the same as every `moreProjects` entry — not a
+ *  grid cell; the "More Projects" 2×2 card grid this once balanced was
+ *  replaced by the P8 ledger rebuild's ruled-row layout. */
 export const archive = {
   title: "Full archive",
   description: "More repositories — everything public lives on GitHub.",

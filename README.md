@@ -19,7 +19,8 @@ npm run build      # outputs the static site to ./out
 ```
 
 The build must complete with zero type errors. Preview the export with any
-static file server, e.g. `npx serve out`.
+static file server, e.g. `npm run start` (a pinned local `serve`) or
+`npx serve out`.
 
 ## Commands
 
@@ -27,7 +28,7 @@ static file server, e.g. `npx serve out`.
 | --- | --- |
 | `npm run dev` | Local dev server at `http://localhost:3000` |
 | `npm run build` | Static export to `./out` (zero type errors required) |
-| `npm run start` | Serve the built `./out` with `npx serve` |
+| `npm run start` | Serve the built `./out` with the pinned local `serve` |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm test` | Playwright smoke + axe scan against `./out` (build first) |
@@ -79,6 +80,13 @@ CI (`.github/workflows/ci.yml`) enforces, on every push and PR:
 - `scripts/check-lighthouse.mjs` — Lighthouse category minimums (mobile +
   desktop) and a CLS cap; thresholds are a ratchet, raised as numbers
   improve, never lowered to pass.
+
+A second, additive CI job builds the export a second time with
+`NEXT_PUBLIC_BASE_PATH`/`NEXT_PUBLIC_SITE_URL` set exactly the way
+`deploy-pages.yml` computes them for this repo (the GitHub Pages sub-path
+shape), then runs `npm run check:links` and the Playwright smoke suite
+against that build specifically — the root-shape job above tests the Vercel
+deploy shape and stays the primary gate.
 
 ## Editing content
 

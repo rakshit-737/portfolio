@@ -20,6 +20,21 @@ import { join } from "node:path";
 
 const url = process.argv[2] ?? "http://localhost:4573/";
 
+// F3/F4: `lighthouse` is a pinned devDependency now (package.json) —
+// resolved to its real on-disk binary rather than invoked through `npx
+// --yes`, which would silently install and run whatever `lighthouse`
+// currently publishes as latest if a local copy weren't already present.
+// This script runs outside any npm-script context (`node
+// scripts/check-lighthouse.mjs …`), so PATH is not pre-augmented with
+// `node_modules/.bin` the way it would be for a `package.json` script —
+// the path is resolved explicitly instead.
+const LIGHTHOUSE_BIN = join(
+  process.cwd(),
+  "node_modules",
+  ".bin",
+  process.platform === "win32" ? "lighthouse.cmd" : "lighthouse",
+);
+
 // Mobile perf reflects the framework hydration baseline (~190 kB gz JS);
 // tracked honestly rather than gamed. Everything else must stay at 95+.
 const MIN = {
@@ -58,10 +73,8 @@ function runOnce(form, index) {
   for (let attempt = 0; ; attempt++) {
     try {
       execFileSync(
-        "npx",
+        LIGHTHOUSE_BIN,
         [
-          "--yes",
-          "lighthouse",
           url,
           "--quiet",
           '--chrome-flags=--headless=new --no-sandbox',

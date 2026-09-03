@@ -14,7 +14,12 @@ export default defineConfig({
     baseURL: "http://localhost:4573",
   },
   webServer: {
-    command: "npx serve out -l 4573",
+    // F3/F4: `serve` is a pinned devDependency now (package.json) — a bare
+    // command name resolves it from `node_modules/.bin` (npm prepends that
+    // to PATH for anything it spawns, this webServer command included), so
+    // this always runs the exact pinned version rather than `npx` silently
+    // fetching whatever "serve" happens to publish next.
+    command: "serve out -l 4573",
     url: "http://localhost:4573",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

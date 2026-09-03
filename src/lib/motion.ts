@@ -17,6 +17,49 @@
 export const POINTER_LERP = 0.1;
 
 /**
+ * The lamp pool's radius geometry (C2, final fix wave). Lamp.tsx is now
+ * the single writer of `--lamp-r`: it computes this formula once per
+ * visible act per tick (in real px) and writes it directly onto the act,
+ * the same way it already writes `--p`/`--lamp-x`/`--lamp-y`. `.plate-lit`
+ * in globals.css just consumes `var(--lamp-r, …)`, falling back to this
+ * same formula (in vmax, CSS-computed from `--p`) only for an act the tick
+ * loop hasn't reached yet — an off-screen act, or the brief window before
+ * the first tick. Before this fix the formula was hand-duplicated in both
+ * places (globals.css's `--lamp-r` custom property and Lamp.tsx's own
+ * `lampR` local for the ignite hit-test), kept in sync only by both
+ * literally repeating `26 + min(p, 1-p) * 30` correctly — exactly the kind
+ * of duplication a future edit to one and not the other silently
+ * desyncs.
+ *
+ * LAMP_R_BASE_VMAX / LAMP_R_SPREAD_VMAX: the pool's radius in vmax units —
+ * `BASE + min(p, 1-p) * SPREAD`, largest at an act's vertical centre
+ * (p≈0.5) and smallest at its top/bottom edges, so the light visibly
+ * gathers into a pool mid-act rather than staying a fixed-size disc.
+ *
+ * LAMP_MASK_OPAQUE_STOP / LAMP_MASK_TRANSPARENT_STOP: `.plate-lit`'s own
+ * mask-image gradient stops (globals.css) — fully opaque out to
+ * OPAQUE_STOP (46%) of `--lamp-r`, fading to nothing by TRANSPARENT_STOP
+ * (88%). Documented here as the canonical numbers even though CSS has no
+ * mechanism to import a JS constant, so globals.css's gradient still
+ * spells them out as literal `46%`/`88%` — this is the one place in the
+ * unification a cross-language boundary keeps a second copy of a number,
+ * unavoidably, not by oversight.
+ *
+ * LAMP_LIT_FRACTION: a `.ignite` metric reads as bone or ember, never
+ * fractionally in between, so it ignites at a single radius rather than
+ * reproducing the mask's whole opaque→transparent falloff — picked at the
+ * middle of that fade band (OPAQUE_STOP + (TRANSPARENT_STOP - OPAQUE_STOP)
+ * / 2 ≈ 0.67) so a metric lights up roughly when the plate under it is
+ * roughly half-revealed, not only once it's fully in the opaque core.
+ */
+export const LAMP_R_BASE_VMAX = 26;
+export const LAMP_R_SPREAD_VMAX = 30;
+export const LAMP_MASK_OPAQUE_STOP = 0.46;
+export const LAMP_MASK_TRANSPARENT_STOP = 0.88;
+export const LAMP_LIT_FRACTION =
+  LAMP_MASK_OPAQUE_STOP + (LAMP_MASK_TRANSPARENT_STOP - LAMP_MASK_OPAQUE_STOP) / 2;
+
+/**
  * Tuning for the shared frame-budget breaker below. Exported so a test can
  * reason about the numbers without hard-coding a duplicate copy of them.
  *
@@ -25,10 +68,12 @@ export const POINTER_LERP = 0.1;
  * frame mid-scroll used to reset the old counter to zero, and one bad
  * streak used to kill the effect for the rest of the session). 60 frames
  * is about a second of real content at 60fps: long enough to average out
- * a single scroll-and-decode burst (this page seeks a WebM and decodes
- * multi-megapixel AVIFs while scrolling — both components do that
- * routinely, on healthy hardware), short enough to react to genuine,
- * sustained jank within a second or two. A frame is "slow" past
+ * a single scroll-and-decode burst (this page decodes multi-megapixel
+ * AVIFs while scrolling — every plate does that routinely, on healthy
+ * hardware; the four scroll-scrubbed WebM clips this comment used to also
+ * cite were removed entirely in the zoom-removal pass, 2026-08-20 — see
+ * AGENTS.md/DESIGN.md), short enough to react to genuine, sustained jank
+ * within a second or two. A frame is "slow" past
  * SLOW_FRAME_MS = 50, i.e. ~20fps — well past a single missed-60fps frame
  * (16.7ms) and past the old breaker's 32ms (~30fps) threshold, which is
  * exactly the pacing ordinary scrolling on this page produces and is why

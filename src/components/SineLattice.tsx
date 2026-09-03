@@ -12,7 +12,6 @@ export default function SineLattice({
   width = 1000,
   height = 200,
   cycles = 1.5,
-  phase = 0,
   nodes = 4,
   animate = false,
   mode = "curve",
@@ -21,13 +20,18 @@ export default function SineLattice({
   width?: number;
   height?: number;
   cycles?: number;
-  phase?: number;
   nodes?: number;
   animate?: boolean;
   mode?: "curve" | "constellation";
   className?: string;
 }) {
-  const marks = nodes ? sineNodes(width, height, cycles, nodes, phase) : [];
+  // `phase` (field.ts's own parameter) was a prop here until B4/B5/B6/B8
+  // (final fix wave) dropped it — no call site (page.tsx's hero curve and
+  // constellation, projects/[id]/page.tsx's header curve) ever passed one,
+  // so every rendered curve/lattice already used field.ts's own default
+  // (0). Re-add it here if a future call site genuinely needs to offset
+  // the wave.
+  const marks = nodes ? sineNodes(width, height, cycles, nodes) : [];
 
   if (mode === "constellation") {
     const points = marks.map((m) => `${m.x},${m.y}`).join(" ");
@@ -55,7 +59,7 @@ export default function SineLattice({
     );
   }
 
-  const d = sinePath(width, height, cycles, 120, phase);
+  const d = sinePath(width, height, cycles, 120);
   // Rough arc length, only ever used to seed the draw animation.
   const len = Math.round(width * 1.35 * cycles);
 

@@ -104,67 +104,13 @@ export function BracketLink({
   );
 }
 
-export function BracketButton({
-  children,
-  onClick,
-  weight = "outline",
-  small = false,
-  ariaLabel,
-  className = "",
-}: {
-  children: ReactNode;
-  onClick: () => void;
-  weight?: keyof typeof labelWeights;
-  small?: boolean;
-  ariaLabel?: string;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={ariaLabel}
-      className={`${base} ${className}`}
-    >
-      <Seal small={small} />
-      <Label small={small} weight={weight}>
-        {children}
-      </Label>
-    </button>
-  );
-}
-
-/** A disabled control still occupies its place in the record — the label
- *  keeps full contrast (the No-Dimming Rule), and only the outer ring
- *  goes dashed and muted (`rule`, not `signal`) to mark it pending. No
- *  `group` class here, so the seal's `group-hover`/`group-focus-visible`
- *  ember never has an ancestor to match — it simply never fires. */
-export function BracketDisabled({
-  children,
-  small = false,
-}: {
-  children: ReactNode;
-  small?: boolean;
-}) {
-  return (
-    <span className="bracket relative inline-flex min-h-11 cursor-not-allowed items-stretch gap-[3px] border border-dashed border-rule p-[3px]">
-      <span
-        aria-hidden="true"
-        className={`seal relative flex shrink-0 items-center justify-center border border-dashed border-rule ${
-          small ? "w-4" : "w-5"
-        }`}
-      >
-        <span className={`bg-rule ${small ? "h-1.5 w-1.5" : "h-2 w-2"}`} />
-      </span>
-      <span
-        className={`cartouche-label flex flex-1 items-center justify-center gap-2 border border-rule uppercase text-signal ${
-          small
-            ? "px-3 py-2 text-xs tracking-[0.12em]"
-            : "px-5 py-3 text-sm tracking-[0.14em]"
-        }`}
-      >
-        {children}
-      </span>
-    </span>
-  );
-}
+// BracketButton and BracketDisabled were removed here (B3, final fix
+// wave) once both reached zero call sites: every on-site action either
+// navigates (BracketLink) or has migrated to a plain <button> with its own
+// styling (CopyEmailButton.tsx), and the one thing BracketDisabled ever
+// rendered — a pending-certificate "coming soon" row — no longer exists
+// once that achievement's real scan arrived (see content.ts's
+// `Achievement.certificateUrl` comment). Re-add either, from this file's
+// git history, if a future control genuinely needs a click handler or a
+// disabled state again — don't keep dead exports "advertised as live"
+// (the finding this fix addresses).

@@ -59,6 +59,13 @@ export default function Provenance({
             key={`${s.label}-${i}`}
             className="label flex items-center gap-3 tracking-[0.13em] normal-case"
           >
+            {/* The `s.disabled` branch this used to carry (a dashed-
+                outline "pending" chip) was deleted here (B3, final fix
+                wave): nothing in content.ts sets `disabled: true` any
+                more, so it had gone unreachable. Re-add it, alongside
+                `BracketDisabled` in Bracket.tsx, if a future evidence
+                segment genuinely needs a pending state — see
+                `EvidenceSegment.disabled`'s own comment in content.ts. */}
             {s.href ? (
               <a
                 href={s.href}
@@ -68,12 +75,6 @@ export default function Provenance({
               >
                 {content}
               </a>
-            ) : s.disabled ? (
-              // Not dimmed: a pending item still has to be readable, so it
-              // is marked by a dashed outline rather than by low contrast.
-              <span className="border border-dashed border-rule px-1.5 py-0.5">
-                {s.label}
-              </span>
             ) : (
               content
             )}

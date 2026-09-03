@@ -1,20 +1,16 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import sharp from "sharp";
-
-/** Relative luminance per WCAG 2.1. */
-function luminance([r, g, b]: number[]): number {
-  const f = (c: number) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-}
-
-function ratio(a: number[], b: number[]): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-}
+import {
+  BreakerTripped,
+  CONTRAST_LUMINANCE_CEILING,
+  desktopAt,
+  hasNearBonePixel,
+  luminance,
+  mobileContext,
+  ratio,
+  withBreakerRetry,
+} from "./helpers";
 
 const GROUND = [0x08, 0x07, 0x0a];
 const SIGNAL = [0xf2, 0xed, 0xe3];
@@ -327,7 +323,13 @@ for (const id of ACTS) {
 // measured luminance well above its settled value — that mechanism, not
 // the plate itself, was the earlier source of run-to-run variance during
 // development.
-const CONTRAST_LUMINANCE_CEILING = 0.12;
+//
+// `CONTRAST_LUMINANCE_CEILING` itself now lives in ./helpers (E1/E2/E3,
+// final fix wave) — this file, a11y.spec.ts, and idle-stop.spec.ts had
+// each hand-duplicated it (and `luminance`/`ratio`/the retry-wrapper
+// shape) before that, which is how two different retry budgets (4 vs 5
+// attempts) drifted from each other with no reason either was more
+// correct.
 
 // Task 14c fix round (2): the paint order (`.plate-dark` beneath
 // `.plate-lit`) is the entire mechanism behind the lamp's reveal — both
@@ -624,15 +626,27 @@ async function assertNoVoidAcrossScroll(
 test("no viewport goes void on an idle-pointer scroll — 1440x900", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await desktopAt(page, { width: 1440, height: 900 });
   await assertNoVoidAcrossScroll(page, "desktop 1440x900");
 });
 
+// E3 (final fix wave): this used to resize the default desktop `page`
+// fixture to a phone's CSS pixel dimensions rather than using a genuine
+// touch/mobile context — a real phone reports `(pointer: coarse)`/
+// `(hover: none)`, which this resized-desktop context never did, leaving
+// the torch just as eligible to arm here as on an actual desktop, even
+// though this test's own no-pointer-movement design (see the comment
+// inside `assertNoVoidAcrossScroll`) means the torch was never actually
+// armed by anything this test itself does. Switched to `mobileContext`
+// for a faithful phone emulation regardless — see the implementer's
+// report for the before/after floor numbers.
 test("no viewport goes void on an idle-pointer scroll — 390x844", async ({
-  page,
+  browser,
 }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+  const ctx = await mobileContext(browser);
+  const page = await ctx.newPage();
   await assertNoVoidAcrossScroll(page, "mobile 390x844");
+  await ctx.close();
 });
 
 for (const id of ACTS) {
@@ -703,25 +717,15 @@ for (const id of ACTS) {
     const box = await label.boundingBox();
     expect(box, `act ${id} has no own label to sample`).not.toBeNull();
 
+    // `hasNearBonePixel` (./helpers, E4/E5, final fix wave) — the shared
+    // per-pixel near-bone check this test originated (a comfortable margin
+    // below full bone (242, 237, 227) and well above what the occluded
+    // measurement above ever reached (17, 16, 18): anti-aliased glyph
+    // edges won't hit full bone, but a real glyph's interior clears this
+    // easily, and nothing this dark could be mistaken for one).
     const buf = await page.screenshot({ clip: box! });
-    const { data, info } = await sharp(buf)
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-
-    // A comfortable margin below bone (242, 237, 227) and well above what
-    // the occluded measurement above ever reached (17, 16, 18) — anti-
-    // aliased glyph edges won't hit full bone, but a real glyph's interior
-    // clears this easily, and nothing this dark could be mistaken for one.
-    let sawBone = false;
-    for (let i = 0; i + 2 < data.length; i += info.channels) {
-      if (data[i] >= 180 && data[i + 1] >= 175 && data[i + 2] >= 165) {
-        sawBone = true;
-        break;
-      }
-    }
-
     expect(
-      sawBone,
+      await hasNearBonePixel(buf),
       `act ${id}'s own label has no near-bone pixel anywhere in its box — the text may be occluded`,
     ).toBe(true);
   });
@@ -904,12 +908,14 @@ test("the torch re-arms on the next real pointer move after going idle", async (
 // no-JS never run Torch.tsx at all, and Playwright's touch emulation
 // reports `(hover: none)`, which Torch.tsx's own guard checks.
 test("the torch stays off for touch, reduced motion, and no JS", async ({ browser }) => {
-  for (const opts of [
-    { reducedMotion: "reduce" as const },
-    { hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } },
-    { javaScriptEnabled: false },
+  for (const newCtx of [
+    () => browser.newContext({ reducedMotion: "reduce" }),
+    // The touch-emulation entry, via the shared factory (E1/E2/E3, final
+    // fix wave) rather than a third inline copy of the same options.
+    () => mobileContext(browser),
+    () => browser.newContext({ javaScriptEnabled: false }),
   ]) {
-    const ctx = await browser.newContext(opts);
+    const ctx = await newCtx();
     const page = await ctx.newPage();
     await page.goto("/");
     await page.mouse.move(400, 400, { steps: 5 });
@@ -988,37 +994,17 @@ test("the plate's unlit floor rises once the torch arms", async ({
 // ~90×32px box, not the lamp's actual, much larger position. See
 // task-17-report.md for the captured failure output.
 
-/** Thrown when Lamp.tsx's frame-budget circuit breaker (a rolling 60-frame
- *  window, tripped once a clear majority run slower than 50ms — see
- *  src/lib/motion.ts and the comment above "the plate's unlit floor rises
- *  once the torch arms") locks `data-lamp` off mid-test, which is this
- *  sandboxed CI environment stalling for a beat, not the ignition
- *  mechanism failing. `withLampRetry` below is the only place that catches
- *  this; a genuine assertion failure (a real `expect(...)` mismatch) is a
- *  different error type and always propagates immediately, un-retried. */
-class BreakerTripped extends Error {}
-
-/** Retries `attempt` up to 5 times, only for `BreakerTripped` — any other
- *  thrown error (a real failed assertion) fails the test immediately on
- *  the first try, exactly as an unwrapped test body would. Raised from 3
- *  during Task 20: "the torch and lamp survive a normal scroll through
- *  every act" (which now retries the whole act-by-act loop through this
- *  helper, not just the initial arm) occasionally exhausted 3 attempts
- *  under this suite's own heaviest parallel load — 3 fresh navigations in
- *  a row all landing on a genuine double-trip is rare but not rare enough
- *  to ignore on a sufficiently contended machine; it passed reliably
- *  every time run in isolation, confirming this is retry budget, not a
- *  logic defect. */
-async function withLampRetry(fn: (attempt: number) => Promise<void>) {
-  for (let i = 0; i < 5; i++) {
-    try {
-      await fn(i);
-      return;
-    } catch (e) {
-      if (!(e instanceof BreakerTripped) || i === 4) throw e;
-    }
-  }
-}
+// `BreakerTripped`/`withBreakerRetry` now live in ./helpers (E1/E2/E3,
+// final fix wave), imported above — this file's own copy (`withLampRetry`,
+// a 5-attempt budget) and idle-stop.spec.ts's separate copy
+// (`withRetry`, a 4-attempt budget) had already drifted from each other
+// with no reason either number was more correct; one shared budget now.
+// Raised to 5 originally during Task 20: "the torch and lamp survive a
+// normal scroll through every act" (which retries its whole act-by-act
+// loop through this helper, not just the initial arm) occasionally
+// exhausted a smaller budget under this suite's own heaviest parallel
+// load — it passed reliably every time run in isolation, confirming that
+// was retry budget, not a logic defect.
 
 /** The scheduler act's headline numbers (`dl.flex.flex-wrap`): three
  *  `.ignite` values in one row, at increasing x — "0" (far left), "45,432"
@@ -1085,7 +1071,7 @@ async function scrollScheduerJustBeforeEntry(page: import("@playwright/test").Pa
 }
 
 test("a metric ignites as the lamp crosses it", async ({ page }) => {
-  await withLampRetry(async () => {
+  await withBreakerRetry(async () => {
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
 
@@ -1163,7 +1149,7 @@ test("a metric ignites as the lamp crosses it", async ({ page }) => {
 // above, matching the shape "the plate's unlit floor rises once the
 // torch arms" already uses — keeps each test's own retry loop cheap.
 test("a metric fades back to bone once the lamp leaves it", async ({ page }) => {
-  await withLampRetry(async () => {
+  await withBreakerRetry(async () => {
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
 
@@ -1433,12 +1419,16 @@ test("ember contrast: arming the torch first", async ({ page }) => {
 // counter in both Torch.tsx and Lamp.tsx) counted 10 CONSECUTIVE rAF
 // callbacks slower than 32ms and, once tripped, called teardown() —
 // cancelling the rAF loop and removing every listener for the rest of the
-// session. 32ms is under 31fps and this page seeks a WebM and decodes
+// session. 32ms is under 31fps, and at the time this bug was reported the
+// page also sought four scroll-scrubbed WebM clips while scrolling (since
+// removed entirely in the zoom-removal pass, 2026-08-20 — see AGENTS.md/
+// DESIGN.md); today's equivalent load is every plate decoding
 // multi-megapixel AVIFs while scrolling, on top of a second rAF loop for
 // the other component — completely ordinary scrolling reaches ten such
-// frames trivially, and once it does, there is no path back: the torch (and
-// the lamp) goes dark for the rest of the visit, exactly as the owner
-// reported ("visible on the first page" and never again after scrolling).
+// frames trivially either way, and once it does, there is no path back: the
+// torch (and the lamp) goes dark for the rest of the visit, exactly as the
+// owner reported ("visible on the first page" and never again after
+// scrolling).
 //
 // This test scrolls through every act the way a reader actually would —
 // not a single scrollIntoViewIfNeeded — specifically to give that load a
@@ -1470,7 +1460,7 @@ test("ember contrast: arming the torch first", async ({ page }) => {
 test("the torch and lamp survive a normal scroll through every act", async ({
   page,
 }) => {
-  await withLampRetry(async () => {
+  await withBreakerRetry(async () => {
     await gotoWithTorchArmed(page);
     await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
 
@@ -1508,7 +1498,7 @@ for (const id of ACTS) {
     // means this test is no longer measuring "while the lamp effect is
     // running" at all, so retrying (not adjusting a threshold) is the
     // correct response.
-    await withLampRetry(async () => {
+    await withBreakerRetry(async () => {
       // Arm the torch first — the worst-case brightness floor while the
       // lamp effect is running (see gotoWithTorchArmed above) — before
       // scrolling to and sampling this act.

@@ -1,8 +1,17 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+// F2 (final fix wave): empty for the primary (root-shape/Vercel) gate —
+// every literal path below is unchanged from before this constant existed.
+// `playwright.subpath.config.ts`'s CI leg sets `NEXT_PUBLIC_BASE_PATH` to
+// the same sub-path the build itself used (see that config's own comment
+// on why `baseURL` there is the bare origin, not a `/basePath`-suffixed
+// one), so every navigation below still resolves under the GitHub Pages
+// shape without a second copy of this file.
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 test("index renders with hero and evidence", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(`${BASE}/`);
   await expect(
     page.getByRole("heading", { level: 1, name: "Rakshit Rameshbabu" }),
   ).toBeVisible();
@@ -13,7 +22,7 @@ test("index renders with hero and evidence", async ({ page }) => {
 test("command palette opens with Ctrl+K or / and jumps to a section", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto(`${BASE}/`);
   await page.keyboard.press("Control+k");
   const input = page.getByRole("combobox", {
     name: "Search the field",
@@ -36,7 +45,7 @@ test("command palette opens with Ctrl+K or / and jumps to a section", async ({
 });
 
 test("section anchors navigate", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(`${BASE}/`);
   await page.getByRole("link", { name: "Ledger", exact: true }).click();
   await expect(page).toHaveURL(/#ledger$/);
   await expect(
@@ -45,7 +54,7 @@ test("section anchors navigate", async ({ page }) => {
 });
 
 test("résumé link resolves", async ({ page, request }) => {
-  await page.goto("/");
+  await page.goto(`${BASE}/`);
   const href = await page
     .getByRole("link", { name: /résumé/i })
     .first()
@@ -59,7 +68,7 @@ for (const id of ["warden", "scheduler", "plantpal"]) {
   test(`case file /projects/${id}/ serves and links back`, async ({
     page,
   }) => {
-    const res = await page.goto(`/projects/${id}/`);
+    const res = await page.goto(`${BASE}/projects/${id}/`);
     expect(res?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(
@@ -69,9 +78,9 @@ for (const id of ["warden", "scheduler", "plantpal"]) {
 }
 
 test("llms.txt and sitemap emit", async ({ request }) => {
-  expect((await request.get("/llms.txt")).status()).toBe(200);
-  expect((await request.get("/sitemap.xml")).status()).toBe(200);
-  expect((await request.get("/favicon.ico")).status()).toBe(200);
+  expect((await request.get(`${BASE}/llms.txt`)).status()).toBe(200);
+  expect((await request.get(`${BASE}/sitemap.xml`)).status()).toBe(200);
+  expect((await request.get(`${BASE}/favicon.ico`)).status()).toBe(200);
 });
 
 test("favicon.ico is a genuine multi-resolution icon, not a stub", async ({
@@ -83,7 +92,7 @@ test("favicon.ico is a genuine multi-resolution icon, not a stub", async ({
   // one ICONDIRENTRY per frame, then (for a modern icon) a raw PNG per
   // frame — and confirm each declared frame really is a PNG of the
   // declared size, not just that bytes were returned.
-  const res = await request.get("/favicon.ico");
+  const res = await request.get(`${BASE}/favicon.ico`);
   const buf = await res.body();
 
   expect(buf.length).toBeGreaterThan(500);
@@ -123,7 +132,7 @@ test("favicon.ico is a genuine multi-resolution icon, not a stub", async ({
 });
 
 test("internal links on the index resolve", async ({ page, request }) => {
-  await page.goto("/");
+  await page.goto(`${BASE}/`);
   const hrefs = await page
     .locator('a[href^="/"]:not([href^="//"])')
     .evaluateAll((as) => as.map((a) => a.getAttribute("href")!));
@@ -141,7 +150,7 @@ test("no failed requests on the index (prefetch, assets)", async ({
   page.on("response", (r) => {
     if (r.status() >= 400) failures.push(`${r.status()} ${r.url()}`);
   });
-  await page.goto("/", { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
   await page.evaluate(async () => {
     for (let y = 0; y <= document.body.scrollHeight; y += 450) {
       window.scrollTo(0, y);
@@ -153,7 +162,7 @@ test("no failed requests on the index (prefetch, assets)", async ({
 });
 
 test("card links navigate to the case file", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(`${BASE}/`);
   // The warden act — the first of the three featured-project acts, and
   // where "Read the case file" first appears in document order — sits
   // below the fold. `#projects` is not an id anything in this design
@@ -179,7 +188,7 @@ for (const path of [
   "/projects/plantpal/",
 ]) {
   test(`axe: no violations on ${path}`, async ({ page }) => {
-    await page.goto(path);
+    await page.goto(`${BASE}${path}`);
     // Let reveals settle so axe sees the final DOM.
     await page.evaluate(async () => {
       for (let y = 0; y <= document.body.scrollHeight; y += 400) {

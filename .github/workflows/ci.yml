@@ -24,9 +24,6 @@ jobs:
       - name: Verify plate integrity
         run: npm run check:art
 
-      - name: Typecheck
-        run: npx tsc --noEmit
-
       - name: Lint
         run: npm run lint
 
@@ -37,8 +34,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # F5 (final fix wave): moved to run AFTER the build, not before it.
+      # `next-env.d.ts` and the generated route types under `.next/types/`
+      # (both named in tsconfig.json's `include`) are written by `next
+      # build` itself — on a fresh checkout neither exists until the build
+      # above runs, so typechecking first (the previous order) silently
+      # checked without Next's own ambient types loaded, which is not what
+      # a human running `npm run typecheck` locally after their own build
+      # ever actually verifies. F6: runs the real `npm run typecheck`
+      # script rather than a hand-typed `npx tsc --noEmit` that could
+      # quietly drift from it.
+      - name: Typecheck
+        run: npm run typecheck
+
+      # F6: the real `npm run budget` script, not a hand-typed
+      # `node scripts/check-budget.mjs` duplicate that could drift from it.
       - name: Performance budget (gzipped JS)
-        run: node scripts/check-budget.mjs
+        run: npm run budget
 
       - name: Link integrity crawl (out/)
         run: npm run check:links
@@ -49,12 +61,14 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      # F6: the real `npm test` script (`playwright test`), not a
+      # hand-typed `npx playwright test` duplicate.
       - name: Smoke tests + axe scan (against ./out)
-        run: npx playwright test
+        run: npm test
 
       - name: Lighthouse gate
         run: |
-          npx serve out -l 4573 &
+          node_modules/.bin/serve out -l 4573 &
           sleep 3
           node scripts/check-lighthouse.mjs http://localhost:4573/
 
@@ -68,7 +82,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          npx serve out -l 4574 &
+          node_modules/.bin/serve out -l 4574 &
           sleep 3
           node scripts/scroll-trace.mjs http://localhost:4574/ | tee scroll-trace.log
 
@@ -80,3 +94,51 @@ jobs:
           name: scroll-trace-report
           path: scroll-trace.log
           if-no-files-found: ignore
+
+  # F2 (final fix wave): the job above builds and tests the Vercel deploy
+  # shape only — `out/` served at the origin root. GitHub Pages, the
+  # fallback deploy `deploy-pages.yml` actually ships, serves the same
+  # export under `/portfolio/` instead (that workflow's own "Compute Pages
+  # URLs" step computes NEXT_PUBLIC_BASE_PATH=/portfolio for this repo).
+  # Nothing tested that shape before this job existed. Additive: the
+  # `quality` job above is unchanged and stays the primary gate; this job
+  # runs the same build a second time with the sub-path env set, then
+  # re-runs the link crawl and the smoke suite against it specifically.
+  subpath:
+    name: quality (GitHub Pages sub-path shape)
+    runs-on: ubuntu-latest
+    env:
+      # Matches deploy-pages.yml's own computation for this exact repo
+      # (github.com/rakshit-737/portfolio is not a `*.github.io` repo, so
+      # it gets a `/portfolio` project-pages base path) — not the generic
+      # "/Portfolio" example next.config.ts's own comment uses, which is
+      # illustrative rather than this repo's real, case-sensitive name.
+      NEXT_PUBLIC_BASE_PATH: /portfolio
+      NEXT_PUBLIC_SITE_URL: https://rakshit-737.github.io/portfolio
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build static export (GitHub Pages sub-path shape)
+        run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Link integrity crawl (out/, sub-path shape)
+        run: npm run check:links
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      # scripts/serve-subpath.mjs (this config's webServer) mounts `out/`
+      # under `/portfolio/` and serves that, rather than at the root the
+      # primary job's playwright.config.ts uses — see that script's own
+      # comment for why a root-served copy can't stand in for this.
+      - name: Smoke tests against the sub-path shape
+        run: npx playwright test --config=playwright.subpath.config.ts

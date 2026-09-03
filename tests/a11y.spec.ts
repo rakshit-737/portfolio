@@ -1,6 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import sharp from "sharp";
+import {
+  CONTRAST_LUMINANCE_CEILING,
+  hasNearBonePixel,
+  mobileContext,
+  sampleLuminance,
+} from "./helpers";
 
 /**
  * P14 — accessibility hardening. axe already runs at zero violations on all
@@ -12,22 +17,12 @@ import sharp from "sharp";
  * overlap, the new `prefers-contrast: more` variant, and print/reduced-
  * motion re-verification for the surface added since the last a11y pass
  * (exhibits, the ledger grid, the certificate lightbox).
+ *
+ * `luminance()`/`ratio()`/`CONTRAST_LUMINANCE_CEILING`, the mobile-context
+ * factory, and the near-bone occlusion check all now live in ./helpers
+ * (E1/E2/E3/E4/E5, final fix wave) — this file, lamplight.spec.ts, and
+ * idle-stop.spec.ts had each hand-duplicated some subset of them before.
  */
-
-/** Relative luminance per WCAG 2.1 — same function as lamplight.spec.ts. */
-function luminance([r, g, b]: number[]): number {
-  const f = (c: number) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-}
-
-// Same tight ceiling the existing per-act contrast gates use
-// (tests/lamplight.spec.ts, CONTRAST_LUMINANCE_CEILING) — reused here
-// rather than redefined, so a mobile-width failure is held to the exact
-// same bar a desktop one already is.
-const CONTRAST_LUMINANCE_CEILING = 0.12;
 
 // ─────────────────────────────────────────────────────────────────────────
 // 1. Structure
@@ -122,15 +117,6 @@ for (const path of ["/", "/projects/warden/"]) {
 // 2. Contrast, post-floor
 // ─────────────────────────────────────────────────────────────────────────
 
-/** Screenshots a locator and returns its mean rendered luminance. */
-async function sampleLuminance(page: Page, locator: ReturnType<Page["locator"]>) {
-  const box = await locator.boundingBox();
-  if (!box || box.width < 1 || box.height < 1) return null;
-  const buf = await page.screenshot({ clip: box });
-  const { channels } = await sharp(buf).stats();
-  return luminance(channels.map((c) => c.mean));
-}
-
 // The brief names the two brightest painted regions text can overlap on a
 // narrow viewport specifically: the blacksmith's white-hot iron (hero) and
 // the La Tour collar/flame (contact) — both plates whose `lamp` rest point
@@ -142,28 +128,58 @@ const MOBILE_SPOTCHECK_ACTS = ["hero", "contact"] as const;
 
 for (const id of MOBILE_SPOTCHECK_ACTS) {
   test(`act ${id} clears AA contrast at 390px against its brightest painted region`, async ({
-    page,
+    browser,
   }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
+    // E3 (final fix wave): a genuine touch/mobile context, not the default
+    // desktop `page` fixture resized to a phone's CSS pixel dimensions — a
+    // resized-desktop context still reports `(pointer: fine)`/
+    // `(hover: hover)`, leaving Torch.tsx just as eligible to arm as on an
+    // actual desktop. See `mobileContext`'s own comment in ./helpers.
+    const ctx = await mobileContext(browser);
+    const page = await ctx.newPage();
     await page.goto("/");
     const act = page.locator(`#${id}`);
     await act.scrollIntoViewIfNeeded();
 
-    // Sample every text primitive in the act's scrim, not just the
-    // statement — on a narrow viewport the label/prose lines sit closer
-    // to the plate's open edge than the statement itself does. `:visible`
-    // excludes the desktop-only provenance strip and its mobile-only
-    // counterpart, exactly one of which is ever actually on screen at a
-    // given width (Tailwind's `hidden sm:flex` / `sm:hidden` pair) — the
-    // other stays matched by the bare class selector but never rendered,
-    // and `scrollIntoViewIfNeeded` never resolves on a `display: none`
-    // element.
-    const texts = act.locator(".statement:visible, .label:visible, .prose-field:visible");
-    const count = await texts.count();
-    expect(count, `act ${id} has no text to sample at 390px`).toBeGreaterThan(0);
+    // E4/E5: `.label` gets the stricter per-pixel near-bone occlusion
+    // check `hasNearBonePixel` (./helpers) — a mean-luminance check is too
+    // easy to pass on a mostly-whitespace element like `.label` even when
+    // fully occluded (see lamplight.spec.ts's "own label is not occluded"
+    // tests, the method's origin), which is exactly the opposite
+    // methodology this file used to apply to the same class of element
+    // here. `.statement`/`.prose-field` keep the mean-luminance-ceiling
+    // check every other contrast gate in the suite uses for real prose.
+    //
+    // `:visible` excludes the desktop-only provenance strip and its
+    // mobile-only counterpart, exactly one of which is ever actually on
+    // screen at a given width (Tailwind's `hidden sm:flex` / `sm:hidden`
+    // pair) — the other stays matched by the bare class selector but
+    // never rendered, and `scrollIntoViewIfNeeded` never resolves on a
+    // `display: none` element.
+    const labels = act.locator(".label:visible");
+    const labelCount = await labels.count();
+    for (let i = 0; i < labelCount; i++) {
+      const el = labels.nth(i);
+      await el.scrollIntoViewIfNeeded();
+      await expect(el).toHaveCSS("opacity", "1");
+      const box = await el.boundingBox();
+      if (!box || box.width < 1 || box.height < 1) continue;
+      const buf = await page.screenshot({ clip: box });
+      expect(
+        await hasNearBonePixel(buf),
+        `act ${id} label #${i} at 390px has no near-bone pixel anywhere in its box — the text may be occluded or too dim`,
+      ).toBe(true);
+    }
 
-    for (let i = 0; i < count; i++) {
-      const el = texts.nth(i);
+    const prose = act.locator(".statement:visible, .prose-field:visible");
+    const proseCount = await prose.count();
+    expect(
+      labelCount + proseCount,
+      `act ${id} has no text to sample at 390px`,
+    ).toBeGreaterThan(0);
+
+    for (let i = 0; i < proseCount; i++) {
+      const el = prose.nth(i);
       await el.scrollIntoViewIfNeeded();
       await expect(el).toHaveCSS("opacity", "1");
       const lum = await sampleLuminance(page, el);
@@ -173,9 +189,20 @@ for (const id of MOBILE_SPOTCHECK_ACTS) {
         `act ${id} text #${i} at 390px background too bright (L=${lum.toFixed(3)})`,
       ).toBeLessThan(CONTRAST_LUMINANCE_CEILING);
     }
+
+    await ctx.close();
   });
 }
 
+// E4 (final fix wave): this test and "prefers-contrast: no-preference"
+// below assert literally opposite things about the same element
+// (`.scrim::before`'s `backgroundImage`) — one expects no gradient, the
+// other expects one. That is not a contradiction: each asserts the
+// correct, deliberately different behaviour for its own
+// `prefers-contrast` context (P14's guarantee — see globals.css's
+// `@media (prefers-contrast: more)` rule) — flagged here explicitly so a
+// future reader sees the context dependency instead of reading the pair
+// as a flip-flopping test.
 test("prefers-contrast: more replaces the scrim gradient with solid ground", async ({
   browser,
 }) => {
@@ -200,6 +227,9 @@ test("prefers-contrast: more replaces the scrim gradient with solid ground", asy
   await ctx.close();
 });
 
+// E4 (final fix wave): the counterpart to "prefers-contrast: more" above —
+// deliberately the opposite assertion on the same element, held to its own
+// `prefers-contrast` context. See that test's comment.
 test("prefers-contrast: no-preference keeps the ordinary gradient scrim", async ({
   browser,
 }) => {

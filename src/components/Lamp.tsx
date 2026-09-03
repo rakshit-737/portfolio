@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { POINTER_LERP, createFrameBudgetGuard } from "@/lib/motion";
+import {
+  LAMP_LIT_FRACTION,
+  LAMP_R_BASE_VMAX,
+  LAMP_R_SPREAD_VMAX,
+  POINTER_LERP,
+  createFrameBudgetGuard,
+} from "@/lib/motion";
 
 /**
  * The one moving part on the site.
@@ -208,10 +214,10 @@ export default function Lamp() {
       }
 
       const vh = window.innerHeight;
-      // 1vmax in px — used to turn the plate mask's `--lamp-r` formula
-      // (globals.css: `26vmax + min(p, 1-p) * 30vmax`) into a real pixel
-      // radius for the ignite comparison below. Computed once per tick,
-      // not per act — window size doesn't change mid-frame.
+      // 1vmax in px — turns the lamp-radius formula (LAMP_R_BASE_VMAX +
+      // min(p, 1-p) * LAMP_R_SPREAD_VMAX, src/lib/motion.ts) into a real
+      // pixel radius. Computed once per tick, not per act — window size
+      // doesn't change mid-frame.
       const vmax = Math.max(window.innerWidth, vh) / 100;
       for (const act of visible) {
         const r = act.getBoundingClientRect();
@@ -246,22 +252,29 @@ export default function Lamp() {
         // fractions of THIS act's box (that's what `--lamp-x`/`--lamp-y`
         // need to be, since `.plate-lit`'s mask resolves against the same
         // box), so converting to a viewport pixel point takes the act's own
-        // rect, not the viewport's. Matches the mask's own radius formula
-        // (globals.css `--lamp-r`) so the ignite pool and the plate's lit
-        // pool agree on how big the light is.
+        // rect, not the viewport's.
+        //
+        // C2 fix: `--lamp-r` (written just below, onto the act itself,
+        // exactly like `--p`/`--lamp-x`/`--lamp-y` above) is now the single
+        // computation of the lamp's radius for this act — `.plate-lit`'s
+        // mask in globals.css just consumes it (falling back to the same
+        // formula, in vmax, only for an act this loop hasn't reached yet —
+        // see LAMP_R_BASE_VMAX/LAMP_R_SPREAD_VMAX, src/lib/motion.ts), so
+        // the ignite pool below and the plate's own lit pool can no longer
+        // silently desync into two hand-duplicated copies of the formula.
+        const lampR = (LAMP_R_BASE_VMAX + Math.min(p, 1 - p) * LAMP_R_SPREAD_VMAX) * vmax;
+        act.style.setProperty("--lamp-r", `${lampR.toFixed(2)}px`);
+
         const igniteEls = igniteByAct.get(act);
         if (igniteEls && igniteEls.length > 0) {
           const lampPxX = r.left + x * r.width;
           const lampPxY = r.top + y * r.height;
-          const lampR = (26 + Math.min(p, 1 - p) * 30) * vmax;
-          // The plate mask is fully opaque out to 46% of `--lamp-r` and
-          // fades to nothing by 88%; a metric either reads as bone or as
-          // ember, not fractionally in between, so it ignites at a single
-          // radius rather than reproducing that whole falloff — picked at
-          // the middle of the fade band so a metric lights up roughly when
-          // the plate under it is roughly half-revealed, not only once
-          // it's fully in the opaque core.
-          const litRadius = lampR * 0.67;
+          // LAMP_LIT_FRACTION (src/lib/motion.ts) is the middle of
+          // `.plate-lit`'s own opaque→transparent mask falloff — a metric
+          // either reads as bone or as ember, not fractionally in between,
+          // so it ignites at this single radius rather than reproducing
+          // the whole falloff.
+          const litRadius = lampR * LAMP_LIT_FRACTION;
           const litRadiusSq = litRadius * litRadius;
           for (const el of igniteEls) {
             const er = el.getBoundingClientRect();

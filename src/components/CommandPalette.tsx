@@ -9,6 +9,7 @@ import {
   Search,
 } from "lucide-react";
 import {
+  caseSections,
   caseStudies,
   featuredProjects,
   links,
@@ -31,16 +32,6 @@ interface Command {
   keywords?: string;
   run: () => void;
 }
-
-/** A case-file page's own section anchors (`CaseSection` slugs in
- *  src/app/projects/[id]/page.tsx) — the same five on every case file. */
-const CASE_SECTIONS = [
-  { slug: "problem", title: "Problem" },
-  { slug: "approach", title: "Approach" },
-  { slug: "decisions", title: "Decisions" },
-  { slug: "evidence", title: "Evidence" },
-  { slug: "outcome", title: "Outcome" },
-] as const;
 
 /**
  * Subsequence fuzzy match: every query character must appear in order.
@@ -144,7 +135,7 @@ export default function CommandPalette() {
       .filter((p) => caseStudies[p.id])
       .flatMap((p) => {
         const name = p.name.split("—")[0].trim();
-        return CASE_SECTIONS.map((sec) => ({
+        return caseSections.map((sec) => ({
           id: `case-${p.id}-${sec.slug}`,
           group: "case-files" as const,
           label: `${name} — ${sec.title}`,

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { BreakerTripped, withBreakerRetry } from "./helpers";
 
 /**
  * P6-perf, item 2: Lamp.tsx's and Torch.tsx's rAF loops now idle-stop —
@@ -16,21 +17,12 @@ import { expect, test } from "@playwright/test";
  * frame regardless of idle-stop, so it can notice recovery. That is a real
  * device-performance path, not the idle-stop mechanism under test here, so
  * a trip is retried rather than treated as this test's failure — the same
- * shape lamplight.spec.ts already uses for the same reason (see its
- * `BreakerTripped`/`withLampRetry`).
+ * `BreakerTripped`/`withBreakerRetry` shape lamplight.spec.ts uses for the
+ * same reason, now shared via ./helpers (E1/E2/E3, final fix wave) rather
+ * than each file hand-rolling its own — this file's copy used to retry at
+ * a different budget (4 attempts) than lamplight.spec.ts's (5) for no
+ * reason either number was more correct than the other.
  */
-class BreakerTripped extends Error {}
-
-async function withRetry(fn: () => Promise<void>) {
-  for (let i = 0; i < 4; i++) {
-    try {
-      await fn();
-      return;
-    } catch (e) {
-      if (!(e instanceof BreakerTripped) || i === 3) throw e;
-    }
-  }
-}
 
 /** Installs a `window.__rafCount` counter that increments once per real
  *  `requestAnimationFrame` call, before Lamp.tsx/Torch.tsx ever mount. */
@@ -49,7 +41,7 @@ const rafCount = (page: import("@playwright/test").Page) =>
   page.evaluate(() => (window as unknown as { __rafCount: number }).__rafCount);
 
 test("the lamp idle-stops after no input and resumes on scroll", async ({ page }) => {
-  await withRetry(async () => {
+  await withBreakerRetry(async () => {
     await countRaf(page);
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");

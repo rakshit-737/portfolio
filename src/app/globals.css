@@ -180,7 +180,9 @@ section[id] {
 /* The cartouche's label voice (Bracket.tsx) — Newsreader's second and
    only other home, alongside `.statement`. A control's label, not a
    headline, so it never approaches statement scale; size and tracking
-   are set at the call site (BracketLink/BracketButton/BracketDisabled). */
+   are set at the call site (BracketLink — the component's one remaining
+   export since B3, final fix wave, removed BracketButton/BracketDisabled
+   once both reached zero call sites). */
 .cartouche-label {
   font-family: var(--font-display);
   font-optical-sizing: auto;
@@ -271,16 +273,34 @@ section[id] {
 }
 [data-lamp="on"] .plate-lit {
   /* A pool, not a spot — the lit region has to be big enough to carry a
-     subject, not just graze it. */
-  --lamp-r: calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax);
+     subject, not just graze it.
+
+     C2 fix (final fix wave): `--lamp-r` is no longer computed here — it's
+     written directly onto each visible `[data-act]` by Lamp.tsx every
+     tick (real px, matching LAMP_R_BASE_VMAX/LAMP_R_SPREAD_VMAX in
+     src/lib/motion.ts) and inherits down to this mask the same way
+     `--lamp-x`/`--lamp-y` already do, so this is the single place that
+     formula is computed, not a second copy kept in sync by hand. The
+     `calc(...)` in the `var()` fallback below is that exact same formula,
+     used only when `--lamp-r` hasn't been set yet — an act the tick loop
+     hasn't reached (off-screen, or the brief window before the first
+     tick) — so the mask still renders a sensible pool rather than an
+     invalid or missing one. `--p` defaults to 0 in that fallback exactly
+     as it always has, so an unreached act's mask still resolves to the
+     same 26vmax it always did. The gradient's own opaque/transparent
+     stops (46%/88% below) are LAMP_MASK_OPAQUE_STOP/
+     LAMP_MASK_TRANSPARENT_STOP in that same file — spelled out here as
+     literals because CSS has no mechanism to import a JS constant. */
   -webkit-mask-image: radial-gradient(
-    circle var(--lamp-r) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+    circle var(--lamp-r, calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax))
+      at var(--lamp-x, 50%) var(--lamp-y, 50%),
     #000 0%,
     #000 46%,
     transparent 88%
   );
   mask-image: radial-gradient(
-    circle var(--lamp-r) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+    circle var(--lamp-r, calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax))
+      at var(--lamp-x, 50%) var(--lamp-y, 50%),
     #000 0%,
     #000 46%,
     transparent 88%
@@ -419,6 +439,21 @@ section[id] {
 }
 [data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(5) {
   transition-delay: 0.24s;
+}
+/* C3 (final fix wave): the hero's `.scrim` carries eight direct children
+   (role/statement/positioning/mobile-link/verified-strip/rail/CTAs/
+   provenance) — the stagger used to stop at :nth-child(5), so children
+   6-8 all fired at the same zero delay as child 1, a visible break in the
+   beat on the one act with enough content to reach that far. Continuing
+   the same 0.06s step, not a new cadence. */
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(6) {
+  transition-delay: 0.3s;
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(7) {
+  transition-delay: 0.36s;
+}
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(8) {
+  transition-delay: 0.42s;
 }
 
 /* A number ignites when the light reaches it. The ember copy is a

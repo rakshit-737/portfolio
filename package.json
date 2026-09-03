@@ -2,10 +2,13 @@
   "name": "portfolio",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "npx serve out",
+    "start": "serve out",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
@@ -33,6 +36,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "lighthouse": "^13.4.1",
+    "serve": "^14.2.6",
     "sharp": "^0.35.3",
     "tailwindcss": "^4",
     "typescript": "^5"

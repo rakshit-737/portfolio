@@ -41,7 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 # editor state
-.opencode/
 .opencode
 .claude/
 
@@ -55,6 +54,14 @@ next-env.d.ts
 # playwright artifacts
 /test-results/
 /playwright-report/
+
+# scripts/scroll-trace.mjs's own output when run locally (CI uploads it as
+# a build artifact instead — see ci.yml's "Upload scroll-trace report" step)
+/scroll-trace.log
+
+# scripts/serve-subpath.mjs's local mount point for the GitHub Pages
+# sub-path smoke run (playwright.subpath.config.ts) — rebuilt every run
+/.subpath-root/
 
 # subagent-driven-development scratch (ledger, briefs, review packages)
 /.superpowers/

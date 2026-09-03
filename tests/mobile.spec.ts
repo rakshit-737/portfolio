@@ -1,28 +1,25 @@
 import { expect, test } from "@playwright/test";
+import { mobileContext } from "./helpers";
 
 /**
  * P11-mobile: touch-viewport (390x844) journeys. The rest of the suite
  * either runs at the default desktop viewport or spins up its own
- * one-off mobile context inline (lamplight.spec.ts's torch test); this
- * file is the dedicated home for the two full mobile flows the brief
- * asks for, so they're not buried inside a file about something else.
+ * mobile context via `mobileContext` (./helpers, E1/E2/E3, final fix
+ * wave — the constant this file used to define locally as `MOBILE` moved
+ * there so every touch-emulation call site in the suite shares one
+ * definition); this file is the dedicated home for the two full mobile
+ * flows the brief asks for, so they're not buried inside a file about
+ * something else.
  *
- * `hasTouch: true, isMobile: true` matches the same emulation
- * lamplight.spec.ts's "torch stays off for touch" context already uses —
- * `isMobile` is what makes Playwright report `(hover: none)`/`(pointer:
- * coarse)`, which is what the touch-only affordances below actually key
- * off of.
+ * `hasTouch: true, isMobile: true` is what makes Playwright report
+ * `(hover: none)`/`(pointer: coarse)`, which is what the touch-only
+ * affordances below actually key off of.
  */
-const MOBILE = {
-  hasTouch: true,
-  isMobile: true,
-  viewport: { width: 390, height: 844 },
-} as const;
 
 test("case-file navigation journey on a touch viewport: index → warden → back via breadcrumb", async ({
   browser,
 }) => {
-  const ctx = await browser.newContext(MOBILE);
+  const ctx = await mobileContext(browser);
   const page = await ctx.newPage();
 
   await page.goto("/");
@@ -52,7 +49,7 @@ test("case-file navigation journey on a touch viewport: index → warden → bac
 test("command palette opens via the visible search button and jumps — touch viewport", async ({
   browser,
 }) => {
-  const ctx = await browser.newContext(MOBILE);
+  const ctx = await mobileContext(browser);
   const page = await ctx.newPage();
 
   await page.goto("/");
