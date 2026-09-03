@@ -765,17 +765,21 @@ export const moreProjects: MoreProject[] = [
   {
     // Every claim transcribed from the repo's README (fetched 2026-08-30);
     // dates from the GitHub API (created 2026-07-31, last push 2026-08-30).
+    // `DocForge`, capitalised, is the repo's canonical name (the GitHub
+    // API's `full_name`); GitHub serves the page under any casing, so this
+    // is hygiene — the same spelling the repo itself uses, as `PlantPal-
+    // Plus` above already does — not a broken link being repaired.
     name: "DocForge — Personal Document Studio",
     timeframe: "Jul 2026",
     description:
       "Client-side document studio that turns Markdown into typeset PDFs and Word documents — a live paginated preview that is itself the editing surface, automatic table of contents with real page numbers, per-page footnotes, numeric or author–year citations, cross-references, and LaTeX math exported to Word as real editable equations — in **one self-contained HTML file**: no account, no server, works offline. MIT licensed.",
     tech: ["JavaScript", "KaTeX"],
-    repoUrl: "https://github.com/rakshit-737/docforge",
+    repoUrl: "https://github.com/rakshit-737/DocForge",
     evidence: [
       { label: "2026-07" },
       { label: "active" },
       { label: "javascript" },
-      { label: "repo", href: "https://github.com/rakshit-737/docforge" },
+      { label: "repo", href: "https://github.com/rakshit-737/DocForge" },
     ],
   },
   {
