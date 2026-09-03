@@ -554,8 +554,12 @@ export default async function Home() {
                 <p className="label">{project.timeframe}</p>
                 {/* P12: plain-English kicker, first beat — the statement
                     stays the second, poetic one. `acts[id].kicker`,
-                    src/content.ts. */}
-                {act.kicker && <p className="label mt-2">{act.kicker}</p>}
+                    src/content.ts. `mb-4` is the same gap the about and
+                    research acts give their kicker: without it the
+                    statement's ascenders sat on the kicker's baseline,
+                    and on a phone, where the kicker wraps, its second
+                    line ran straight through the statement's first. */}
+                {act.kicker && <p className="label mt-2 mb-4">{act.kicker}</p>}
                 <Statement id={`${project.id}-title`}>{act.statement}</Statement>
 
                 <p className="prose-field mt-8">{project.oneLiner}</p>
