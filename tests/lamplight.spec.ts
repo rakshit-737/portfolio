@@ -5,6 +5,7 @@ import {
   BreakerTripped,
   CONTRAST_LUMINANCE_CEILING,
   desktopAt,
+  expectRevealed,
   hasNearBonePixel,
   luminance,
   mobileContext,
@@ -793,7 +794,10 @@ for (const id of ACTS) {
     for (let i = 0; i < count; i++) {
       const para = paras.nth(i);
       await para.scrollIntoViewIfNeeded();
-      await expect(para).toHaveCSS("opacity", "1");
+      // The reveal fades the scrim's direct children; `.prose-field` sits
+      // one level deeper inside the about act's grid, so wait on the
+      // whole ancestor chain (./helpers) rather than on `para` alone.
+      await expectRevealed(para);
 
       const box = await para.boundingBox();
       if (!box || box.width < 1 || box.height < 1) continue;

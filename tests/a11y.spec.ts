@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import {
   CONTRAST_LUMINANCE_CEILING,
+  expectRevealed,
   hasNearBonePixel,
   mobileContext,
   sampleLuminance,
@@ -161,7 +162,11 @@ for (const id of MOBILE_SPOTCHECK_ACTS) {
     for (let i = 0; i < labelCount; i++) {
       const el = labels.nth(i);
       await el.scrollIntoViewIfNeeded();
-      await expect(el).toHaveCSS("opacity", "1");
+      // Not `toHaveCSS("opacity", "1")` on `el` itself — the reveal fades
+      // the scrim's direct children, and a nested label (the `Copy`
+      // button, a Provenance `li`) is opaque long before its parent is.
+      // See `expectRevealed` in ./helpers for the flake this closed.
+      await expectRevealed(el);
       const box = await el.boundingBox();
       if (!box || box.width < 1 || box.height < 1) continue;
       const buf = await page.screenshot({ clip: box });
@@ -181,7 +186,8 @@ for (const id of MOBILE_SPOTCHECK_ACTS) {
     for (let i = 0; i < proseCount; i++) {
       const el = prose.nth(i);
       await el.scrollIntoViewIfNeeded();
-      await expect(el).toHaveCSS("opacity", "1");
+      // Same ancestor-chain wait as the label loop above.
+      await expectRevealed(el);
       const lum = await sampleLuminance(page, el);
       if (lum === null) continue;
       expect(

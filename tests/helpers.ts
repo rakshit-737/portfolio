@@ -1,4 +1,4 @@
-import type { Browser, Page } from "@playwright/test";
+import { expect, type Browser, type Locator, type Page } from "@playwright/test";
 import sharp from "sharp";
 
 /**
@@ -153,4 +153,35 @@ export function mobileContext(browser: Browser) {
  */
 export function desktopAt(page: Page, viewport: { width: number; height: number }) {
   return page.setViewportSize(viewport);
+}
+
+/**
+ * Waits until `el` AND every ancestor report full opacity. The act's
+ * one-time copy reveal (globals.css, `[data-seen] .scrim > *`) fades in
+ * the scrim's DIRECT children, so a nested element — a Provenance `li`,
+ * the copy-email button inside its flex row — reports `opacity: 1` on
+ * itself while its parent is still mid-transition, and a screenshot taken
+ * at that instant sees dim or missing glyphs. `toHaveCSS("opacity", "1")`
+ * on the element itself was exactly that race: the contact act's
+ * "clears AA contrast at 390px" spot-check failed on the `Copy` button
+ * with "no near-bone pixel anywhere in its box" whenever the screenshot
+ * beat the parent's 0.7s fade. Walking the ancestor chain closes it for
+ * every nesting depth at once.
+ */
+export async function expectRevealed(el: Locator) {
+  await expect
+    .poll(
+      () =>
+        el.evaluate((node) => {
+          let n: HTMLElement | null = node as HTMLElement;
+          let min = 1;
+          while (n) {
+            min = Math.min(min, parseFloat(getComputedStyle(n).opacity));
+            n = n.parentElement;
+          }
+          return min;
+        }),
+      { timeout: 5_000 },
+    )
+    .toBe(1);
 }
