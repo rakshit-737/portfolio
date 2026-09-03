@@ -161,7 +161,13 @@ export default function Nav() {
           </a>
         </div>
 
-        <div className="flex items-center md:hidden">
+        {/* Shown until `lg`, not `md`: the section links above only appear
+            at `lg`, so a `md:hidden` here left every viewport between 48rem
+            and 64rem (a portrait tablet, a narrow laptop window) with no
+            way to reach a section at all — no links and no menu button.
+            Only the search icon drops at `md`, where the labelled ctrl-K
+            button above takes over. */}
+        <div className="flex items-center lg:hidden">
           {/* 44px minimum tap target (WCAG 2.5.5) — the icon itself stays
               small (18px), so the extra hit area comes from `min-h-11
               min-w-11` centring, the same device `Bracket.tsx` and the
@@ -171,7 +177,7 @@ export default function Nav() {
             type="button"
             onClick={openPalette}
             aria-label="Search the field"
-            className="flex min-h-11 min-w-11 items-center justify-center"
+            className="flex min-h-11 min-w-11 items-center justify-center md:hidden"
           >
             <Search size={18} aria-hidden="true" />
           </button>
