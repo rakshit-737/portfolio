@@ -79,10 +79,15 @@ export async function fetchRepoLive(repoUrl: string): Promise<RepoLive | null> {
 export function liveSegments(live: RepoLive | null): EvidenceSegment[] {
   if (!live) return [];
   const segments: EvidenceSegment[] = [];
+  // Deep-links to the repo page, not `/stargazers`: GitHub answers that
+  // sub-page with a 404 for an anonymous visitor (verified in a real
+  // headless browser, 2026-09-03, for every repo here — not a casing or
+  // rename issue), so the receipt would have led straight to "Page not
+  // found". The repo page carries the same star count next to its name.
   if (live.stars > 0)
     segments.push({
-      label: `${live.stars} stars`,
-      href: `${live.repoUrl}/stargazers`,
+      label: `${live.stars} ${live.stars === 1 ? "star" : "stars"}`,
+      href: live.repoUrl,
     });
   if (live.sha) {
     segments.push({

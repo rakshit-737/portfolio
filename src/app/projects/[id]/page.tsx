@@ -142,8 +142,10 @@ export default async function CaseStudyPage({
       ? [
           {
             value: String(live.stars),
-            label: "stars",
-            href: `${live.repoUrl}/stargazers`,
+            label: live.stars === 1 ? "star" : "stars",
+            // The repo page, not `/stargazers` — see liveSegments()
+            // (src/lib/github.ts) for why that sub-page is a 404.
+            href: live.repoUrl,
           },
         ]
       : []),
