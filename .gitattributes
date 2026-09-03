@@ -1,0 +1,14 @@
+# One line ending everywhere. CI checks out on Linux; a Windows clone with
+# core.autocrlf=true otherwise rewrites every text file to CRLF on checkout
+# and warns "LF will be replaced by CRLF" on every commit. Text files are
+# detected automatically; the binary list below keeps git from ever
+# touching a committed plate, scan, or font (npm run check:art verifies
+# every plate's sha256 against src/lib/art.lock.json).
+* text=auto eol=lf
+*.avif binary
+*.webp binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.pdf binary
+*.woff2 binary
