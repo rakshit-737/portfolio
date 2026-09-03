@@ -176,8 +176,8 @@ dark room, not a scheme.
   the page — type, strokes, rules, control borders, the sine's nodes. It is
   also what a lit number looks like before the lamp's pool reaches it.
 - **Ember** (`{colors.ember}`, `#E8A33D`): the light itself. It appears in
-  exactly two places — the pseudo-element that lights an `.ignite` number
-  once the lamp's pool actually reaches it, and nowhere else. It never
+  exactly two places — the colour an `.ignite` number turns once the
+  lamp's pool actually reaches it, and nowhere else. It never
   touches prose, never touches a graphic, never fills a control.
 
 ### Neutral
@@ -278,8 +278,11 @@ every number column aligns without per-element opt-in.
 - **Number** (600, Chivo Mono, 1.5rem rising to 1.875rem at `sm`, tabular,
   line-height none): a measurement the lamp can light — hero rail values,
   a project's headline numbers, the benchmark chart's highlighted rows.
-  Driven through `.ignite` with `data-value` so the bone original and its
-  ember twin are the same text, read once by assistive tech.
+  Driven through `Ignite.tsx` — one element, one text node, whose `color`
+  transitions from bone to ember, so assistive tech, find-in-page and copy
+  all meet the value exactly once — with an exponent rendered as `<sup>`
+  in Chivo Mono (`Metric.tsx`) rather than as the Unicode superscript
+  characters the font has no glyphs for.
 - **Body** (400, 0.875rem, monospace): the site's default voice — rail
   values that are not ignited, nav, chips, tables, chrome, footer.
 - **Prose** (400, 1rem, line-height 1.68, max-width 62ch, Chivo): about
@@ -593,7 +596,7 @@ way code is, on the same line as the rest of the evidence.
 
 ### Rail
 A `<dl>` of measurements, unchanged in structure. Optionally `ignite`: the
-value renders through the ember pseudo-element (`data-value` + `.ignite`),
+value renders through `Ignite.tsx` (a colour transition on the one element),
 so it lights once the lamp's pool actually reaches it and simply reads as
 bone signal under reduced motion or no JS.
 
@@ -844,8 +847,8 @@ protects, and the exact population the published audit's disproven
   swapping its own ground and mark, the way `Bracket` and `Nav` already do —
   never resurrect a page-region `.negative`/`invert` mechanism.
 - **Do** set every measurement in tabular Chivo Mono, and drive a genuinely
-  lit one through `.ignite` + `data-value` so it degrades to plain signal
-  text with no JS or reduced motion.
+  lit one through `Ignite.tsx` so it degrades to plain signal text with no
+  JS or reduced motion.
 - **Do** credit every plate on its act's provenance line via `withCredit()`
   — art is sourced the same way code is.
 - **Do** keep new acts in normal document flow (`min-h-[100svh]`, not

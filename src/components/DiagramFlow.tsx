@@ -1,3 +1,4 @@
+import Metric from "@/components/Metric";
 import type { DiagramStep } from "@/content";
 
 /**
@@ -61,7 +62,7 @@ export default function DiagramFlow({
               <p className="label">{step.label}</p>
               {step.sub && (
                 <p className="mt-1.5 font-mono text-[0.6875rem] leading-snug">
-                  {step.sub}
+                  <Metric text={step.sub} />
                 </p>
               )}
             </div>

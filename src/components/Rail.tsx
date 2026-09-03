@@ -1,3 +1,5 @@
+import Ignite from "@/components/Ignite";
+
 export interface RailItem {
   value: string;
   label: string;
@@ -27,27 +29,29 @@ export default function Rail({
       {items.map((item) => (
         <div key={item.label}>
           <dt className="label leading-[1.45]">{item.label}</dt>
-          <dd
-            className={
-              ignite
-                ? "ignite font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl"
-                : "mt-1 font-mono text-sm leading-none tracking-tight tabular-nums sm:text-base"
-            }
-            data-value={ignite ? item.value : undefined}
-          >
-            {item.href ? (
-              <a
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
-              >
-                {item.value}
-              </a>
-            ) : (
-              item.value
-            )}
-          </dd>
+          {ignite ? (
+            <Ignite
+              as="dd"
+              value={item.value}
+              href={item.href}
+              className="font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl"
+            />
+          ) : (
+            <dd className="mt-1 font-mono text-sm leading-none tracking-tight tabular-nums sm:text-base">
+              {item.href ? (
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+                >
+                  {item.value}
+                </a>
+              ) : (
+                item.value
+              )}
+            </dd>
+          )}
         </div>
       ))}
     </dl>

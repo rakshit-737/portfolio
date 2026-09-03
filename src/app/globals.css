@@ -143,8 +143,7 @@ section[id] {
 
 /* A metric inside a bullet — the single strongest number in a `**bold**`
    run, rendered by Metric.tsx. Mono and semibold, never dimmed; body copy
-   has no contrast headroom for an ember ::after layer, so this does not
-   ignite. */
+   has no contrast headroom for ember, so this does not ignite. */
 .metric {
   position: relative;
   display: inline-block;
@@ -456,9 +455,19 @@ section[id] {
   transition-delay: 0.42s;
 }
 
-/* A number ignites when the light reaches it. The ember copy is a
-   pseudo-element, so assistive technology reads the bone original once
-   and axe never sees a second colour on the same text node.
+/* A number ignites when the light reaches it. One element, one text
+   node: ignition is a `color` transition on the metric itself, bone to
+   ember, driven by Lamp.tsx toggling `.is-lit`. It used to be a second
+   copy of the value laid over the first — a `::after` pseudo-element
+   carrying `content: attr(data-value)`, then briefly a real `aria-hidden`
+   twin. The pseudo-element couldn't hold markup, so an exponent had to
+   ship as raw Unicode superscript characters, and Chivo Mono has no
+   glyphs for ⁰ or ⁴–⁹ — the "⁶" of `p = 2.6×10⁻¹⁶` rendered in the OS
+   fallback monospace at a different size and weight, in the site's own
+   headline number. The twin fixed the glyph (Metric.tsx renders the
+   exponent as `<sup>` in the brand font) but doubled the text for
+   find-in-page, copy, text locators and the accessibility tree. A colour
+   transition needs no copy at all. See Ignite.tsx.
 
    Critical 1 fix: this used to be a second `mask-image` reading
    `--lamp-x`/`--lamp-y` directly, exactly like `.plate-lit`. That looked
@@ -480,29 +489,20 @@ section[id] {
    `getBoundingClientRect()` against the act's lamp point computed the same
    way — then just toggles `.is-lit` here. No mask, no percentage trap. */
 .ignite {
-  position: relative;
-  color: var(--color-signal);
-}
-.ignite::after {
-  content: attr(data-value);
-  position: absolute;
-  inset: 0;
   color: var(--color-ember);
-  pointer-events: none;
 }
-/* Once the lamp is on, the ember copy starts invisible and only reaches
-   full opacity once Lamp.tsx's rAF tick says this element's centre is
-   inside the lamp's pool (`.is-lit`, set/cleared every frame). With no JS,
-   or under reduced motion, `data-lamp="on"` is never set, so neither rule
-   below ever applies and the base `.ignite::after` rule above renders
-   ember unconditionally — the "fully lit, permanently" default §4.3
-   requires. */
-[data-lamp="on"] .ignite::after {
-  opacity: 0;
-  transition: opacity 240ms ease;
+/* Once the lamp is on, a metric starts bone and only turns ember once
+   Lamp.tsx's rAF tick says its centre is inside the lamp's pool
+   (`.is-lit`, set/cleared every frame). With no JS, or under reduced
+   motion, `data-lamp="on"` is never set, so neither rule below ever
+   applies and the base `.ignite` rule above renders ember unconditionally
+   — the "fully lit, permanently" default §4.3 requires. */
+[data-lamp="on"] .ignite {
+  color: var(--color-signal);
+  transition: color 240ms ease;
 }
-[data-lamp="on"] .ignite.is-lit::after {
-  opacity: 1;
+[data-lamp="on"] .ignite.is-lit {
+  color: var(--color-ember);
 }
 
 /* ── The torch ───────────────────────────────────────────────────────
@@ -694,9 +694,6 @@ section[id] {
   .print-hidden,
   .torch {
     display: none !important;
-  }
-  .ignite::after {
-    display: none;
   }
   /* Every Bracket control on the landing page and case files already
      sits inside a `.print-hidden` wrapper (buttons are chrome, not

@@ -265,7 +265,7 @@ export default async function CaseStudyPage({
                   {project.headlineNumbers.map((n) => (
                     <div key={n.label}>
                       <dd className="font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl">
-                        {n.value}
+                        <Metric text={n.value} />
                       </dd>
                       <dt className="label mt-2">{n.label}</dt>
                     </div>
@@ -367,10 +367,10 @@ export default async function CaseStudyPage({
                         rel="noopener noreferrer"
                         className="underline decoration-rule underline-offset-4 hover:decoration-signal"
                       >
-                        {row.value}
+                        <Metric text={row.value} />
                       </a>
                     ) : (
-                      row.value
+                      <Metric text={row.value} />
                     )}
                   </td>
                 </tr>

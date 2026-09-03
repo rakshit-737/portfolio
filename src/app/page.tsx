@@ -10,6 +10,7 @@ import CertificateLightbox from "@/components/CertificateLightbox";
 import CommandPalette from "@/components/CommandPalette";
 import CopyEmailButton from "@/components/CopyEmailButton";
 import Exhibit from "@/components/Exhibit";
+import Ignite from "@/components/Ignite";
 import Metric from "@/components/Metric";
 import Nav from "@/components/Nav";
 import Plate, { narrowSrcset, narrowTiers, srcset } from "@/components/Plate";
@@ -568,12 +569,11 @@ export default async function Home() {
                   <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-6 border-y border-rule py-6">
                     {project.headlineNumbers.map((n) => (
                       <div key={n.label}>
-                        <dd
-                          className="ignite font-mono text-3xl leading-none font-semibold tracking-tight tabular-nums sm:text-4xl"
-                          data-value={n.value}
-                        >
-                          {n.value}
-                        </dd>
+                        <Ignite
+                          as="dd"
+                          value={n.value}
+                          className="font-mono text-3xl leading-none font-semibold tracking-tight tabular-nums sm:text-4xl"
+                        />
                         <dt className="label mt-2">{n.label}</dt>
                       </div>
                     ))}
@@ -608,9 +608,7 @@ export default async function Home() {
                                 <>
                                   {"→ risk "}
                                   {match[2] === "block" ? (
-                                    <span className="ignite" data-value={match[1]}>
-                                      {match[1]}
-                                    </span>
+                                    <Ignite value={match[1]} />
                                   ) : (
                                     match[1]
                                   )}
@@ -694,7 +692,7 @@ export default async function Home() {
                     study's own `outcome[0]` (src/content.ts) — never a new
                     claim. Not print-hidden: it's record, not chrome. */}
                 <p className="mt-3 max-w-[46ch] text-sm leading-relaxed">
-                  {caseStudies[project.id].teaser}
+                  <Metric text={caseStudies[project.id].teaser} />
                 </p>
               </div>
             </Act>

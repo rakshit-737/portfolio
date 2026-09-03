@@ -16,6 +16,11 @@ import {
 const GROUND = [0x08, 0x07, 0x0a];
 const SIGNAL = [0xf2, 0xed, 0xe3];
 const EMBER = [0xe8, 0xa3, 0x3d];
+/** The same two tokens as `getComputedStyle(el).color` reports them — an
+ *  `.ignite` metric's colour is exactly one of these once its 240ms
+ *  transition has settled (globals.css). */
+const SIGNAL_CSS = "rgb(242, 237, 227)";
+const EMBER_CSS = "rgb(232, 163, 61)";
 
 test("palette tokens are the three specified values", async ({ page }) => {
   await page.goto("/");
@@ -1084,12 +1089,12 @@ test("a metric ignites as the lamp crosses it", async ({ page }) => {
       el.evaluate((e) => ({
         lampOn: document.documentElement.getAttribute("data-lamp"),
         isLit: e.classList.contains("is-lit"),
-        emberOpacity: getComputedStyle(e, "::after").opacity,
+        color: getComputedStyle(e).color,
       }));
 
     // Before the act has ever been on screen: both metrics are stone-cold
-    // — never observed, never evaluated, exactly the no-JS/reduced-motion
-    // default (bone, `opacity: 0` on the ember layer).
+    // — never observed, never evaluated — and read bone (the 240ms colour
+    // transition from the fully-lit default has long settled).
     await scrollScheduerJustBeforeEntry(page);
     await page.waitForTimeout(300);
     const before = await readState(metric);
@@ -1097,7 +1102,7 @@ test("a metric ignites as the lamp crosses it", async ({ page }) => {
     expect(before.isLit, "metric should not be lit before the act has ever been in view").toBe(
       false,
     );
-    expect(Number(before.emberOpacity)).toBeLessThan(0.05);
+    expect(before.color).toBe(SIGNAL_CSS);
 
     // Scroll the act into its natural view — its own scroll progress
     // (`--p`) now sits mid-act, where the lamp's radius is largest and
@@ -1115,11 +1120,11 @@ test("a metric ignites as the lamp crosses it", async ({ page }) => {
         async () => {
           const state = await readState(metric);
           if (state.lampOn !== "on") throw new BreakerTripped();
-          return Number(state.emberOpacity);
+          return state.color;
         },
         { timeout: 2_000 },
       )
-      .toBeGreaterThan(0.9);
+      .toBe(EMBER_CSS);
     expect(
       afterNeverLit.isLit,
       "the far-left metric should still be unlit at the same scroll position — it never enters the lamp's radius",
@@ -1162,7 +1167,7 @@ test("a metric fades back to bone once the lamp leaves it", async ({ page }) => 
       metric.evaluate((el) => ({
         lampOn: document.documentElement.getAttribute("data-lamp"),
         isLit: el.classList.contains("is-lit"),
-        emberOpacity: getComputedStyle(el, "::after").opacity,
+        color: getComputedStyle(el).color,
       }));
 
     await metric.scrollIntoViewIfNeeded();
@@ -1181,11 +1186,11 @@ test("a metric fades back to bone once the lamp leaves it", async ({ page }) => 
         async () => {
           const state = await readState();
           if (state.lampOn !== "on") throw new BreakerTripped();
-          return Number(state.emberOpacity);
+          return state.color;
         },
         { timeout: 2_000 },
       )
-      .toBeGreaterThan(0.9);
+      .toBe(EMBER_CSS);
 
     // Scroll back to just before the act enters — the lamp moves off the
     // metric (in fact, the act itself leaves Lamp.tsx's tracked `visible`
@@ -1211,11 +1216,11 @@ test("a metric fades back to bone once the lamp leaves it", async ({ page }) => 
         async () => {
           const state = await readState();
           if (state.lampOn !== "on") throw new BreakerTripped();
-          return Number(state.emberOpacity);
+          return state.color;
         },
         { timeout: 2_000 },
       )
-      .toBeLessThan(0.05);
+      .toBe(SIGNAL_CSS);
   });
 });
 
@@ -1236,7 +1241,7 @@ test("a metric fades back to bone once the lamp leaves it", async ({ page }) => 
 //
 // Task 20 fix: mask the glyph out of the sample (the metric element is
 // set `visibility: hidden` for one screenshot — that removes both the
-// bone base text and the ember pseudo-element without moving anything,
+// metric's glyphs, whatever colour they are, without moving anything,
 // unlike `display: none`, which would also collapse the layout the
 // already-read box coordinates depend on) for a genuine background-only
 // sample, then compute the real WCAG ratio against the actual
@@ -1279,7 +1284,7 @@ test("a metric fades back to bone once the lamp leaves it", async ({ page }) => 
 // not an achievable per-act one once a painting sits behind the text.
 const EMBER_AA_MIN = 4.5;
 
-/** Reads `metric`'s ember pseudo-element's resolved opacity, then
+/** Reads `metric`'s resolved colour, then
  *  screenshots the box once with the glyph masked out via `visibility:
  *  hidden` (layout-preserving, unlike `display: none`, so the box
  *  coordinates already read stay valid) for a genuine background-only
@@ -1296,9 +1301,7 @@ async function sampleIgniteContrast(
   const box = await metric.boundingBox();
   if (!box || box.width < 1 || box.height < 1) return null;
 
-  const afterOpacity = await metric.evaluate(
-    (el) => getComputedStyle(el, "::after").opacity,
-  );
+  const color = await metric.evaluate((el) => getComputedStyle(el).color);
 
   await metric.evaluate((el) => {
     (el as HTMLElement).style.visibility = "hidden";
@@ -1312,13 +1315,13 @@ async function sampleIgniteContrast(
 
   return {
     tokenRatio: ratio(EMBER, bg),
-    afterOpacity,
+    color,
   };
 }
 
 const FORCE_IGNITE_ATTR = "data-force-lit-test";
 
-/** Forces `metric`'s ember pseudo-element to full opacity via a scoped,
+/** Forces `metric` to ember via a scoped
  *  `!important` style rule keyed to a unique attribute — not
  *  `classList.add("is-lit")` alone, which Lamp.tsx's still-running rAF
  *  loop immediately reverts on the next tick for any element its own
@@ -1333,14 +1336,14 @@ async function forceIgnite(
     if (!document.querySelector(`style[${attr}-style]`)) {
       const style = document.createElement("style");
       style.setAttribute(`${attr}-style`, "");
-      style.textContent = `[${attr}]::after { opacity: 1 !important; }`;
+      style.textContent = `[${attr}] { color: var(--color-ember) !important; transition: none !important; }`;
       document.head.appendChild(style);
     }
     el.setAttribute(attr, "");
   }, FORCE_IGNITE_ATTR);
-  // The pseudo-element's own opacity transition (240ms, globals.css)
-  // still has to run before a screenshot reflects the forced state.
-  await page.waitForTimeout(300);
+  // `transition: none` above makes the forced colour immediate; one
+  // frame's grace so the screenshot below reflects it.
+  await page.waitForTimeout(100);
 }
 
 /** Removes the force applied by `forceIgnite`, leaving the style element
@@ -1352,8 +1355,8 @@ async function unforceIgnite(page: import("@playwright/test").Page) {
 }
 
 /** Runs `sampleIgniteContrast` and asserts on what it returns: the ember
- *  pseudo-element's resolved opacity must actually be 1 (proof something
- *  is genuinely rendering, so a passing token ratio can't be vacuous —
+ *  metric's resolved colour must actually be the ember token (proof
+ *  something is genuinely lit, so a passing token ratio can't be vacuous —
  *  see the comment above EMBER_AA_MIN), and the real ember-token-vs-
  *  background WCAG ratio must clear EMBER_AA_MIN. Shared by the with-JS
  *  (armed-torch) pass and the reduced-motion pass below — the only
@@ -1367,9 +1370,9 @@ async function expectIgniteClearsAA(
   const sample = await sampleIgniteContrast(page, metric);
   if (!sample) return;
   expect(
-    sample.afterOpacity,
-    `${label}: the ember pseudo-element's resolved opacity is ${sample.afterOpacity}, not 1 — nothing is actually rendering here`,
-  ).toBe("1");
+    sample.color,
+    `${label}: the metric's resolved colour is ${sample.color}, not ember — nothing is actually lit here`,
+  ).toBe(EMBER_CSS);
   expect(
     sample.tokenRatio,
     `${label}: ember token vs measured background is ${sample.tokenRatio.toFixed(2)}:1, need ≥${EMBER_AA_MIN}:1`,
@@ -1559,7 +1562,7 @@ for (const id of ACTS) {
 // `data-lamp` is never set, so `[data-lamp="on"] .plate-lit`'s mask CSS
 // never applies at all and the full-brightness still renders completely
 // unmasked — no dimmed floor anywhere in the frame — while
-// `.ignite::after`'s own base rule (unconditional, un-gated on
+// `.ignite`'s own base rule (unconditional, un-gated on
 // `data-lamp`) renders ember at full opacity with no scroll or pointer
 // involved at all. No earlier version of this suite measured contrast in
 // this state; this is that test. The reviewer's own manual measurement

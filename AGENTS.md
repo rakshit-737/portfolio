@@ -19,8 +19,9 @@ the authority on the visual system; this is the short version.
   alpha only. Tokens live in `src/app/globals.css` `@theme`.
 - **Emphasis is light, not inversion.** The old `.negative` region-flip is
   gone entirely — nothing here swaps a whole surface's ground and mark. A
-  number ignites (`.ignite` + `data-value`) when the lamp's pool actually
-  reaches it — `Lamp.tsx` compares each visible act's `.ignite` elements'
+  number ignites (`Ignite.tsx` — one element whose `color` transitions
+  from bone to ember; never a second copy of the text) when the lamp's
+  pool actually reaches it — `Lamp.tsx` compares each visible act's `.ignite` elements'
   real screen centres against the lamp's own pixel position every rAF
   tick and toggles a `.is-lit` class, which CSS fades over 240ms
   (`globals.css`). Deliberately not a second `mask-image`: a mask's
@@ -94,7 +95,12 @@ the authority on the visual system; this is the short version.
 - Satori (the OG image renderer) cannot do CSS masks, so OG cards never use
   the lamp, and it has no glyph for the superscript minus — run any
   superscript-bearing string through `ogText()` (`src/lib/ogFonts.ts`)
-  before it reaches an OG card.
+  before it reaches an OG card. On the page itself, Chivo Mono has no
+  glyphs for ⁰ or ⁴–⁹ either: keep writing exponents as Unicode
+  superscripts in `content.ts` (readable there and in `llms.txt`) and
+  render them through `Metric`, which turns each run into a `<sup>` of
+  plain digits in the brand font — never emit a raw superscript run
+  straight into JSX.
 - In card bullets, `**text**` marks the single strongest metric — rendered
   by `Metric` as a bold mono chip (`.metric`). One per bullet, sparingly.
   This is a static emphasis, not an ignition: only measurements driven
