@@ -970,6 +970,17 @@ export const certifications: Certification[] = [
     date: "24 July 2026",
     image: "/certificates/azure-fundamentals.png",
   },
+  {
+    // Transcribed from the certificate (supplied 2026-09-04): it prints
+    // the name, the course title and the issuer, and nothing else — no
+    // date, number, partner marks or verification URL — so none is
+    // claimed.
+    title: "Certificate of Completion",
+    awardedTo: "Rakshit R",
+    reason: "Introduction to Model Context Protocol",
+    organiser: "Anthropic",
+    image: "/certificates/introduction-to-model-context-protocol.png",
+  },
 ];
 
 export const skills: { group: string; items: string[] }[] = [

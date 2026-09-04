@@ -678,11 +678,11 @@ at. Content, top to bottom:
 3. **Education.**
 4. **Certifications** — Azure Fundamentals leads (a render-order split
    only, `leadCertifications`/`courseworkCertifications` in `page.tsx`,
-   commented at the split); the three Anthropic course completions (AI
-   Fluency, Claude 101, Claude Code in Action) render together under a
-   lighter "Coursework" subheading (`border-rule-soft`, not a fourth
-   heading level) so they don't dilute the two awarded/verified
-   credentials above them.
+   commented at the split); the four Anthropic course completions (AI
+   Fluency, Claude 101, Claude Code in Action, Introduction to Model
+   Context Protocol) render together under a lighter "Coursework"
+   subheading (`border-rule-soft`, not a fourth heading level) so they
+   don't dilute the two awarded/verified credentials above them.
 5. **Archive** (Taintwall, SentinelCore, Web App Security Suite, then the
    "Full archive" GitHub tile) — last, and the one group whose rows are
    genuinely compact: a mono date, the title, a one-line description

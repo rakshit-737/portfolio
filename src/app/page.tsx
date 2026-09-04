@@ -74,9 +74,9 @@ const wardenExhibitRows = exhibits.warden.rows.map((label) => {
 // P8: the ledger's certifications group presents `content.ts`'s
 // `certifications` array in a different order than it's declared in —
 // Azure Fundamentals leads (the heaviest external, verified credential),
-// and the three Anthropic course completions render together under a
-// lighter "Coursework" subheading so they don't dilute the two
-// awarded/verified credentials above them. This is a render-order split
+// and the Anthropic course completions render together under a lighter
+// "Coursework" subheading so they don't dilute the two awarded/verified
+// credentials above them. This is a render-order split
 // only; `certifications` itself is untouched, and the two derived lists
 // are checked back against its length so a future entry can't silently
 // vanish from both.
@@ -196,7 +196,10 @@ function CertificationRow({ c }: { c: Certification }) {
           <CertificateLightbox
             fullSrc={withBase(image)}
             alt={scanAlt}
-            triggerLabel={`View the "${c.title}" certificate scan`}
+            // `reason` makes the name unique: four Anthropic rows share the
+            // title "Certificate of Completion", and a screen reader would
+            // otherwise list four identical buttons.
+            triggerLabel={`View the "${c.title}" certificate scan for "${c.reason}"`}
             thumbnail={
               thumb ? (
                 <picture>
