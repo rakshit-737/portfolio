@@ -26,13 +26,6 @@
   --font-sans: var(--font-chivo), system-ui, sans-serif;
   --font-display: var(--font-newsreader), Georgia, serif;
   --font-label: var(--font-manrope), system-ui, sans-serif;
-
-  /* The rail's third width: at `lg` the seven section links appear and
-     take the middle; from here there is room beside the name for the
-     live clock as well (measured: ~200px free between the act counter
-     and the first link at 1440px, the clock needs ~160). Tailwind's own
-     `2xl` (96rem) would hide it on the most common laptop width. */
-  --breakpoint-wide: 90rem;
 }
 
 /* The face shown until Chivo Mono arrives (layout.tsx opts out of
@@ -115,6 +108,14 @@ section[id] {
   line-height: 1.1;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+/* The live clock (LiveClock.tsx) is a `.label` set a shade tighter: on a
+   1280px rail with the section links up, the full row measures within
+   ~12px of the width, and a scrollbar takes 17 — the 0.04em here and the
+   cluster's gap-3 buy that margin back. Here rather than a Tailwind
+   `tracking-*` utility because `.label` is unlayered and wins. */
+[data-clock] {
+  letter-spacing: 0.1em;
 }
 
 .prose-field {

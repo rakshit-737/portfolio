@@ -105,7 +105,7 @@ export default function Nav() {
         aria-label="Main"
         className="mx-auto flex h-14 max-w-[110rem] items-center justify-between gap-6 px-5 sm:px-8"
       >
-        <div className="flex shrink-0 items-center gap-4">
+        <div className="flex shrink-0 items-center gap-3">
           <a
             href="#top"
             className="group flex items-center gap-3 font-mono text-sm font-semibold tracking-tight"
@@ -130,15 +130,19 @@ export default function Nav() {
           >
             {String(actNumber).padStart(2, "0")}/{String(ACT_IDS.length).padStart(2, "0")}
           </span>
-          {/* Chennai time, live. Shown wherever the rail has room for it:
-              from `md` (no section links yet) and again from `wide`
-              (90rem, globals.css — links plus this fit); between `lg` and
-              `wide` the seven section links take the width, so it steps
-              aside rather than crowd them. */}
-          <LiveClock className="hidden md:inline-block lg:hidden wide:inline-block" />
+          {/* Chennai time, live, from `md` up. Measured at 1600px: the rail
+              needs 1110px without it and 1268px with it, so the section
+              links (which alone overflowed a 1024px rail by 54px) now wait
+              for `xl`; that leaves every width from 768px with room for
+              this. Below `md` it lives in the menu instead. */}
+          <LiveClock className="hidden md:inline-block" />
         </div>
 
-        <div className="hidden items-center gap-1 lg:flex">
+        {/* `xl`, not `lg`: at 1024px these seven links plus the two
+            clusters beside them measured 1110px of a 1024px rail — an
+            overflow that predates the clock — and the clock adds 158.
+            From 1280px everything fits with the clock in place. */}
+        <div className="hidden items-center gap-1 xl:flex">
           {navSections.map((s) => (
             <a
               key={s.id}
@@ -175,13 +179,13 @@ export default function Nav() {
           </a>
         </div>
 
-        {/* Shown until `lg`, not `md`: the section links above only appear
-            at `lg`, so a `md:hidden` here left every viewport between 48rem
-            and 64rem (a portrait tablet, a narrow laptop window) with no
-            way to reach a section at all — no links and no menu button.
-            Only the search icon drops at `md`, where the labelled ctrl-K
-            button above takes over. */}
-        <div className="flex items-center lg:hidden">
+        {/* Shown until `xl`, where the section links above take over — a
+              `md:hidden` here once left every viewport between 48rem and the
+              links' breakpoint (a portrait tablet, a narrow laptop window)
+              with no way to reach a section at all. Only the search icon
+              drops at `md`, where the labelled ctrl-K button above takes
+              over. */}
+        <div className="flex items-center xl:hidden">
           {/* 44px minimum tap target (WCAG 2.5.5) — the icon itself stays
               small (18px), so the extra hit area comes from `min-h-11
               min-w-11` centring, the same device `Bracket.tsx` and the
@@ -211,9 +215,12 @@ export default function Nav() {
         {open && (
           <div
             id="mobile-menu"
-            className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-rule bg-ground lg:hidden"
+            className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-rule bg-ground xl:hidden"
           >
             <div className="mx-auto flex max-w-[110rem] flex-col px-5 py-3 sm:px-8">
+              {/* The clock's home on a phone, where the rail beside the
+                  name has no room for it; from `md` it sits on the rail. */}
+              <LiveClock className="block border-b border-rule-soft px-2 py-4 md:hidden" />
               {navSections.map((s) => (
                 <a
                   key={s.id}

@@ -68,6 +68,47 @@ test("the clock beside the name shows Chennai time and ticks", async ({ browser 
   await ctx.close();
 });
 
+// The rail must hold everything it shows at every width — and the clock
+// must be on it from `md` up. At 1024px the seven section links alone
+// overflowed the rail by 54px before they moved to `xl`, and the clock
+// (~150px with its gap) has to fit beside the name wherever it shows.
+for (const width of [768, 1024, 1263, 1280, 1366, 1440]) {
+  test(`at ${width}px the rail fits its content and carries the clock`, async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width, height: 700 } });
+    const page = await ctx.newPage();
+    await page.goto(`${BASE}/`);
+    await expect(page.locator("[data-clock]")).toBeVisible();
+    const { scrollWidth, clientWidth } = await page
+      .locator("header nav")
+      .evaluate((nav) => ({ scrollWidth: nav.scrollWidth, clientWidth: nav.clientWidth }));
+    expect(
+      scrollWidth,
+      `rail content ${scrollWidth}px overflows its ${clientWidth}px width`,
+    ).toBeLessThanOrEqual(clientWidth);
+    // A way to reach a section exists at every width: links or the menu.
+    const links = await page.locator("header nav a[href='#about']:visible").count();
+    const menu = await page.getByRole("button", { name: "Open menu" }).count();
+    expect(links + menu, "no section links and no menu button").toBeGreaterThan(0);
+    await ctx.close();
+  });
+}
+
+test("below 768px the clock lives in the menu", async ({ browser }) => {
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/`);
+  await expect(page.locator("[data-clock]")).toBeHidden();
+  await page.getByRole("button", { name: "Open menu" }).tap();
+  const clock = page.locator("#mobile-menu [data-clock]");
+  await expect(clock).toBeVisible();
+  await expect(clock).toHaveText(/\d{2}:\d{2}:\d{2} IST$/);
+  await ctx.close();
+});
+
 test("a statement resolves word by word once its act arrives, and reads whole", async ({
   page,
 }) => {
