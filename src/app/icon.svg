@@ -1,12 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The seal monogram — geometry and the traced Newsreader "R" outline
+       live in src/lib/mark.ts; this static file carries a verbatim copy
+       (tests/brand.spec.ts fails if they drift). -->
   <rect width="64" height="64" fill="#08070A"/>
-  <g fill="#F2EDE3">
-    <rect x="10" y="12" width="4" height="40"/>
-    <rect x="17" y="12" width="2" height="40"/>
-    <rect x="22" y="12" width="6" height="40"/>
-    <rect x="31" y="12" width="2" height="40"/>
-    <rect x="36" y="12" width="3" height="40"/>
-    <rect x="42" y="12" width="7" height="40"/>
-    <rect x="52" y="12" width="2" height="40"/>
-  </g>
+  <rect x="2" y="2" width="60" height="60" fill="none" stroke="#F2EDE3" stroke-width="2.5"/>
+  <rect x="9" y="9" width="46" height="46" fill="none" stroke="#F2EDE3" stroke-width="1.5"/>
+  <path fill="#F2EDE3" d="M34.11 30.83Q36.62 30.83 38.49 29.81Q40.36 28.78 41.40 26.97Q42.44 25.17 42.44 22.85Q42.44 20.43 41.02 19.26Q39.60 18.09 36.26 18.09H30.91L31.25 17.00H37.43Q40.59 17.00 42.53 17.75Q44.47 18.50 45.38 19.82Q46.29 21.14 46.29 22.83Q46.29 25.31 44.99 27.23Q43.70 29.14 41.21 30.24Q38.73 31.35 35.13 31.46V31.41Q36.62 31.41 37.62 31.87Q38.62 32.33 39.30 33.26Q39.98 34.19 40.48 35.63L43.05 43.03Q43.57 44.49 43.92 45.15Q44.26 45.81 44.76 45.97Q45.27 46.14 46.21 46.14L45.98 46.87Q44.10 47.04 42.92 46.99Q41.73 46.94 41.01 46.56Q40.29 46.18 39.84 45.41Q39.40 44.64 38.98 43.36L36.51 35.76Q35.95 34.00 35.53 33.19Q35.11 32.38 34.65 32.15Q34.19 31.92 33.44 31.92H26.67L27.01 30.83ZM25.63 45.62 29.01 46.45 28.91 46.87H17.71L17.84 46.45L21.56 45.62L29.89 18.25L26.49 17.42L26.61 17.00H34.34Z"/>
 </svg>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Chivo, Chivo_Mono, Newsreader } from "next/font/google";
+import { Chivo, Chivo_Mono, Manrope, Newsreader } from "next/font/google";
 import { site } from "@/content";
 import Lamp from "@/components/Lamp";
 import Torch from "@/components/Torch";
@@ -28,6 +28,21 @@ const chivoMono = Chivo_Mono({
 const chivo = Chivo({
   variable: "--font-chivo",
   subsets: ["latin"],
+  display: "swap",
+});
+
+// The label voice: every small uppercase tracked line (`.label` —
+// eyebrows, provenance segments, nav links, skill chips, the act
+// counter and the clock). Chivo Mono carried these until 2026-09-04,
+// when the owner asked for a different, more legible face at that size;
+// Manrope's wide apertures and even colour hold up at 11px where a
+// monospace's mixed-width capitals go ragged. One weight only. Measured
+// numbers (rail values, headline numbers, evidence tables, metrics) stay
+// in Chivo Mono — see AGENTS.md.
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  weight: "600",
   display: "swap",
 });
 
@@ -89,7 +104,17 @@ export const metadata: Metadata = {
     description: site.description,
     images: [`${site.url}/og.png`],
   },
+  // Absolute, like the OG URLs above: relative icon hrefs resolve against
+  // `metadataBase` and lose the GitHub Pages sub-path. Before `icon` was
+  // listed here the page linked only the Apple icon, so browsers fell back
+  // to /favicon.ico at the origin root — a 404 under `/portfolio/`, i.e. no
+  // favicon on the live site at all (tests/brand.spec.ts guards it now).
   icons: {
+    icon: [
+      { url: `${site.url}/icon.svg`, type: "image/svg+xml" },
+      { url: `${site.url}/favicon.ico`, sizes: "48x48 32x32 16x16" },
+    ],
+    shortcut: `${site.url}/favicon.ico`,
     apple: `${site.url}/apple-icon.png`,
   },
   alternates: { canonical: site.url },
@@ -104,7 +129,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${chivoMono.variable} ${chivo.variable} ${newsreader.variable} h-full antialiased`}
+      className={`${chivoMono.variable} ${chivo.variable} ${manrope.variable} ${newsreader.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-ground text-signal">
         <div hidden dangerouslySetInnerHTML={{ __html: `<!--${CONTRACT}-->` }} />

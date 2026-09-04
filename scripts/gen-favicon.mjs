@@ -1,7 +1,7 @@
-// Generates public/favicon.ico from src/app/icon.svg, the design of
-// record (also the source for the dynamically-rendered apple-icon.png —
-// see src/app/apple-icon.png/route.tsx, which reproduces the same bar
-// mark via Satori). A browser fetches /favicon.ico directly regardless of
+// Generates public/favicon.ico from src/app/icon.svg — the seal monogram
+// whose geometry lives in src/lib/mark.ts (also drawn by
+// src/app/apple-icon.png/route.tsx via Satori, and inline in the nav by
+// src/components/Mark.tsx). A browser fetches /favicon.ico directly regardless of
 // the <link rel="icon"> Next.js emits for icon.svg, so it has to exist as
 // a real, matching file — this is the classic-fallback path.
 //
@@ -23,40 +23,36 @@ const GROUND = { r: 0x08, g: 0x07, b: 0x0a, alpha: 1 };
 const SIGNAL = { r: 0xf2, g: 0xed, b: 0xe3, alpha: 1 };
 
 /**
- * The 16px frame is NOT a downscale of icon.svg. Rasterising the real
- * mark (seven bars, the thinnest 2 of 64 units wide) down to 16px lands
- * several bars under a pixel wide, so the renderer anti-aliases them into
- * grey mush — a third value, which this palette doesn't have, and an
- * illegible one at that (checked directly: a nearest-neighbour blowup of
- * the downsampled 16px frame is a smeared grey column, not bars).
+ * The 16px frame is NOT a downscale of icon.svg. Rasterising a serif "R"
+ * and a doubled hairline frame down to 16px anti-aliases both into grey
+ * mush — a third value this palette doesn't have, and illegible besides.
  *
- * This is a purpose-drawn simplification instead: four bars, widths
- * 2/1/3/1px with 1px gaps, on a pixel grid, min-margin symmetric (3px
- * each side, matching the source mark's ~18.75% vertical margin
- * (12/64) exactly at this size: 3/16 = 18.75%). Built as a raw pixel
- * buffer, not a rasterised vector, so there is no fractional pixel
- * coverage anywhere — every pixel is exactly GROUND or exactly SIGNAL,
- * honouring the "two values, no third" rule literally in the raster.
+ * This is a purpose-drawn pixel version instead: a 1px frame one pixel
+ * in from the edge, and a 5×7 pixel "R" centred in it, on the grid.
+ * Built as a raw pixel buffer, not a rasterised vector, so there is no
+ * fractional coverage anywhere — every pixel is exactly GROUND or
+ * exactly SIGNAL, honouring the "two values, no third" rule literally.
  */
 function build16pxFrame() {
   const SIZE = 16;
-  const bars = [
-    [3, 2], // [x, width]
-    [6, 1],
-    [8, 3],
-    [12, 1],
-  ];
-  const yTop = 3;
-  const yBottom = 13; // exclusive
+  const FRAME = { from: 1, to: 14 }; // inclusive edges of the 1px frame
+  // The letter, row by row, top to bottom; `#` is a lit pixel.
+  const R = ["####.", "#...#", "#...#", "####.", "#.#..", "#..#.", "#...#"];
+  const R_X = 5;
+  const R_Y = 4;
 
   const pixels = Buffer.alloc(SIZE * SIZE * 4);
   for (let y = 0; y < SIZE; y++) {
     for (let x = 0; x < SIZE; x++) {
-      const lit =
-        y >= yTop &&
-        y < yBottom &&
-        bars.some(([bx, bw]) => x >= bx && x < bx + bw);
-      const c = lit ? SIGNAL : GROUND;
+      const onFrame =
+        x >= FRAME.from &&
+        x <= FRAME.to &&
+        y >= FRAME.from &&
+        y <= FRAME.to &&
+        (x === FRAME.from || x === FRAME.to || y === FRAME.from || y === FRAME.to);
+      const row = R[y - R_Y];
+      const onLetter = row !== undefined && row[x - R_X] === "#";
+      const c = onFrame || onLetter ? SIGNAL : GROUND;
       const off = (y * SIZE + x) * 4;
       pixels[off] = c.r;
       pixels[off + 1] = c.g;

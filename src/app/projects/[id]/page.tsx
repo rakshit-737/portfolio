@@ -233,7 +233,10 @@ export default async function CaseStudyPage({
               `--lamp-r`'s literal fallback (26vmax), the spec's own "lamp
               static and centred" (§5.2). */}
           <Plate id={acts[project.id].plate} priority />
-          <div className={`${SHELL} scrim absolute inset-x-0 bottom-0 z-10 pb-12`}>
+          <div
+            data-reveal
+            className={`${SHELL} scrim absolute inset-x-0 bottom-0 z-10 pb-12`}
+          >
             <p className="label">{project.timeframe}</p>
             {/* The raw <h1 className="statement"> here used to duplicate
                 what Statement.tsx already does — and left its own `as`

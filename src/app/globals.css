@@ -25,6 +25,14 @@
   --font-mono: var(--font-chivo-mono), ui-monospace, monospace;
   --font-sans: var(--font-chivo), system-ui, sans-serif;
   --font-display: var(--font-newsreader), Georgia, serif;
+  --font-label: var(--font-manrope), system-ui, sans-serif;
+
+  /* The rail's third width: at `lg` the seven section links appear and
+     take the middle; from here there is room beside the name for the
+     live clock as well (measured: ~200px free between the act counter
+     and the first link at 1440px, the clock needs ~160). Tailwind's own
+     `2xl` (96rem) would hide it on the most common laptop width. */
+  --breakpoint-wide: 90rem;
 }
 
 /* The face shown until Chivo Mono arrives (layout.tsx opts out of
@@ -93,10 +101,19 @@ section[id] {
 
 /* ── Type primitives ────────────────────────────────────────────────── */
 
+/* The label voice — Manrope 600 (layout.tsx), the one face on the site
+   that is neither the display serif nor Chivo. Small uppercase tracked
+   lines are where a monospace reads worst: mixed-width capitals at 11px
+   with 0.19em of tracking went ragged, and the owner asked for a better
+   face at that size (2026-09-04). A geometric sans needs less tracking
+   to open up, so 0.14em here. Measured numbers never use this class —
+   they are Chivo Mono, tabular, at every size. */
 .label {
+  font-family: var(--font-label);
+  font-weight: 600;
   font-size: 0.6875rem;
   line-height: 1.1;
-  letter-spacing: 0.19em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -182,21 +199,6 @@ section[id] {
 }
 .stroke-mark {
   stroke: var(--color-signal);
-}
-
-/* Barcode end-caps — still carried by Nav.tsx's active-section marker.
-   Bracket.tsx (buttons) moved to the wax-seal cartouche below and no
-   longer uses this. */
-.cap {
-  background-image: repeating-linear-gradient(
-    to right,
-    currentColor 0 1px,
-    transparent 1px 3px,
-    currentColor 3px 4px,
-    transparent 4px 9px,
-    currentColor 9px 11px,
-    transparent 11px 14px
-  );
 }
 
 /* The cartouche's label voice (Bracket.tsx) — Newsreader's second and
@@ -478,6 +480,47 @@ section[id] {
   transition-delay: 0.42s;
 }
 
+/* Inside that same moment, the statement resolves word by word
+   (Statement.tsx wraps each word as `.word` with its index in `--i`).
+   Not a second animation: it rides the act's one `data-seen` beat, plays
+   once, and is never replayed on scroll-back. The hidden state exists
+   only under `data-lamp="on"`, exactly like the copy reveal above, so a
+   no-JS, reduced-motion or printed page shows every word from first
+   paint. `inline-block` is what lets a word translate; the spaces between
+   spans are real text, so the heading's name and `text-wrap: balance`
+   are untouched. A case file has no `[data-act]` and no scroll arrival —
+   its header carries `data-reveal` and plays the same beat as a keyframe
+   on load instead. */
+.statement .word {
+  display: inline-block;
+}
+[data-lamp="on"] [data-act] .statement .word {
+  opacity: 0;
+  transform: translateY(0.3em);
+}
+[data-lamp="on"] [data-act][data-seen] .statement .word {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(0.1s + var(--i, 0) * 70ms);
+}
+@keyframes word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.3em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+[data-lamp="on"] [data-reveal] .statement .word {
+  animation: word-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(0.1s + var(--i, 0) * 70ms);
+}
+
 /* A number ignites when the light reaches it. One element, one text
    node: ignition is a `color` transition on the metric itself, bone to
    ember, driven by Lamp.tsx toggling `.is-lit`. It used to be a second
@@ -747,6 +790,11 @@ section[id] {
   [data-act] .scrim > * {
     opacity: 1 !important;
     transform: none !important;
+  }
+  .statement .word {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
   }
   /* Retained: SineLattice.tsx still renders these classes. */
   .sine-draw,

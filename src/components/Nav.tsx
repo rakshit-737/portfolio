@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, Search, X } from "lucide-react";
 import { acts, links, navSections, type ActId } from "@/content";
 import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
+import LiveClock from "@/components/LiveClock";
+import Mark from "@/components/Mark";
 import { withBase } from "@/lib/base";
 
 // The eight acts, in their declared order — `acts` is a `Record<ActId,
@@ -106,9 +108,15 @@ export default function Nav() {
         <div className="flex shrink-0 items-center gap-4">
           <a
             href="#top"
-            className="flex items-center gap-3 font-mono text-sm font-semibold tracking-tight"
+            className="group flex items-center gap-3 font-mono text-sm font-semibold tracking-tight"
           >
-            <span aria-hidden="true" className="cap h-4 w-7 opacity-80" />
+            {/* The seal monogram (src/lib/mark.ts). Hover inverts the mark
+                alone — the control swapping its own ground and mark, the
+                site's one hover device — while the name stays as it is. */}
+            <Mark
+              size={22}
+              className="shrink-0 bg-ground text-signal transition-colors group-hover:bg-signal group-hover:text-ground"
+            />
             Rakshit Rameshbabu
           </a>
           {/* Current-act indicator — presentational only, driven by the
@@ -122,6 +130,12 @@ export default function Nav() {
           >
             {String(actNumber).padStart(2, "0")}/{String(ACT_IDS.length).padStart(2, "0")}
           </span>
+          {/* Chennai time, live. Shown wherever the rail has room for it:
+              from `md` (no section links yet) and again from `wide`
+              (90rem, globals.css — links plus this fit); between `lg` and
+              `wide` the seven section links take the width, so it steps
+              aside rather than crowd them. */}
+          <LiveClock className="hidden md:inline-block lg:hidden wide:inline-block" />
         </div>
 
         <div className="hidden items-center gap-1 lg:flex">

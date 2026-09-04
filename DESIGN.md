@@ -254,7 +254,11 @@ uppercase tracked label breaks in the same place in both faces and the
 swap moves nothing (see the comment on `chivoMono` in `layout.tsx`).
 **Reading Font:** Chivo (fallback `system-ui, sans-serif`), scoped to
 `.prose-field` only.
-**Label/Mono Font:** Chivo Mono at 0.6875rem, 0.19em tracking, uppercase.
+**Label Font:** Manrope 600 at 0.6875rem, 0.14em tracking, uppercase
+(`.label`) — every eyebrow, provenance segment, nav link, chip, and the
+live clock. Chivo Mono held this role until 2026-09-04; at 11px with wide
+tracking its mixed-width capitals read ragged, and the owner asked for a
+better face at that size. Measured numbers never use `.label`.
 
 **Character:** Newsreader is the one serif on the site and it appears in
 exactly one place — the statement line each act carries — so it reads as a
@@ -467,11 +471,13 @@ lit ground instead of a flat one:
 
 - **The hairline.** A 1px rule at `rule` or `rule-soft`, used as divider,
   border, underline decoration, and diagram connector.
-- **The bracket.** Nav's active-section marker keeps the original
-  silhouette: a 1px `signal` border around a label, with a barcode
-  end-cap (`.cap`) on each flank at 70% opacity. Buttons themselves
-  moved to the wax-seal cartouche (below) — a doubled hairline frame and
-  a seal mark, not a barcode.
+- **The seal.** The mark beside the name is a monogram — Newsreader's
+  "R", traced from the font itself (`src/lib/mark.ts`), inside the same
+  square doubled-hairline frame the wax-seal cartouche (below) draws
+  around every control. Bone on ground, inverting on hover the way every
+  control does; the favicon, the `.ico` and the Apple icon are the same
+  geometry (`Mark.tsx`, `icon.svg`, `scripts/gen-favicon.mjs`,
+  `apple-icon.png`). It replaced a barcode bar cluster (`.cap`).
 - **The square mark.** The sine's 6px node squares, the diagram flow's 6px
   stage node, the benchmark chart's growing bars. Every graphic primitive
   that isn't a painting is an axis-aligned rectangle.

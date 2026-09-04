@@ -58,12 +58,17 @@ the authority on the visual system; this is the short version.
   and asked for it gone, keeping only the lamp's light as a moving part.
   All eight acts ship stills only.
 - Fonts: Newsreader carries the eight act statements (`Statement.tsx`,
-  `.statement`); Chivo Mono carries everything else, **including every
-  number at every size**; Chivo (sans) carries reading passages
-  (`.prose-field`). No emoji.
+  `.statement`) and the seal monogram's "R" (`src/lib/mark.ts`); Manrope
+  600 carries every small uppercase tracked line (`.label` — eyebrows,
+  provenance, nav links, chips, the clock); Chivo Mono carries everything
+  else, **including every measured number at every size**; Chivo (sans)
+  carries reading passages (`.prose-field`). No emoji.
 - **One authored moment per act, once.** An act's copy resolves into place
   on its first intersection (`data-seen`, set once, never replayed on
-  scroll-back). There are no other entrance animations.
+  scroll-back), and within that same beat the statement's words land one
+  after another (`Statement.tsx` wraps them as `.word`; a case-file
+  header plays the same beat on load via `data-reveal`). There are no
+  other entrance animations.
 - **Document order is paint order** in the three-layer plate stack
   (`.plate-dark` → `.plate-lit` → `.plate::after`, all `position: absolute`
   with no `z-index`). Reordering these layers makes the lamp invisible —

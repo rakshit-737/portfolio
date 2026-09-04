@@ -107,6 +107,10 @@ export const site = {
   url:
     process.env.NEXT_PUBLIC_SITE_URL ??
     "https://rakshit-737.github.io/portfolio",
+  /** The live clock beside the name (`LiveClock.tsx`) always reads the
+   *  owner's own zone — `hero.location` below — never the visitor's. */
+  timeZone: "Asia/Kolkata",
+  timeZoneLabel: "IST",
 } as const;
 
 export interface ProvenanceToken {

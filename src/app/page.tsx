@@ -373,9 +373,9 @@ export default async function Home() {
           <div className={`${SHELL} scrim relative z-10 pb-20 sm:pb-24`}>
             <p className="label">{hero.role}</p>
 
-            <h1 id="hero-title" className="statement mt-6">
+            <Statement as="h1" id="hero-title" className="mt-6">
               {acts.hero.statement}
-            </h1>
+            </Statement>
 
             {/* Positioning line — a plain-English sentence a stranger can
                 parse before reaching a single number. Not `.prose-field`:

@@ -186,9 +186,14 @@ all eight paintings with their Commons sources; tokens live in
   saw the shipped effect live and asked for the zoom to go, so it was
   removed entirely (2026-08-20) — the lamp's light is the only thing that
   still moves.
-- Type: Newsreader carries one display line per act; Chivo Mono carries
-  everything else, including every number at every size; Chivo (sans) is
-  used only for reading passages. All loaded with `next/font`.
+- Type: Newsreader carries one display line per act (and the seal
+  monogram's "R"); Manrope carries the small uppercase labels; Chivo Mono
+  carries everything else, including every measured number at every size;
+  Chivo (sans) is used only for reading passages. All loaded with
+  `next/font`.
+- The nav carries the seal monogram (also the favicon and Apple icon —
+  one geometry in `src/lib/mark.ts`) and a live clock in the owner's own
+  time zone beside the name.
 - Provenance: every act and every record still carries a mono provenance
   line (date · status · stack · repo · tests/CI), augmented at build time
   with live GitHub data via `src/lib/github.ts` — the footer fetches this
@@ -196,8 +201,9 @@ all eight paintings with their Commons sources; tokens live in
   now also credits its painting (artist, title, year, Commons link) — art is
   sourced the same way code is.
 - Motion: one reveal per act, playing once on first scroll arrival and never
-  replayed on scroll-back, plus the lamp/torch's continuous drive and the
-  benchmark bars growing once on approach. No per-section entrance
+  replayed on scroll-back — the act's copy fades into place and its
+  statement lands word by word inside that same beat — plus the lamp/torch's
+  continuous drive and the benchmark bars growing once on approach. No per-section entrance
   animations beyond the one-per-act reveal, and no motion on the paintings
   themselves; everything has a `prefers-reduced-motion` fallback.
 - Case files open with a static, non-interactive painted header — no
