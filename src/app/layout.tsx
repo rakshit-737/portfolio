@@ -5,10 +5,24 @@ import Lamp from "@/components/Lamp";
 import Torch from "@/components/Torch";
 import "./globals.css";
 
+// The fallback shown before Chivo Mono arrives is hand-metric-matched in
+// globals.css (`Chivo Mono Metric Fallback`) rather than the one next/font
+// would generate. next/font builds every fallback from `local(Arial)` with
+// a `size-adjust` that matches the *average* advance width — fine for a
+// proportional face, wrong for a monospace one under this site's
+// uppercase, 0.19em-tracked `.label`: Arial's capitals are far wider than
+// its average glyph, so a label that fits two lines in Chivo Mono ran to
+// three in the fallback, and the hero's centred column jumped 12px the
+// moment the real font landed (mobile CLS 0.037 against a 0.02 cap,
+// measured with Lighthouse on Windows; Linux CI has no Arial and never
+// saw it). A real monospace at Chivo Mono's own 0.6em advance wraps
+// identically, so there is nothing left to shift.
 const chivoMono = Chivo_Mono({
   variable: "--font-chivo-mono",
   subsets: ["latin"],
   display: "swap",
+  adjustFontFallback: false,
+  fallback: ["Chivo Mono Metric Fallback", "ui-monospace", "monospace"],
 });
 
 const chivo = Chivo({

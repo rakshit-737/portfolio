@@ -27,6 +27,29 @@
   --font-display: var(--font-newsreader), Georgia, serif;
 }
 
+/* The face shown until Chivo Mono arrives (layout.tsx opts out of
+   next/font's Arial-based one — see the comment there). Every candidate
+   is a true monospace whose advance sits within 0.4% of Chivo Mono's own
+   600/1000 em (Courier New 0.6001, Liberation Mono 0.6001, DejaVu Sans
+   Mono and Menlo 0.602, Lucida Console 0.6025 — measured with fontTools),
+   so a line of uppercase tracked `.label` breaks in the same place in
+   both faces and the swap moves nothing. The overrides are Chivo Mono's
+   own vertical metrics (hhea ascent 940, descent 250, line gap 0, per
+   1000 upm), so a `line-height: normal` box is the same height too. */
+@font-face {
+  font-family: "Chivo Mono Metric Fallback";
+  src:
+    local("Courier New"),
+    local("Liberation Mono"),
+    local("DejaVu Sans Mono"),
+    local("Menlo"),
+    local("Lucida Console");
+  size-adjust: 100%;
+  ascent-override: 94%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+}
+
 html {
   background: var(--color-ground);
   color-scheme: dark;

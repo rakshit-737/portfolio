@@ -246,7 +246,12 @@ approximation of one.
 loaded, weight fixed at 400 by `.statement` — the variable font's normal and
 italic styles are both loaded, but nothing on the site currently sets
 italic.
-**Body Font:** Chivo Mono — the default voice of the whole site.
+**Body Font:** Chivo Mono — the default voice of the whole site. Its
+stand-in while the web font loads is hand-metric-matched (`Chivo Mono
+Metric Fallback`, `globals.css`): true monospace `local()` faces at
+Chivo Mono's own 0.6em advance, not next/font's Arial-derived one, so an
+uppercase tracked label breaks in the same place in both faces and the
+swap moves nothing (see the comment on `chivoMono` in `layout.tsx`).
 **Reading Font:** Chivo (fallback `system-ui, sans-serif`), scoped to
 `.prose-field` only.
 **Label/Mono Font:** Chivo Mono at 0.6875rem, 0.19em tracking, uppercase.
