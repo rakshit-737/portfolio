@@ -632,6 +632,16 @@ async function assertNoVoidAcrossScroll(
 test("no viewport goes void on an idle-pointer scroll — 1440x900", async ({
   page,
 }) => {
+  // Twenty-odd 700px steps, each a settle + full-viewport screenshot +
+  // sharp pass: ~19s on its own, which is most of Playwright's default
+  // 30s test budget before any parallel-worker load is added. Under a
+  // full-suite run on a loaded machine it overran that budget and was torn
+  // down mid-`evaluate` ("Target page, context or browser has been
+  // closed"), which is a timeout wearing a different error, not a void.
+  // `slow()` triples the budget — the canonical mark for a test that is
+  // legitimately long, as opposed to raising the global timeout for every
+  // three-second test alongside it.
+  test.slow();
   await desktopAt(page, { width: 1440, height: 900 });
   await assertNoVoidAcrossScroll(page, "desktop 1440x900");
 });
@@ -649,6 +659,9 @@ test("no viewport goes void on an idle-pointer scroll — 1440x900", async ({
 test("no viewport goes void on an idle-pointer scroll — 390x844", async ({
   browser,
 }) => {
+  // Same step loop as the desktop test above, over an even taller page —
+  // see that test's comment for why this is marked slow.
+  test.slow();
   const ctx = await mobileContext(browser);
   const page = await ctx.newPage();
   await assertNoVoidAcrossScroll(page, "mobile 390x844");
