@@ -53,6 +53,29 @@ test("blocked until first real interaction, then on — no retry loop", async ({
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
 });
 
+test("no phantom ui-sound event while blocked (adversarial review, finding 1)", async ({ page }) => {
+  // Ctrl+K as the very first interaction: the palette's own keydown
+  // listener calls playUi("tap") synchronously, while the context is
+  // still suspended and the engine's gesture retry hasn't yet resumed
+  // it. The engine must not dispatch "night-archive:ui-sound" for that
+  // silent schedule — the event's contract is "a sound really played".
+  await page.addInitScript(() => {
+    (window as unknown as { __ui: string[] }).__ui = [];
+    window.addEventListener("night-archive:ui-sound", (e) =>
+      (window as unknown as { __ui: string[] }).__ui.push(
+        (e as CustomEvent<{ kind: string }>).detail.kind,
+      ),
+    );
+  });
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "blocked");
+  await page.keyboard.press("Control+k");
+  await expect(page.getByRole("dialog")).toBeVisible();
+  expect(
+    await page.evaluate(() => (window as unknown as { __ui: string[] }).__ui),
+  ).toEqual([]);
+});
+
 test("keyboard is a valid first interaction too", async ({ page }) => {
   await page.addInitScript(() => {
     // Keyboard lift for this test's double (keydown, like Chromium).

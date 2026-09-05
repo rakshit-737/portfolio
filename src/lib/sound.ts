@@ -285,6 +285,17 @@ function armGestureRetry() {
 }
 
 /**
+ * True while a resume initiated by an explicit user action (the toggle)
+ * is still in flight — the one window where playUi may schedule on a
+ * still-suspended context, because the gesture guarantees the resume
+ * lands and the scheduled nodes sound moments later. Outside it, a
+ * suspended context means blocked, and scheduling there would dispatch
+ * a "sound really played" event for silence (adversarial review,
+ * finding 1).
+ */
+let userStartPending = false;
+
+/**
  * The toggle. Always called from a user gesture (the button, the
  * palette action), so a turn-on can never be autoplay-blocked.
  */
@@ -293,7 +304,11 @@ export function setSoundEnabled(v: boolean): void {
   persist(v);
   if (status === "unavailable") return;
   if (v) {
-    void tryStartAmbient().then((r) => setStatus(r));
+    userStartPending = true;
+    void tryStartAmbient().then((r) => {
+      userStartPending = false;
+      setStatus(r);
+    });
   } else {
     stopAmbientGraph();
     void ctx?.suspend();
@@ -439,6 +454,11 @@ const UI_SYNTHS: Record<UiSound, (ac: AudioContext) => void> = {
  */
 export function playUi(kind: UiSound): void {
   if (!enabled || !ctx) return;
+  // A suspended context makes no sound: scheduling on it would dispatch
+  // the "really played" event for silence. The one exception is a
+  // user-initiated resume still in flight (userStartPending) — the
+  // gesture guarantees it lands, and the nodes sound the moment it does.
+  if (ctx.state !== "running" && !userStartPending) return;
   UI_SYNTHS[kind](ctx);
   window.dispatchEvent(
     new CustomEvent("night-archive:ui-sound", { detail: { kind } }),
