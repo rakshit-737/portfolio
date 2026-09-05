@@ -175,10 +175,7 @@ export default function Lamp() {
     // and why they replace the old "10 consecutive frames over 32ms →
     // teardown()" breaker, which fired on ordinary scrolling and, once
     // tripped, never recovered for the rest of the session — the exact bug
-    // this guard exists to fix. Shares the guard's
-    // shape (not its instance) with Torch.tsx: each effect judges its own
-    // frame budget independently, the same way each already kept its own
-    // separate `slowFrames` counter before this fix.
+    // this guard exists to fix.
     const guard = createFrameBudgetGuard(
       () => {
         suspended = true;
@@ -204,10 +201,7 @@ export default function Lamp() {
       }
 
       // The lamp has weight. It follows the pointer rather than snapping
-      // to it — a held lantern, not a cursor. Shares POINTER_LERP with
-      // Torch.tsx: the lamp's pool and the torch's beam are one light,
-      // and a different smoothing constant would make them visibly drift
-      // apart at different rates.
+      // to it — a held lantern, not a cursor (POINTER_LERP, motion.ts).
       if (fine && pointer.active) {
         smooth.x += (pointer.x - smooth.x) * POINTER_LERP;
         smooth.y += (pointer.y - smooth.y) * POINTER_LERP;

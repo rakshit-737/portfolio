@@ -134,7 +134,7 @@ for (const id of MOBILE_SPOTCHECK_ACTS) {
     // E3 (final fix wave): a genuine touch/mobile context, not the default
     // desktop `page` fixture resized to a phone's CSS pixel dimensions — a
     // resized-desktop context still reports `(pointer: fine)`/
-    // `(hover: hover)`, leaving Torch.tsx just as eligible to arm as on an
+    // `(hover: hover)`, leaving pointer-only behaviour just as eligible as on an
     // actual desktop. See `mobileContext`'s own comment in ./helpers.
     const ctx = await mobileContext(browser);
     const page = await ctx.newPage();
@@ -485,7 +485,6 @@ test("print drops plates and chrome, and shows every act's copy in document orde
 
   // Chrome and atmosphere are dropped.
   await expect(page.locator("header[data-chrome]").first()).toBeHidden();
-  await expect(page.locator(".torch")).toBeHidden();
   await expect(page.locator(".plate").first()).toBeHidden();
 
   // Every act's copy is visible without any scroll — nothing here is

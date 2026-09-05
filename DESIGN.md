@@ -124,8 +124,8 @@ This is an engineer's record lit by a moving lamp. Eight public-domain
 paintings — Joseph Wright of Derby's scenes of instruments, forges and
 demonstrations, and Rembrandt's *Anatomy Lesson* — carry the site's landing
 page, each shown near-black until a light finds it. The light is one thing:
-a lamp that travels down each painting with scroll, and a cursor-driven
-torch layered above it on desktop. Nothing on the page is asserted outright;
+a lamp that travels down each painting with scroll and leans toward the
+cursor on desktop. Nothing on the page is asserted outright;
 only what the light reaches is proven. The world refuses both of the
 defaults available to a developer portfolio — the dark terminal with its
 green-on-black nostalgia, and the airy white résumé page — by refusing to be
@@ -146,7 +146,7 @@ everywhere: body copy, labels, chrome, and — without exception — every
 number at every size, so a measured quantity always reads as an instrument
 reading rather than a headline. Chivo, its proportional sibling, is reserved
 for the passages a reader actually reads rather than scans. Motion is a
-single moving part — the lamp's rAF loop, shared with the torch — plus one
+single moving part — the lamp's rAF loop — plus one
 per-act copy reveal that plays once on first arrival. The paintings
 themselves never move: an earlier build pushed each plate in slightly on
 scroll and scrubbed four of the eight acts through a baked zoompan video;
@@ -161,8 +161,8 @@ every act is a still and the lamp's light is the only thing that moves.
   including all numbers; Chivo only for reading passages.
 - Eight full-bleed acts, each set in a credited public-domain painting, in
   normal document flow — not pinned, not scroll-jacked.
-- One rAF loop drives the lamp and (via a shared pointer and lerp constant)
-  the torch; everything else is CSS reading custom properties.
+- One rAF loop drives the lamp — the only light there is; everything else
+  is CSS reading custom properties.
 - The default, JavaScript-free state is fully lit, so no-JS and
   reduced-motion visitors see a painted page, never a black one.
 
@@ -224,8 +224,8 @@ nothing (B3, final fix wave). It stays documented at
 `content.ts` for reintroduction the day a future entry genuinely needs a
 pending state — the rule itself does not change: any control that ever
 needs to mark "not yet available" still does it with a dashed outline, not
-dimmed text. Fractional alpha belongs only to rules and the lamp/torch's
-own gradients, which are graphics rather than language.
+dimmed text. Fractional alpha belongs only to rules and the lamp's own
+gradients, which are graphics rather than language.
 
 **`prefers-contrast: more` (P14).** The ordinary `.scrim`/`.scrim-wide`
 gradient fades to transparent so the painting still shows through most of
@@ -411,7 +411,7 @@ and the plates' narrow crops switch in — text moves from the frame's left to
 its bottom, and some plates swap to a portrait-friendly crop.
 
 **Print.** The medium is still a third ground: tokens flip to black-on-white
-at `:root`, every plate, the torch, the scrim gradients and all chrome are
+at `:root`, every plate, the scrim gradients and all chrome are
 dropped, act copy is forced visible (an act below the fold may never have
 intersected before printing, so nothing waits on a scroll event that paper
 doesn't have), motion is cancelled, and external link hrefs are appended in
@@ -437,12 +437,14 @@ The system is still flat in the literal sense — there is no `box-shadow`
 anywhere in the stylesheet or the components, no blur, no filled panel
 except the command palette's scrim. But depth is no longer purely graphic
 the way the previous system's hairlines and bar fields were: it is supplied
-by the paintings' own values, and revealed by two masks. The lamp's radial
+by the paintings' own values, and revealed by one mask. The lamp's radial
 mask (`--lamp-r`, `--lamp-x`, `--lamp-y`) uncovers a pool of full brightness
-inside an act; the torch's wider, softer mask dims everything else on the
-page — nav, copy, chart, footer — outside a pool around the cursor on
-desktop. The two are one light, driven by the same pointer and the same
-lerp constant (`POINTER_LERP`), so they never visibly drift apart.
+inside an act — opaque to 30% of the radius, fading through a mid-stop at
+62% to nothing at 100%, a candle's falloff rather than a spotlight's rim —
+and the plate's top layer carries a faint ember core (12%, to six-tenths
+of the radius) at the same point, so the light reads as warm. A second
+rendering of the light, the torch — a page-wide cursor dimmer over nav,
+copy and chart — was removed 2026-09-05 at the owner's request: one lamp.
 
 The only stacked surface is the command palette: an 85%-opacity `ground`
 scrim over the page and a solid dialog bordered in full-strength `signal`.
@@ -454,10 +456,10 @@ As before, the separation is a border, never a shadow.
 that needs to read as separate gets a rule, a mask, or (for a control) a
 colour swap — never elevation.
 
-**The One-Light Rule.** The lamp and the torch are a single light rendered
-twice, not two independent effects. A new light-driven surface must read
-its position from the same pointer and the same `POINTER_LERP` constant
-(`src/lib/motion.ts`) the existing two share, or it will visibly drift
+**The One-Light Rule.** There is one light, the lamp, and nothing else on
+the page dims, glows or follows the cursor. A new light-driven surface
+must read its position from the same pointer and the same `POINTER_LERP`
+constant (`src/lib/motion.ts`) the lamp uses, or it will visibly drift
 against them.
 
 ## Shapes
@@ -770,27 +772,12 @@ frame instead of calling `requestAnimationFrame` again — a genuinely idle
 tab costs nothing per frame. Scroll, pointermove, and resize all wake it
 back up.
 
-### Torch
-The page-wide cursor flashlight (`Torch.tsx`), desktop-only
-(`hover: none` and reduced motion both disable it outright, not just
-visually). Shares `POINTER_LERP` with `Lamp.tsx` so the two pools of light
-move together. Sets `data-torch="on"` on `<html>` only once a real pointer
-has moved, and clears it again — fading the beam back out over the same
-0.6s transition — on a genuine `pointerleave` off the document or a short
-pointer-idle timeout, so a reader who nudges the mouse once and then reads
-the rest of the page by wheel or keyboard scroll doesn't spend the visit
-under a frozen pool and a permanent dimming wash. The next real
-`pointermove` re-arms it exactly like the first ever move. Raises the
-plate's unlit floor while active
-(`[data-torch="on"][data-lamp="on"] .plate-dark`) so the torch's dimming
-wash and the lamp's own unlit floor don't compound into a darker painting
-than either produces alone — this selector must be compound (no space);
-idle-stop (P6-perf): disarming already made the torch invisible, but the
-loop used to keep running underneath it regardless — `tick` now also stops
-scheduling once disarmed and its radius chase has settled, and the next
-real `pointermove` restarts it, same as `Lamp.tsx`;
-`data-lamp` and `data-torch` are both on `<html>`, which has no ancestor, so
-a descendant-combinator version of this rule can never match.
+### The torch (removed)
+A page-wide cursor flashlight (`Torch.tsx`) used to sit above the lamp on
+desktop, dimming nav, copy, chart and footer outside a pool around the
+cursor and raising the plate's unlit floor while armed. Removed 2026-09-05
+at the owner's request for a single, premium lamp; its idle-stop, breaker
+and lerp behaviour survive in `Lamp.tsx`/`src/lib/motion.ts`.
 
 ### Social cards
 The OG cards are 1200×630, styled in the same mono/provenance grammar as
@@ -818,7 +805,7 @@ past an act never re-triggers its reveal. The benchmark chart's bars still
 grow once, on approach, exactly as before.
 
 **The Reduced-Motion Rule.** Under `prefers-reduced-motion: reduce`, the
-lamp and torch never initialise (`Lamp.tsx`/`Torch.tsx` return early), and
+lamp never initialises (`Lamp.tsx` returns early), and
 the act-reveal transition never gates the copy in the first place, since
 it only exists once `data-lamp="on"` is set. A reduced-motion visitor
 sees exactly the same fully-lit, fully-present page a no-JS visitor does —
@@ -834,9 +821,7 @@ gates copy visibility) is set purely by scroll intersection
 position, and the lamp's masked pool is strictly additive on top of an
 always-visible dimmed ambient layer (`[data-lamp="on"] .plate-dark`,
 `globals.css`) — never a second gate a reader has to find the light to
-get past. The ambient floor is `brightness(0.38)` (`brightness(0.65)`
-once the torch's own page-wide dimming wash is also active, re-derived
-to hold the same brightness parity the un-torched floor has), raised
+get past. The ambient floor is `brightness(0.38)`, raised
 from an original 0.32 during the P1 floor lock once a no-pointer scroll
 probe measured the site's darkest bands too close to the edge. Two CI
 tests (`tests/lamplight.spec.ts`, "no viewport goes void on an
@@ -869,7 +854,7 @@ protects, and the exact population the published audit's disproven
   `.scrim-wide`), measured against the actual column width, not a fixed
   viewport fraction.
 - **Do** drive any new pointer-follow effect off the same `POINTER_LERP`
-  constant the lamp and torch already share.
+  constant the lamp already uses.
 - **Do** ship a `prefers-reduced-motion` fallback, a no-JS fallback (fully
   lit, not merely styled differently), and a print behaviour with every new
   visual element.
@@ -881,16 +866,16 @@ protects, and the exact population the published audit's disproven
 ### Don't:
 - **Don't** introduce a fourth colour value, a grey, or a second accent hue.
 - **Don't** dim text to signal a state. Pending is a dashed border;
-  fractional alpha is for rules and the lamp/torch's own gradients only.
+  fractional alpha is for rules and the lamp's own gradients only.
 - **Don't** add a radius, a shadow, a blur, or a filled panel.
 - **Don't** make the proportional face the default, or let Newsreader
   appear anywhere but a `.statement`.
 - **Don't** let a number render in anything but Chivo Mono, at any size.
 - **Don't** pin or scroll-jack a new act, and don't add a second sticky
   content column beyond the case-file title rail and the ledger's plate.
-- **Don't** write a `[data-lamp] [data-torch]`-shaped selector with a space
-  — both attributes land on `<html>`, so only the compound form
-  (`[data-lamp="on"][data-torch="on"]`) can ever match.
+- **Don't** write a `[data-lamp] [data-x]`-shaped selector with a space
+  for two attributes that both land on `<html>` — it has no ancestor, so
+  only the compound form (`[data-lamp="on"][data-x="on"]`) can ever match.
 - **Don't** attempt the lamp's mask inside an OG card — Satori can't
   evaluate it — and don't emit a raw superscript character into one without
   routing it through `ogText()` first.
@@ -940,9 +925,8 @@ its conflict reported — never weakened or its ceiling raised to pass.
 | Contrast trio | `tests/lamplight.spec.ts`, `tests/a11y.spec.ts` | Palette tokens clear WCAG AA (signal and ember, body-sized); the two brightest painted regions text can overlap at 390px clear the same ceiling; `prefers-contrast: more` swaps the scrim gradient for solid ground. |
 | Paint-order trio | `tests/lamplight.spec.ts` | `.plate-dark` precedes `.plate-lit` in the DOM for every plate (document order is paint order, no z-index to fall back on); the lit pool is measurably brighter than the frame's far edge; the mask reads the lamp's live `--lamp-x`/`--lamp-y` on scroll. |
 | Ignition | `tests/lamplight.spec.ts` | A `.ignite` metric lights to ember only once the lamp's pool reaches its real screen position, and fades back to bone once it leaves — never a second `mask-image`. |
-| Breaker | `tests/motion.spec.ts`, `tests/lamplight.spec.ts` | The shared frame-budget circuit breaker (`src/lib/motion.ts`) trips on a genuinely slow rolling window, recovers once, and latches after a second trip — pinned tick-by-tick with an injected clock; a live scroll proves the lamp and torch both survive a trip/recover cycle. |
-| Torch states | `tests/lamplight.spec.ts` | The torch follows the pointer without blocking interaction, fades out on idle, re-arms on the next real move, stays off for touch/reduced-motion/no-JS, and raises the plate's unlit floor only while armed. |
-| Idle-stop | `tests/idle-stop.spec.ts` | Both rAF loops stop scheduling frames (not just converge) after 600ms of no input, and both resume on the next scroll/pointer move. |
+| Breaker | `tests/motion.spec.ts`, `tests/lamplight.spec.ts` | The shared frame-budget circuit breaker (`src/lib/motion.ts`) trips on a genuinely slow rolling window, recovers once, and latches after a second trip — pinned tick-by-tick with an injected clock; a live scroll proves the lamp survives a trip/recover cycle. |
+| Idle-stop | `tests/idle-stop.spec.ts` | The lamp's rAF loop stops scheduling frames (not just converges) after 600ms of no input, and resumes on the next scroll/pointer move. |
 | Hire-path | `tests/hirepath.spec.ts` | The thirty-second recruiter path: hero states who/what in ≤1 click of the Warden case file, the breadcrumb returns to `/#warden`, Ctrl+K → "scheduler" lands on `#scheduler`, the résumé resolves as a real PDF, and a `mailto:` contact link exists — gated on interaction count, not noisy CI wall-clock. |
 | Mobile journeys | `tests/mobile.spec.ts` | The same case-file and command-palette journeys at a 390×844 touch viewport, with 44px tap targets. |
 | Heading walk | `tests/a11y.spec.ts` | No heading level is ever skipped upward, exactly one `h1` per page, correct landmarks, a working skip link, full keyboard tab order in DOM order, and the command palette traps Tab and returns focus on close. |

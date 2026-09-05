@@ -78,7 +78,7 @@ export async function hasNearBonePixel(buf: Buffer): Promise<boolean> {
 /**
  * Thrown when the shared frame-budget circuit breaker (a rolling 60-frame
  * window, tripped once a clear majority run slower than 50ms — see
- * src/lib/motion.ts) locks `data-lamp`/`data-torch` off mid-test, which is
+ * src/lib/motion.ts) locks `data-lamp` off mid-test, which is
  * this sandboxed CI environment stalling for a beat, not the mechanism
  * under test failing. `withBreakerRetry` below is the only place that
  * catches this; a genuine assertion failure (a real `expect(...)`
@@ -96,8 +96,8 @@ export class BreakerTripped extends Error {}
  * `idle-stop.spec.ts` each hand-rolled their own version of this before,
  * at two different attempt counts (5 and 4) that had already drifted from
  * each other with no reason either number was more correct than the
- * other. 5 is `lamplight.spec.ts`'s own figure, chosen because "the torch
- * and lamp survive a normal scroll through every act" occasionally
+ * other. 5 is `lamplight.spec.ts`'s own figure, chosen because "the lamp survives a normal scroll through every
+ * act" (then a torch-and-lamp variant of the same test) occasionally
  * exhausted a smaller budget under this suite's heaviest parallel load —
  * see that file's original comment (task-20-report.md) for the full
  * reasoning; it passed reliably every time run in isolation, confirming
@@ -119,7 +119,7 @@ export async function withBreakerRetry(fn: (attempt: number) => Promise<void>) {
 /**
  * A genuine touch/mobile emulation — `hasTouch`+`isMobile` is what makes
  * Playwright report `(hover: none)`/`(pointer: coarse)`, the media
- * features Torch.tsx and the site's touch-only affordances actually key
+ * features the site's pointer-only and touch-only affordances actually key
  * off of. 390×844 matches the mobile viewport the rest of the suite
  * already standardises on (`tests/mobile.spec.ts`'s own `MOBILE`
  * constant, folded into this one shared factory).
@@ -127,7 +127,7 @@ export async function withBreakerRetry(fn: (attempt: number) => Promise<void>) {
  * Always use this — never `page.setViewportSize()` on the default desktop
  * `page` fixture — for anything meant to emulate a phone. The two are not
  * equivalent: a desktop context resized to a phone's CSS pixel dimensions
- * still reports `(pointer: fine)`/`(hover: hover)`, so Torch.tsx remains
+ * still reports `(pointer: fine)`/`(hover: hover)`, so a pointer-only affordance remains
  * exactly as eligible to arm as it would on a real mouse-driven desktop.
  * E3 (final fix wave) found two "mobile" probes doing exactly that — a
  * literal `390x844` in the test name, but a desktop context underneath —
@@ -145,7 +145,7 @@ export function mobileContext(browser: Browser) {
  * A real desktop (mouse-capable, `hover:hover`/`pointer:fine`) context at
  * an explicit viewport size — for a test that deliberately wants a
  * specific desktop window size, not a phone emulation, alongside a
- * desktop-only affordance like the torch. Exists so a call site's intent
+ * desktop-only affordance. Exists so a call site's intent
  * is explicit rather than a bare `page.setViewportSize()` call whose
  * intent a future reader has to guess at — the exact ambiguity that let
  * two truly mobile-intended probes quietly run as desktop contexts (see

@@ -264,6 +264,32 @@ section[id] {
     var(--color-ground) 100%
   );
 }
+/* The lamp's own warmth. Once the light is live, the same top layer also
+   carries a faint ember core at the lamp point — the one place besides a
+   lit number that ember is allowed (DESIGN.md, Ember Is Rare: "a lit
+   number and the lamp's own core"), and one of the two places fractional
+   alpha is (rules, and the lamp's own gradients). 12% ember over the
+   painting at the centre, gone by six-tenths of the pool's radius, so it
+   reads as candle warmth on the paint rather than a colour cast; the
+   scrim's protected band sits above this layer, so text never sees it.
+   Reads the same `--lamp-x`/`--lamp-y`/`--lamp-r` the mask does, so the
+   two can never drift. Off — plain dissolve only — with no JS or reduced
+   motion, like everything else the lamp does. */
+[data-lamp="on"] .plate::after {
+  background:
+    radial-gradient(
+      circle calc(var(--lamp-r, 26vmax) * 0.6) at var(--lamp-x, 50%) var(--lamp-y, 50%),
+      color-mix(in srgb, var(--color-ember) 12%, transparent) 0%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      var(--color-ground) 0%,
+      transparent 14%,
+      transparent 86%,
+      var(--color-ground) 100%
+    );
+}
 
 [data-lamp="on"] .plate-dark {
   display: block;
@@ -313,22 +339,25 @@ section[id] {
      invalid or missing one. `--p` defaults to 0 in that fallback exactly
      as it always has, so an unreached act's mask still resolves to the
      same 26vmax it always did. The gradient's own opaque/transparent
-     stops (46%/88% below) are LAMP_MASK_OPAQUE_STOP/
+     stops (30%/100% below, through a mid-stop at 62% so the falloff
+     reads as a candle's, not a spotlight's rim) are LAMP_MASK_OPAQUE_STOP/
      LAMP_MASK_TRANSPARENT_STOP in that same file — spelled out here as
      literals because CSS has no mechanism to import a JS constant. */
   -webkit-mask-image: radial-gradient(
     circle var(--lamp-r, calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax))
       at var(--lamp-x, 50%) var(--lamp-y, 50%),
     #000 0%,
-    #000 46%,
-    transparent 88%
+    #000 30%,
+    rgb(0 0 0 / 0.55) 62%,
+    transparent 100%
   );
   mask-image: radial-gradient(
     circle var(--lamp-r, calc(26vmax + min(var(--p, 0), 1 - var(--p, 0)) * 30vmax))
       at var(--lamp-x, 50%) var(--lamp-y, 50%),
     #000 0%,
-    #000 46%,
-    transparent 88%
+    #000 30%,
+    rgb(0 0 0 / 0.55) 62%,
+    transparent 100%
   );
 }
 
@@ -572,109 +601,6 @@ section[id] {
   color: var(--color-ember);
 }
 
-/* ── The torch ───────────────────────────────────────────────────────
-   A page-wide flashlight, one light with the lamp above rather than a
-   second, independent one. The same pointer drives both (Torch.tsx):
-   the lamp reveals a painting inside its act; the torch dims everything
-   — nav, copy, chart, footer — outside a soft pool around the cursor.
-
-   The overlay is twice the viewport in each direction, centred at rest,
-   and follows the pointer via `transform` rather than by moving the
-   gradient's own centre. A gradient repainted from a changing `at x y`
-   costs a full-viewport paint every frame; a transform costs a
-   composite. Being 2x oversized means a full sweep to any edge of the
-   viewport never uncovers a corner. `--torch-r`, which does change the
-   gradient's own definition, is written by Torch.tsx only while it is
-   actually easing toward a new value (hover in/out) — most frames touch
-   nothing but the transform.
-
-   Default is fully transparent: with no JavaScript, or under reduced
-   motion, or on a touch device, `.torch` renders but never dims anything.
-   `data-torch="on"` is only ever set once a real pointer has moved. */
-
-.torch {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  z-index: 60;
-  /* 200vw/200vh, unchanged: a finish-review pass suggested shrinking this
-     to 150vw/150vh, reasoning that the overlay only needs to cover a
-     pointer offset up to half the viewport (`raw.dx = e.clientX -
-     innerWidth / 2`, so `|dx|` maxes at ~50vw) plus its own 75vw margin.
-     That arithmetic drops a term: covering a *sweep to one edge* means the
-     overlay's FAR edge — the one on the opposite side from the cursor —
-     must still reach the viewport's far edge too. At 150vw (75vw
-     half-width) shifted by the full 50vw offset, the trailing edge lands
-     75 − 50 = 25vw short of centre, leaving the 25vw of viewport on the
-     cursor's opposite side completely uncovered — confirmed directly:
-     moving the pointer to a corner and reading `.torch`'s
-     `getBoundingClientRect()` at 150vw leaves a real gap between the
-     overlay and two edges of the viewport, not a rendering rounding
-     error. The correct minimum is half-width ≥ offset + half-viewport =
-     50vw + 50vw = 100vw, i.e. width ≥ 200vw — this was already the
-     tightest safe size, not double what was needed. Re-verified at
-     200vw/200vh: the overlay's rect contains the full viewport at both
-     tested extremes. */
-  width: 200vw;
-  height: 200vh;
-  margin: -100vh 0 0 -100vw;
-  pointer-events: none;
-  opacity: 0;
-  /* No `will-change: transform` — `translate3d()` below already promotes
-     this element to its own compositor layer, so the hint added a second,
-     redundant reason to keep a composited surface resident without
-     changing what actually gets composited. This part of the same
-     finish-review suggestion holds and is applied. */
-  transform: translate3d(var(--torch-x, 0px), var(--torch-y, 0px), 0);
-  transition: opacity 0.6s ease;
-  background: radial-gradient(
-    circle var(--torch-r, 240px) at 50% 50%,
-    transparent 0%,
-    transparent 35%,
-    color-mix(in srgb, var(--color-ground) 12%, transparent) 60%,
-    color-mix(in srgb, var(--color-ground) 22%, transparent) 80%,
-    color-mix(in srgb, var(--color-ground) 30%, transparent) 100%
-  );
-}
-[data-torch="on"] .torch {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .torch {
-    display: none;
-  }
-}
-
-/* One light, not two: the torch's page-wide wash would otherwise stack on
-   top of the plate's own unlit floor and compound into a darker painting
-   than existed before the torch shipped. Raising the floor here keeps a
-   plate under the torch's dim region reading the same as it always has.
-
-   Both attributes land on the same node (`<html>` — Lamp.tsx sets
-   data-lamp, Torch.tsx sets data-torch), so this MUST be a compound
-   selector with no space. `[data-torch="on"] [data-lamp="on"]` is a
-   descendant combinator that requires data-lamp on a DIFFERENT element
-   nested inside one carrying data-torch — html has no ancestor, so that
-   selector can never match, in any state.
-
-   P1 floor lock: re-derived for the new 0.38 base (was 0.32→0.56).
-   Measured, not guessed, the same way task-14d originally tuned this
-   value: a `.plate-dark` patch outside both lights' pools (hero's
-   upper-left roofline), luminance with no torch at all vs. torch armed
-   and parked far from the patch (its full outside-beam dim zone) —
-   armed/base ratio at the shipped 0.32→0.56 pair measured 1.134 with
-   this patch (a different, more central patch task-14d used measured a
-   different absolute ratio, 0.96 — the *shape* of "close to 1, i.e. a
-   torch-dimmed plate reads about the same as an un-torched one" is what
-   carries over, not one universal number, since CSS `brightness()`
-   scales linearly while WCAG relative luminance does not). Swept
-   0.38→{0.62, 0.65, 0.68, 0.70}: 0.65 reproduced the shipped pair's own
-   ratio most closely (1.130 vs. 1.134), so that's what ships. */
-[data-torch="on"][data-lamp="on"] .plate-dark {
-  filter: brightness(0.65) saturate(0.85);
-}
-
 /* ── The authored moment ────────────────────────────────────────────────
    One event, once, on load: the hero field resolves left to right and
    the sine draws behind the name. Nothing else on this site animates on
@@ -758,8 +684,7 @@ section[id] {
   .scrim::before,
   .print-drop,
   header[data-chrome],
-  .print-hidden,
-  .torch {
+  .print-hidden {
     display: none !important;
   }
   /* Every Bracket control on the landing page and case files already
@@ -841,9 +766,6 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-  .torch {
-    display: none;
   }
   /* Retained: SineLattice.tsx still renders these classes. */
   .sine-draw,

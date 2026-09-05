@@ -13,7 +13,7 @@ import { hero, site } from "@/content";
  * dots in every digit position), not a build-time reading that would be
  * days stale and briefly wrong on every visit. The client replaces it on
  * mount and ticks once a second — a plain `setInterval`, not a rAF loop,
- * so the idle-stop contract on the lamp and torch is untouched. Digits
+ * so the lamp's idle-stop contract is untouched. Digits
  * are tabular (`tnum` is global), so the width never changes and the nav
  * never reflows as the seconds turn. Plain text, no live region: a
  * screen reader hears it once on navigation, not sixty times a minute.

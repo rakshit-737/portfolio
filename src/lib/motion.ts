@@ -1,8 +1,9 @@
 /**
  * Shared inertia for every pointer-follow effect on the page.
  *
- * The lamp (Lamp.tsx, the per-act painting reveal) and the torch
- * (Torch.tsx, the page-wide dimmer) are one light with two renderings —
+ * The lamp (Lamp.tsx, the per-act painting reveal) is the site's one
+ * light. (A second rendering of it — the torch, a page-wide cursor
+ * dimmer — was removed 2026-09-05 at the owner's request: one lamp.) —
  * the same pointer drives both. If they trail the cursor at different
  * relative rates, a viewer sees two pools of light drifting apart instead
  * of one flashlight, which undercuts the whole premise. Exported from one
@@ -11,7 +12,7 @@
  * The lerp itself — `smooth += (raw - smooth) * POINTER_LERP` per frame —
  * is a fraction of the *remaining* gap, so it converges at the same
  * relative rate regardless of whether the quantity being smoothed is in
- * viewport-fraction space (Lamp) or pixel space (Torch): both close ~63%
+ * viewport-fraction space: it closes ~63%
  * of the gap in `1 / POINTER_LERP` frames.
  */
 export const POINTER_LERP = 0.1;
@@ -38,10 +39,10 @@ export const POINTER_LERP = 0.1;
  *
  * LAMP_MASK_OPAQUE_STOP / LAMP_MASK_TRANSPARENT_STOP: `.plate-lit`'s own
  * mask-image gradient stops (globals.css) — fully opaque out to
- * OPAQUE_STOP (46%) of `--lamp-r`, fading to nothing by TRANSPARENT_STOP
- * (88%). Documented here as the canonical numbers even though CSS has no
+ * OPAQUE_STOP (30%) of `--lamp-r`, fading to nothing by TRANSPARENT_STOP
+ * (100%), through a mid-stop at 62% — a candle's falloff, not a rim. Documented here as the canonical numbers even though CSS has no
  * mechanism to import a JS constant, so globals.css's gradient still
- * spells them out as literal `46%`/`88%` — this is the one place in the
+ * spells them out as literal `30%`/`100%` — this is the one place in the
  * unification a cross-language boundary keeps a second copy of a number,
  * unavoidably, not by oversight.
  *
@@ -54,8 +55,8 @@ export const POINTER_LERP = 0.1;
  */
 export const LAMP_R_BASE_VMAX = 26;
 export const LAMP_R_SPREAD_VMAX = 30;
-export const LAMP_MASK_OPAQUE_STOP = 0.46;
-export const LAMP_MASK_TRANSPARENT_STOP = 0.88;
+export const LAMP_MASK_OPAQUE_STOP = 0.3;
+export const LAMP_MASK_TRANSPARENT_STOP = 1;
 export const LAMP_LIT_FRACTION =
   LAMP_MASK_OPAQUE_STOP + (LAMP_MASK_TRANSPARENT_STOP - LAMP_MASK_OPAQUE_STOP) / 2;
 
@@ -107,7 +108,7 @@ export const LAMP_LIT_FRACTION =
  * deserve a chance to resume. It stops being the right call once the
  * pattern repeats: a second trip in the same session is evidence of the
  * steady-state case, not a second unrelated transient, and recovering
- * again just re-arms `data-lamp`/`data-torch` for another ~2s before the
+ * again just re-arms `data-lamp` for another ~2s before the
  * same oscillation trips a third time — every plate flipping between
  * masked and fully-lit and every `.ignite` between bone and ember on a
  * ~3s cycle for the rest of the visit. Latching after the second trip
@@ -126,7 +127,8 @@ export const FRAME_BUDGET = {
 } as const;
 
 /**
- * A rolling frame-budget watcher shared by Lamp.tsx and Torch.tsx, so the
+ * A rolling frame-budget watcher for Lamp.tsx (a factory, so any future
+ * effect can own its own instance), so the
  * two circuit breakers cannot quietly diverge again (they already did
  * once: both hand-rolled an identical "10 consecutive frames over 32ms"
  * counter).

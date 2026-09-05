@@ -3,7 +3,7 @@ import { FRAME_BUDGET, createFrameBudgetGuard } from "../src/lib/motion";
 
 /**
  * Unit tests for the shared frame-budget circuit breaker (`Lamp.tsx` and
- * `Torch.tsx` each build their own guard from this one factory). Pure and
+ * any future effect build their own guard from this one factory). Pure and
  * synchronous — every timestamp is injected, so these run with no
  * browser, no rAF, and no real clock, unlike the rest of this suite.
  * `FRAME_BUDGET` is exported from `src/lib/motion.ts` specifically so a

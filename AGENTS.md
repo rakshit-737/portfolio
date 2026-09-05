@@ -47,10 +47,14 @@ the authority on the visual system; this is the short version.
   reading those properties. **The default, JS-free state is fully lit** —
   the mask exists only once the client sets `data-lamp="on"` on `<html>`, so
   a no-JS or reduced-motion visitor gets a painted page, not a black one.
-- **The torch** (`Torch.tsx`) is a desktop-only, page-wide cursor
-  flashlight sharing the same pointer and lerp constant (`POINTER_LERP`,
-  `src/lib/motion.ts`) as the lamp — one light, two renderings. It raises the
-  plate's unlit floor while active so the two effects don't compound.
+- **One light.** The lamp is the only light source on the site. A second
+  rendering of it — the torch (`Torch.tsx`), a desktop-only page-wide
+  cursor flashlight that dimmed nav, copy and chart outside its own pool —
+  was removed 2026-09-05 at the owner's request ("a single, premium lamp").
+  Its `POINTER_LERP` and frame-budget guard live on in `src/lib/motion.ts`
+  for the lamp alone. The lamp's pool has a long, soft falloff (opaque to
+  30% of `--lamp-r`, gone by 100%) and a faint ember core (12%, on the
+  plate's top layer) — the one graphic ember is allowed to touch.
 - **The paintings themselves never move.** Every plate is a still image;
   there is no push-in, no zoom, and no scroll-scrubbed video anywhere on
   the site — removed 2026-08-20 (`feat: the light is the only moving thing
@@ -95,8 +99,9 @@ the authority on the visual system; this is the short version.
   axe scan in CI must stay at zero violations. Never dim text to signal a
   state — this palette has no contrast headroom to spend.
 - A `[data-a] [data-b]` selector is a descendant combinator, not a compound
-  one. `data-lamp` and `data-torch` both live on `<html>`, so any rule that
-  needs both must be written `[data-a][data-b]` with no space.
+  one. `data-lamp` lives on `<html>`, which has no ancestor: any rule that
+  needs it together with another `<html>` attribute must be written
+  `[data-a][data-b]` with no space.
 - Satori (the OG image renderer) cannot do CSS masks, so OG cards never use
   the lamp, and it has no glyph for the superscript minus — run any
   superscript-bearing string through `ogText()` (`src/lib/ogFonts.ts`)

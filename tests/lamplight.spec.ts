@@ -535,7 +535,7 @@ test("the lamp's reveal pool is measurably brighter than the frame's far edge", 
 //
 // Deliberately no pointer movement anywhere in this test (the entire point
 // — an idle-pointer scroll is the reading pattern most likely to hit a
-// void, since the torch's own dimming wash never engages) and a screenshot
+// void) and a screenshot
 // taken every 700px rather than once per act, so a dead band that doesn't
 // happen to land on an act's own contrast-gate sample point (the
 // statement, or a `.prose-field` row) still gets caught.
@@ -588,7 +588,7 @@ async function assertNoVoidAcrossScroll(
   await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
   // Never moves the pointer for the rest of this test — see the comment
   // above: an idle-pointer scroll is exactly the reading pattern this
-  // guard exists to check, and moving the pointer would arm the torch,
+  // guard exists to check, and moving the pointer would pull the lamp,
   // which only ever adds MORE light (never a hidden risk of less — see
   // task-14d-report.md's contrast-ratio-under-dimming analysis), masking
   // the one thing this test is supposed to catch.
@@ -650,9 +650,9 @@ test("no viewport goes void on an idle-pointer scroll — 1440x900", async ({
 // fixture to a phone's CSS pixel dimensions rather than using a genuine
 // touch/mobile context — a real phone reports `(pointer: coarse)`/
 // `(hover: none)`, which this resized-desktop context never did, leaving
-// the torch just as eligible to arm here as on an actual desktop, even
+// pointer-only behaviour just as eligible here as on an actual desktop, even
 // though this test's own no-pointer-movement design (see the comment
-// inside `assertNoVoidAcrossScroll`) means the torch was never actually
+// inside `assertNoVoidAcrossScroll`) means pointer-following was never actually
 // armed by anything this test itself does. Switched to `mobileContext`
 // for a faithful phone emulation regardless — see the implementer's
 // report for the before/after floor numbers.
@@ -832,161 +832,6 @@ for (const id of ACTS) {
   });
 }
 
-// Task 14d: the torch — a page-wide flashlight, unified with the plate lamp
-// so the page never carries two uncorrelated light sources.
-test("the torch follows the pointer and never blocks interaction", async ({ page }) => {
-  await page.goto("/");
-  const overlay = page.locator(".torch");
-  await expect(overlay).toHaveCount(1);
-  expect(
-    await overlay.evaluate((el) => getComputedStyle(el).pointerEvents),
-  ).toBe("none");
-
-  const read = () =>
-    page.evaluate(() =>
-      getComputedStyle(document.documentElement).getPropertyValue("--torch-x"),
-    );
-  await page.mouse.move(200, 200);
-  await page.waitForTimeout(160);
-  const a = await read();
-  await page.mouse.move(900, 600);
-  await page.waitForTimeout(300);
-  expect(await read()).not.toBe(a);
-
-  // The overlay must not intercept clicks.
-  await page.getByRole("link", { name: /résumé/i }).first().click({ trial: true });
-});
-
-// Task 20 fix: `active` used to be a one-way latch — set on the first
-// `pointermove` and never cleared — so a reader who nudged the mouse once
-// and then read the rest of the page by wheel or keyboard scroll spent the
-// whole rest of the visit under the torch's dimming wash, with the lit
-// pool frozen wherever the cursor last stopped (bone dropped from ~17:1 to
-// ~8.8:1 and ember from ~9:1 to ~5.7:1, page-wide). Torch.tsx now clears
-// `active` after a short pointer-idle timeout and fades the beam back out
-// over the existing 0.6s opacity transition. This waits past that timeout
-// with no further pointer movement — no wheel, no keyboard, nothing —
-// exactly the scenario the finding reported, and asserts both halves of
-// the fix: `data-torch` is gone, AND — the part that actually matters to a
-// reader — the plate's unlit floor drops back to its un-torched value
-// rather than staying raised at the torch's brighter compound filter.
-test("the torch fades back out after the pointer goes idle", async ({ page }) => {
-  await page.goto("/");
-  await page.waitForTimeout(300); // let startup settle, as elsewhere in this file
-
-  const plateDark = page.locator(".plate-dark").first();
-  const baseFilter = await plateDark.evaluate((el) => getComputedStyle(el).filter);
-
-  await page.mouse.move(700, 450, { steps: 5 });
-  await expect(page.locator("html")).toHaveAttribute("data-torch", "on", {
-    timeout: 3000,
-  });
-  const armedFilter = await plateDark.evaluate((el) => getComputedStyle(el).filter);
-  expect(armedFilter, "arming the torch must actually change the filter").not.toBe(
-    baseFilter,
-  );
-
-  // Past the idle timeout plus the fade transition, comfortably, not to a
-  // hair's width — with no pointer movement at all in between.
-  await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on", {
-    timeout: 4000,
-  });
-  await expect(page.locator(".torch")).toHaveCSS("opacity", "0");
-
-  const idleFilter = await plateDark.evaluate((el) => getComputedStyle(el).filter);
-  expect(
-    idleFilter,
-    "the plate's unlit floor must drop back once the torch disarms, not stay raised",
-  ).toBe(baseFilter);
-});
-
-test("the torch re-arms on the next real pointer move after going idle", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await page.waitForTimeout(300); // let startup settle, as elsewhere in this file
-  await page.mouse.move(700, 450, { steps: 5 });
-  await expect(page.locator("html")).toHaveAttribute("data-torch", "on", {
-    timeout: 3000,
-  });
-  await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on", {
-    timeout: 4000,
-  });
-
-  await page.mouse.move(300, 300, { steps: 5 });
-  await expect(page.locator("html")).toHaveAttribute("data-torch", "on", {
-    timeout: 3000,
-  });
-});
-
-// Important 6 fix round: the original version of this loop never moved the
-// pointer, and `data-torch="on"` is only ever set inside Torch.tsx's
-// `onPointer` handler — so the assertion held in every context it ran in,
-// including a plain desktop one with a fully working torch, because
-// nothing here ever gave the torch a chance to arm. Deleting Torch.tsx's
-// `reduce.matches || hover.matches` early-return left this test green.
-// `page.mouse.move` gives every context a real chance to arm the torch;
-// the three contexts below must still suppress it — reduced motion and
-// no-JS never run Torch.tsx at all, and Playwright's touch emulation
-// reports `(hover: none)`, which Torch.tsx's own guard checks.
-test("the torch stays off for touch, reduced motion, and no JS", async ({ browser }) => {
-  for (const newCtx of [
-    () => browser.newContext({ reducedMotion: "reduce" }),
-    // The touch-emulation entry, via the shared factory (E1/E2/E3, final
-    // fix wave) rather than a third inline copy of the same options.
-    () => mobileContext(browser),
-    () => browser.newContext({ javaScriptEnabled: false }),
-  ]) {
-    const ctx = await newCtx();
-    const page = await ctx.newPage();
-    await page.goto("/");
-    await page.mouse.move(400, 400, { steps: 5 });
-    await page.waitForTimeout(200);
-    await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on");
-    // Content is readable regardless.
-    await expect(page.locator(".statement").first()).toBeVisible();
-    await ctx.close();
-  }
-});
-
-// Regression guard: both attributes land on <html> (Lamp.tsx sets
-// data-lamp, Torch.tsx sets data-torch), so the rebalance rule MUST be a
-// compound selector (`[data-torch="on"][data-lamp="on"]`) rather than a
-// descendant combinator (`[data-torch="on"] [data-lamp="on"]`) — a
-// descendant combinator requires data-lamp on a different element nested
-// inside one carrying data-torch, and html has no ancestor, so it can
-// never match. No existing test caught this because none of them move
-// the pointer, which is the only thing that arms the torch.
-test("the plate's unlit floor rises once the torch arms", async ({
-  page,
-}) => {
-  await page.goto("/");
-  // Let startup cost (hydration, image decode) settle before interacting.
-  // Torch.tsx shares Lamp.tsx's frame-budget circuit breaker
-  // (src/lib/motion.ts's createFrameBudgetGuard): a rolling window of the
-  // last 60 frames, tripped once a clear majority run slower than 50ms.
-  // Under heavy parallel-worker load, one-time page-load jank can still
-  // fill enough of that window to trip it before the pointer ever gets a
-  // chance to move, which is a real characteristic of the shared
-  // circuit-breaker shape, not something this test is trying to verify.
-  // Settling first keeps that startup cost from being mistaken for "this
-  // device can't hold the torch".
-  await page.waitForTimeout(500);
-
-  const plateDark = page.locator(".plate-dark").first();
-
-  const baseFilter = await plateDark.evaluate((el) => getComputedStyle(el).filter);
-  await expect(page.locator("html")).not.toHaveAttribute("data-torch", "on");
-
-  await page.mouse.move(700, 450, { steps: 5 });
-  await expect(page.locator("html")).toHaveAttribute("data-torch", "on", {
-    timeout: 3000,
-  });
-
-  const armedFilter = await plateDark.evaluate((el) => getComputedStyle(el).filter);
-  expect(armedFilter).not.toBe(baseFilter);
-});
-
 // Critical 1 fix: `.ignite`'s CSS mask used to read `--lamp-x`/`--lamp-y`
 // exactly like `.plate-lit` does, but those percentages resolve against
 // the masked element's OWN box — correct for `.plate-lit` (which fills the
@@ -1021,8 +866,8 @@ test("the plate's unlit floor rises once the torch arms", async ({
 // a 5-attempt budget) and idle-stop.spec.ts's separate copy
 // (`withRetry`, a 4-attempt budget) had already drifted from each other
 // with no reason either number was more correct; one shared budget now.
-// Raised to 5 originally during Task 20: "the torch and lamp survive a
-// normal scroll through every act" (which retries its whole act-by-act
+// Raised to 5 originally during Task 20: "the lamp survives a normal
+// scroll through every act" (which retries its whole act-by-act
 // loop through this helper, not just the initial arm) occasionally
 // exhausted a smaller budget under this suite's own heaviest parallel
 // load — it passed reliably every time run in isolation, confirming that
@@ -1168,8 +1013,8 @@ test("a metric ignites as the lamp crosses it", async ({ page }) => {
 
 // The reverse direction: the same element, scrolled back out. Its own
 // test (a fresh page) rather than a third scroll tacked onto the one
-// above, matching the shape "the plate's unlit floor rises once the
-// torch arms" already uses — keeps each test's own retry loop cheap.
+// above, matching the shape "ember contrast: the lamp is live first"
+// already uses — keeps each test's own retry loop cheap.
 test("a metric fades back to bone once the lamp leaves it", async ({ page }) => {
   await withBreakerRetry(async () => {
     await page.goto("/");
@@ -1372,7 +1217,7 @@ async function unforceIgnite(page: import("@playwright/test").Page) {
  *  something is genuinely lit, so a passing token ratio can't be vacuous —
  *  see the comment above EMBER_AA_MIN), and the real ember-token-vs-
  *  background WCAG ratio must clear EMBER_AA_MIN. Shared by the with-JS
- *  (armed-torch) pass and the reduced-motion pass below — the only
+ *  (lamp-on) pass and the reduced-motion pass below — the only
  *  difference between them is what state the page is in when `metric` is
  *  sampled. */
 async function expectIgniteClearsAA(
@@ -1392,36 +1237,28 @@ async function expectIgniteClearsAA(
   ).toBeGreaterThanOrEqual(EMBER_AA_MIN);
 }
 
-/** Navigates fresh and arms the torch — the worst-case brightness *while
- *  the lamp effect is running*: `.plate-dark`'s filter rises from
- *  brightness(0.38) to brightness(0.65) once
- *  `[data-torch="on"][data-lamp="on"]` (globals.css; P1 floor lock
- *  re-derived both values from the pre-existing 0.32/0.56 pair — see the
- *  comment on that rule in globals.css), the brightest the
- *  unlit floor ever gets in the with-JS, motion-on experience. Task 20
- *  fix: this is NOT the brightest background a `.ignite` element can ever
- *  sit on overall, as an earlier version of this comment claimed — that's
- *  the reduced-motion/no-JS default, covered by its own pass further
- *  down, where the mask never applies at all and `.plate-lit` renders
- *  completely unmasked at full native brightness. Both are real
- *  populations of readers and both are gated now; this one just isn't the
- *  absolute ceiling.
+/** Navigates fresh and waits for the lamp to be live — the state every
+ *  "while the lamp effect is running" contrast pass below samples in.
+ *  (This used to also arm the torch, whose page-wide wash raised the
+ *  unlit floor from brightness(0.38) to 0.65 and was therefore the
+ *  brightest the running experience ever got. The torch is gone — one
+ *  light — so the running-state floor is simply the lamp's own.) The
+ *  pointer is moved once so the lamp is in its pointer-following state,
+ *  not its scroll-only rest. Not the brightest a `.ignite` element can
+ *  ever sit on overall: that's the reduced-motion/no-JS default, where
+ *  the mask never applies and `.plate-lit` renders unmasked — covered by
+ *  its own pass further down.
  *
- *  Retries via a fresh navigation (not another pointer move on the same
- *  page) up to 3 times: a fresh `page.goto` always starts a brand-new,
- *  un-latched frame-budget guard (src/lib/motion.ts), which sidesteps
- *  whatever tripped it rather than waiting out an in-session recovery
- *  that — after a second trip in the same session — no longer happens at
- *  all (`createFrameBudgetGuard`'s latch; see tests/motion.spec.ts). An
- *  earlier version of this comment claimed the opposite, that a page
- *  which already dropped `data-torch` "won't pick it back up" — recovery
- *  (the first time) is now the entire point of the breaker. */
-async function gotoWithTorchArmed(page: import("@playwright/test").Page) {
+ *  Retries via a fresh navigation up to 3 times: a fresh `page.goto`
+ *  starts a brand-new, un-latched frame-budget guard (src/lib/motion.ts),
+ *  which sidesteps whatever tripped it rather than waiting out an
+ *  in-session recovery that — after a second trip — no longer happens. */
+async function gotoWithLampOn(page: import("@playwright/test").Page) {
   for (let i = 0; i < 3; i++) {
     await page.goto("/");
     await page.mouse.move(900, 500, { steps: 5 });
     try {
-      await expect(page.locator("html")).toHaveAttribute("data-torch", "on", {
+      await expect(page.locator("html")).toHaveAttribute("data-lamp", "on", {
         timeout: 2000,
       });
       return;
@@ -1431,85 +1268,41 @@ async function gotoWithTorchArmed(page: import("@playwright/test").Page) {
   }
 }
 
-test("ember contrast: arming the torch first", async ({ page }) => {
-  await gotoWithTorchArmed(page);
+test("ember contrast: the lamp is live first", async ({ page }) => {
+  await gotoWithLampOn(page);
 });
-
-// Regression guard: the reported bug. The old circuit breaker (an inline
-// counter in both Torch.tsx and Lamp.tsx) counted 10 CONSECUTIVE rAF
-// callbacks slower than 32ms and, once tripped, called teardown() —
-// cancelling the rAF loop and removing every listener for the rest of the
-// session. 32ms is under 31fps, and at the time this bug was reported the
-// page also sought four scroll-scrubbed WebM clips while scrolling (since
-// removed entirely in the zoom-removal pass, 2026-08-20 — see AGENTS.md/
-// DESIGN.md); today's equivalent load is every plate decoding
-// multi-megapixel AVIFs while scrolling, on top of a second rAF loop for
-// the other component — completely ordinary scrolling reaches ten such
-// frames trivially either way, and once it does, there is no path back: the
-// torch (and the lamp) goes dark for the rest of the visit, exactly as the
-// owner reported ("visible on the first page" and never again after
-// scrolling).
-//
-// This test scrolls through every act the way a reader actually would —
-// not a single scrollIntoViewIfNeeded — specifically to give that load a
-// real chance to happen, then asserts the torch and lamp are BOTH still
-// alive afterward. Confirmed this fails against the pre-fix breaker: with
-// the old "10 consecutive frames > 32ms → teardown()" logic restored in
-// Torch.tsx/Lamp.tsx, this test fails reliably under load, exactly
-// reproducing the report; see task-18-report.md for the captured failing
-// run. The fix (src/lib/motion.ts's createFrameBudgetGuard) is a
-// rolling-window, hysteresis breaker that can suspend and recover — the
-// first time; a second trip in the same session latches it, deliberately
-// (see tests/motion.spec.ts's "latch" test) — not something this
-// particular test is trying to exercise.
-//
-// Task 20: this test started failing once the torch's idle-disarm fix
-// landed (`Torch.tsx`, same task) — measured directly, `data-torch` drops
-// to absent right around t+2.1s into the act-by-act loop below, while
-// `data-lamp` stays "on" throughout every run. That is the idle timeout
-// firing correctly, not the frame-budget breaker: eight
-// `scrollIntoViewIfNeeded` + 200ms waits, with no pointer movement at all
-// in between, comfortably outlasts the torch's ~2s idle window — a real
-// reader who scrolls without touching the mouse again is now supposed to
-// read the rest of the page with the torch off, which is the entire point
-// of that fix. This test's actual concern is the frame-budget breaker
-// recovering from real decode/seek jank, not idle-disarm, so a small
-// pointer nudge accompanies each act — enough to keep resetting the idle
-// timer without doing anything close to the smoothing/positioning the
-// dedicated torch-tracking tests above already cover.
-test("the torch and lamp survive a normal scroll through every act", async ({
-  page,
-}) => {
+// Regression guard: the reported bug. The old circuit breaker counted 10
+// CONSECUTIVE rAF callbacks slower than 32ms and, once tripped, called
+// teardown() — permanently. Ordinary scrolling through the acts (AVIF
+// decodes, layout) produced exactly that run of slow frames, so the light
+// died on the first real scroll of every visit and never came back. The
+// rolling-window guard (src/lib/motion.ts) suspends instead of tearing
+// down and re-arms once frames are healthy. This test scrolls every act
+// at a reader's pace and asserts the lamp is still live at the end; a
+// trip that is recovering mid-test is retried via a fresh navigation.
+test("the lamp survives a normal scroll through every act", async ({ page }) => {
   await withBreakerRetry(async () => {
-    await gotoWithTorchArmed(page);
-    await expect(page.locator("html")).toHaveAttribute("data-lamp", "on");
+    await gotoWithLampOn(page);
 
     for (const id of ACTS) {
       await page.locator(`#${id}`).scrollIntoViewIfNeeded();
-      // Resets the torch's idle timer (Task 20) so this test measures the
-      // frame-budget breaker, not idle-disarm — see the comment above.
-      await page.mouse.move(600, 400, { steps: 2 });
       // A reader lingers on each act rather than teleporting through them
       // — long enough for the act's own AVIF-decode work (the load that
       // used to trip the old breaker) to actually happen.
       await page.waitForTimeout(200);
     }
 
-    const torchOn = await page.locator("html").getAttribute("data-torch");
     const lampOn = await page.locator("html").getAttribute("data-lamp");
-    if (torchOn !== "on" || lampOn !== "on") throw new BreakerTripped();
-
-    await expect(page.locator(".torch")).toHaveCSS("opacity", "1");
+    if (lampOn !== "on") throw new BreakerTripped();
   });
 });
-
 for (const id of ACTS) {
-  test(`ignite metrics in act ${id} clear ember-appropriate AA contrast (armed torch)`, async ({
+  test(`ignite metrics in act ${id} clear ember-appropriate AA contrast (lamp on)`, async ({
     page,
   }) => {
     // The whole body retries via a fresh navigation on a mid-test breaker
-    // trip, the same reasoning "the torch and lamp survive a normal
-    // scroll" above already applies: this loop's several screenshots per
+    // trip, the same reasoning "the lamp survives a normal scroll" above
+    // already applies: this loop's several screenshots per
     // metric take long enough, under this suite's own heavily parallel
     // load, that the frame-budget breaker can genuinely trip between the
     // initial arm and a later metric's sample — confirmed directly, with
@@ -1519,10 +1312,9 @@ for (const id of ACTS) {
     // running" at all, so retrying (not adjusting a threshold) is the
     // correct response.
     await withBreakerRetry(async () => {
-      // Arm the torch first — the worst-case brightness floor while the
-      // lamp effect is running (see gotoWithTorchArmed above) — before
-      // scrolling to and sampling this act.
-      await gotoWithTorchArmed(page);
+      // The lamp live first — the running-state floor (see gotoWithLampOn
+      // above) — before scrolling to and sampling this act.
+      await gotoWithLampOn(page);
 
       const act = page.locator(`#${id}`);
       const metrics = act.locator(".ignite");
@@ -1567,7 +1359,7 @@ for (const id of ACTS) {
   });
 }
 
-// Task 20 fix: the pass above (armed torch) is the worst case *while the
+// Task 20 fix: the pass above (lamp on) is the worst case *while the
 // lamp effect is running* — it is not the brightest a `.ignite`
 // element's background can ever get overall, despite an earlier version
 // of this file's own comment claiming exactly that. That honour goes to

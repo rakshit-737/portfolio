@@ -144,7 +144,7 @@ all eight paintings with their Commons sources; tokens live in
   nothing else. **There is no grey and no second accent.** Ember is the
   rarest mark on the site — it lights a measured number under the lamp's
   mask and nothing else; it never touches prose or a control. Fractional
-  alpha is reserved for rules and the lamp/torch's own gradients.
+  alpha is reserved for rules and the lamp's own gradients.
 - Emphasis is light, not inversion. The previous design's page-wide
   `.negative` flip is gone; a control like `Bracket` or a nav link swaps its
   own two colours on hover, but nothing swaps a whole region's ground and
@@ -162,19 +162,21 @@ all eight paintings with their Commons sources; tokens live in
 - The lamp (`Lamp.tsx`) is the one moving part: a single rAF loop reads
   scroll position and pointer position and writes CSS custom properties onto
   each visible act; everything visual is CSS reading them, not React state.
-  A desktop-only cursor torch (`Torch.tsx`) shares the same pointer and
-  smoothing constant (`src/lib/motion.ts`), so the two read as one light rather
-  than two, and the plate's unlit floor rises while the torch is on so the two
-  dimmings never compound. **The default, JavaScript-free state is fully lit** —
+  It is the only light: the pool falls off softly (opaque to 30% of its
+  radius, gone by 100%) and carries a faint ember core, so it reads as a
+  held candle rather than a spotlight. A second rendering of it — a
+  page-wide cursor torch that dimmed everything outside its own pool — was
+  removed on 2026-09-05 at the owner's request for a single, premium lamp.
+  **The default, JavaScript-free state is fully lit** —
   the reveal mask only exists once the client turns the lamp on, so a no-JS or
   reduced-motion visitor gets a painted page, never a black one.
-- Both lights share a **frame-budget breaker** that sheds the effect on a device
+- The lamp has a **frame-budget breaker** that sheds the effect on a device
   that genuinely cannot hold it — judged over a rolling window, and
   **recoverable**: it suspends rather than destroys, and restores itself once
   frames are healthy again. An earlier version tripped after ten consecutive
   sub-31fps frames and tore the listeners down permanently, which meant the
-  torch died on the first real scroll and never returned. A regression test now
-  scrolls the page with the torch armed and asserts both lights are still alive.
+  light died on the first real scroll and never returned. A regression test now
+  scrolls the page through every act and asserts the lamp is still alive.
 - Controls (`Bracket.tsx`) are **wax-seal cartouches**: a doubled hairline frame
   with a small seal mark at the leading edge and letterspaced Newsreader caps.
   Ember appears only on hover and focus, never at rest — it has the least
@@ -202,7 +204,7 @@ all eight paintings with their Commons sources; tokens live in
   sourced the same way code is.
 - Motion: one reveal per act, playing once on first scroll arrival and never
   replayed on scroll-back — the act's copy fades into place and its
-  statement lands word by word inside that same beat — plus the lamp/torch's
+  statement lands word by word inside that same beat — plus the lamp's
   continuous drive and the benchmark bars growing once on approach. No per-section entrance
   animations beyond the one-per-act reveal, and no motion on the paintings
   themselves; everything has a `prefers-reduced-motion` fallback.
@@ -214,7 +216,7 @@ all eight paintings with their Commons sources; tokens live in
   decisions → evidence → outcome). The evidence table's rows are plain bold
   tabular numbers, not inverted or ignited — case files have no `[data-act]`
   for the lamp to scrub, so ignition is a landing-page-only device.
-- Print: tokens flip to black-on-white, every painting and the torch are
+- Print: tokens flip to black-on-white, every painting is
   dropped, act copy is forced visible regardless of scroll state, and link
   targets are printed after their text.
 
@@ -254,6 +256,3 @@ Recorded rather than hidden:
   height-bound and vertical framing has no slack to use. A portrait
   `cropNarrow` was added for it, which helps but does not fully solve it; a
   tighter narrow crop is the real fix.
-- **`Lamp` and `Torch` run one rAF loop each**, sharing a smoothing constant but
-  not a loop. Bounded and cleaned up in both, but a single loop with two writers
-  would be the cheaper shape whenever either is next touched.

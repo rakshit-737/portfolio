@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { BreakerTripped, withBreakerRetry } from "./helpers";
 
 /**
- * P6-perf, item 2: Lamp.tsx's and Torch.tsx's rAF loops now idle-stop —
+ * P6-perf, item 2: Lamp.tsx's rAF loop now idle-stops —
  * see the "Idle-stop" doc comments on both components. These tests prove
  * the loop itself actually stops scheduling frames, not merely that a
  * sampled CSS custom property happens to hold steady (which a *running*
@@ -13,7 +13,7 @@ import { BreakerTripped, withBreakerRetry } from "./helpers";
  *
  * Both components' frame-budget guard (src/lib/motion.ts) can, on a loaded
  * CI runner, independently trip and hold the loop in its own "suspended"
- * fast-path — which (by design, see Lamp.tsx/Torch.tsx) keeps ticking every
+ * fast-path — which (by design, see Lamp.tsx) keeps ticking every
  * frame regardless of idle-stop, so it can notice recovery. That is a real
  * device-performance path, not the idle-stop mechanism under test here, so
  * a trip is retried rather than treated as this test's failure — the same
@@ -25,7 +25,7 @@ import { BreakerTripped, withBreakerRetry } from "./helpers";
  */
 
 /** Installs a `window.__rafCount` counter that increments once per real
- *  `requestAnimationFrame` call, before Lamp.tsx/Torch.tsx ever mount. */
+ *  `requestAnimationFrame` call, before Lamp.tsx ever mounts. */
 async function countRaf(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     (window as unknown as { __rafCount: number }).__rafCount = 0;
@@ -98,40 +98,4 @@ test("the lamp idle-stops after no input and resumes on scroll", async ({ page }
       "scrolling after idle-stop did not restart the rAF loop",
     ).toBeGreaterThan(countB);
   });
-});
-
-test("the torch idle-stops once disarmed and resumes on the next pointer move", async ({
-  page,
-}) => {
-  await countRaf(page);
-  await page.goto("/");
-  // Never armed in this test (no pointer movement yet) — Torch.tsx starts
-  // `!active`, so its own loop idle-stops almost immediately rather than
-  // after the 2s idle timeout (that timeout only applies once armed; see
-  // Torch.tsx's own "Idle-stop" doc comment: `!active` alone, once the
-  // radius chase has settled, is enough). The counter installed above is
-  // global, though — it also counts Lamp.tsx's independent rAF loop, which
-  // keeps ticking for its own IDLE_MS (600ms) after mount before it
-  // idle-stops too. Waiting past that first lets this assertion isolate
-  // "is anything still calling requestAnimationFrame at all" to the state
-  // where both loops should already be stopped, rather than catching Lamp
-  // mid-settle and misreading it as a Torch regression.
-  await page.waitForTimeout(1500);
-  const countA = await rafCount(page);
-  await page.waitForTimeout(300);
-  const countB = await rafCount(page);
-  expect(
-    countB - countA,
-    "some rAF loop kept scheduling frames after both the lamp and torch should be idle-stopped",
-  ).toBeLessThanOrEqual(2); // small slack for one in-flight frame at the sample boundary
-
-  await page.mouse.move(700, 450, { steps: 5 });
-  await expect(page.locator("html")).toHaveAttribute("data-torch", "on", {
-    timeout: 3000,
-  });
-  const countC = await rafCount(page);
-  expect(
-    countC,
-    "a real pointer move did not restart the torch's rAF loop",
-  ).toBeGreaterThan(countB);
 });
