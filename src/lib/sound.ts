@@ -49,8 +49,10 @@
 
 export const SOUND_PREF_KEY = "night-archive:sound";
 
-/** Ambient master volume — the spec's "low by default (10–15%)". */
-export const AMBIENT_GAIN = 0.12;
+/** Ambient master volume. The original spec said 10–15%; the owner
+ *  asked for more on 2026-09-05 ("increase the sound") — 22% now,
+ *  still well under conversational level. */
+export const AMBIENT_GAIN = 0.22;
 
 export type SoundStatus = "unavailable" | "off" | "pending" | "on" | "paused";
 
@@ -118,6 +120,10 @@ let master: GainNode | null = null;
 let white: AudioBuffer | null = null;
 let ambientSources: { stop(): void; disconnect(): void }[] = [];
 let crackleTimer: number | null = null;
+let musicTimer: number | null = null;
+let melodyOut: GainNode | null = null;
+let songStart = 0;
+let scheduledUntil = 0;
 
 /** Four seconds of brown noise (a leaky integrator over white noise),
  *  normalized, with the loop seam crossfaded away — the hearth's room
@@ -191,6 +197,161 @@ function crackle(ac: AudioContext, out: GainNode) {
   };
 }
 
+// ————— the tune —————
+//
+// An authored piece, composed for this site (owner request 2026-09-05:
+// "ancient medieval themed music but with a good tune") — the rights
+// ruling is unchanged because the melody itself is written here, in
+// this file, not sourced. D Dorian, the workhorse mode of medieval
+// monophony: sixteen bars in an A–B arch, stepwise with arch contours,
+// the raised sixth (B natural) giving the Dorian colour, every phrase
+// cadencing home to D. Played on a physically modelled plucked string
+// (Karplus–Strong — a delay line of the string's period, excited with
+// smoothed noise and damped by averaging, the standard lute/harp
+// model), over a drone fifth (D–A, the mediaeval bourdon) and the
+// hearth's own room tone and crackle.
+
+const TEMPO_BPM = 70;
+const SECONDS_PER_BEAT = 60 / TEMPO_BPM;
+const LOOP_BEATS = 64;
+
+/** [startBeat, midiNote] — durations are the string's own ring-out. */
+const SCORE: [number, number][] = [
+  // A — first statement
+  [0, 62], [1, 64], [2, 65], [3, 67],
+  [4, 69], [6, 67], [7, 65],
+  [8, 64], [9, 65], [10, 64], [11, 60],
+  [12, 62],
+  // A — answer, reaching the Dorian sixth
+  [16, 65], [17, 67], [18, 69], [19, 71],
+  [20, 72], [22, 71], [23, 69],
+  [24, 67], [25, 69], [26, 65], [27, 64],
+  [28, 62],
+  // B — the high phrase
+  [32, 69], [33.5, 69], [34, 72], [35, 74],
+  [36, 72], [38, 69],
+  [40, 71], [41, 72], [42, 71], [43, 67],
+  [44, 69],
+  // B — descent and final cadence
+  [48, 74], [49, 72], [50, 69], [51, 72],
+  [52, 71], [53, 69], [54, 67], [55, 65],
+  [56, 64], [57, 65], [58, 67], [59, 64],
+  [60, 62],
+];
+
+/** Beats on which the lute doubles the note an octave below — phrase
+ *  downbeats only, a light thickening rather than harmony. */
+const OCTAVE_BEATS = new Set([0, 16, 32, 48, 12, 28, 44, 60]);
+
+const midiHz = (m: number) => 440 * 2 ** ((m - 69) / 12);
+
+/**
+ * One plucked string, rendered offline into a buffer (Karplus–Strong).
+ * A per-pitch cache: each pitch is computed once per visit (<1ms of
+ * plain-array work) and replayed thereafter — never on the load path,
+ * only after the first gesture has started the hearth.
+ */
+const pluckCache = new Map<number, AudioBuffer>();
+function pluckBuffer(ac: AudioContext, midi: number): AudioBuffer {
+  const cached = pluckCache.get(midi);
+  if (cached) return cached;
+  const freq = midiHz(midi);
+  const period = Math.round(ac.sampleRate / freq);
+  const length = Math.floor(ac.sampleRate * 2);
+  const buf = ac.createBuffer(1, length, ac.sampleRate);
+  const out = buf.getChannelData(0);
+  const ring = new Float32Array(period);
+  for (let i = 0; i < period; i++) ring[i] = Math.random() * 2 - 1;
+  // Soften the excitation twice — a gut string under a fingertip, not
+  // a wire under a plectrum.
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < period; i++) {
+      ring[i] = (ring[i] + ring[(i + 1) % period]) / 2;
+    }
+  }
+  let idx = 0;
+  for (let n = 0; n < length; n++) {
+    const cur = ring[idx];
+    const nxt = ring[(idx + 1) % period];
+    out[n] = cur;
+    ring[idx] = 0.998 * 0.5 * (cur + nxt);
+    idx = (idx + 1) % period;
+  }
+  // The buffer truncates the ring-out; fade the last 150ms so the cut
+  // can never click.
+  const fade = Math.floor(ac.sampleRate * 0.15);
+  for (let i = 0; i < fade; i++) {
+    out[length - fade + i] *= 1 - i / fade;
+  }
+  pluckCache.set(midi, buf);
+  return buf;
+}
+
+function scheduleNote(
+  ac: AudioContext,
+  outNode: GainNode,
+  midi: number,
+  when: number,
+  gain: number,
+) {
+  const src = ac.createBufferSource();
+  src.buffer = pluckBuffer(ac, midi);
+  const g = ac.createGain();
+  g.gain.value = gain;
+  src.connect(g).connect(outNode);
+  src.start(when);
+  src.onended = () => {
+    src.disconnect();
+    g.disconnect();
+  };
+}
+
+/**
+ * The tune's scheduler: the standard Web Audio lookahead pattern — a
+ * timeout every 300ms schedules the notes falling in the next ~0.9s of
+ * context time, anchored to `songStart`. Because a suspended context's
+ * clock freezes, the tab-hidden pause resumes the melody mid-phrase for
+ * free. Armed and disarmed in exactly the crackle scheduler's states:
+ * nothing runs while off, paused, or pending.
+ */
+function armMusic() {
+  if (musicTimer !== null || !ctx || !melodyOut) return;
+  const loopDur = LOOP_BEATS * SECONDS_PER_BEAT;
+  const tick = () => {
+    if (status !== "on" || !ctx || !melodyOut) {
+      musicTimer = null;
+      return;
+    }
+    const horizon = ctx.currentTime + 0.9;
+    if (scheduledUntil < ctx.currentTime) scheduledUntil = ctx.currentTime;
+    let k = Math.floor((scheduledUntil - songStart) / loopDur);
+    if (k < 0) k = 0;
+    for (; songStart + k * loopDur < horizon; k++) {
+      for (const [beat, midi] of SCORE) {
+        const t = songStart + k * loopDur + beat * SECONDS_PER_BEAT;
+        if (t < scheduledUntil || t >= horizon) continue;
+        // Humanize: a few ms of timing slack, a little touch variance.
+        const when = t + (Math.random() - 0.5) * 0.012;
+        const touch = 0.65 * (0.85 + Math.random() * 0.3);
+        scheduleNote(ctx, melodyOut, midi, when, touch);
+        if (OCTAVE_BEATS.has(beat)) {
+          scheduleNote(ctx, melodyOut, midi - 12, when + 0.008, touch * 0.45);
+        }
+      }
+    }
+    scheduledUntil = horizon;
+    musicTimer = window.setTimeout(tick, 300);
+  };
+  musicTimer = window.setTimeout(tick, 50);
+}
+
+function disarmMusic() {
+  if (musicTimer !== null) {
+    window.clearTimeout(musicTimer);
+    musicTimer = null;
+  }
+}
+
 /** The crackle scheduler: one pending timeout at a time, re-armed only
  *  while the hearth is "on" — nothing runs in any other state, so an
  *  idle (off/paused/blocked) page holds no timers at all. */
@@ -215,10 +376,12 @@ function disarmCrackles() {
 }
 
 /**
- * The hearth: looping brown noise lowpassed to a room tone, breathing
- * on a 20-second LFO (an audio-rate node, not a JS timer), plus the
- * crackle scheduler. Everything routes through `master`
- * (gain AMBIENT_GAIN) — the whole soundscape stays at 12%.
+ * The chamber: the tune (above) on its plucked string, a drone fifth
+ * (D3–A3, triangle waves lowpassed to a bowed hum, faded in over four
+ * seconds), and the hearth — looping brown noise lowpassed to a room
+ * tone, breathing on a 20-second LFO (an audio-rate node, not a JS
+ * timer), plus the crackle scheduler. Everything routes through
+ * `master` (gain AMBIENT_GAIN) — one knob, one soundscape.
  */
 function startAmbientGraph() {
   if (!ctx || !master || ambientSources.length > 0) return;
@@ -229,24 +392,63 @@ function startAmbientGraph() {
   low.type = "lowpass";
   low.frequency.value = 220;
   const roomGain = ctx.createGain();
-  roomGain.gain.value = 0.5;
+  roomGain.gain.value = 0.3; // under the tune now, not the whole show
   const lfo = ctx.createOscillator();
   lfo.frequency.value = 0.05;
   const lfoDepth = ctx.createGain();
-  lfoDepth.gain.value = 0.1; // ±20% of the 0.5 room tone
+  lfoDepth.gain.value = 0.06; // ±20% of the 0.3 room tone
   lfo.connect(lfoDepth).connect(roomGain.gain);
   room.connect(low).connect(roomGain).connect(master);
   room.start();
   lfo.start();
+
+  // The bourdon: D3 and A3, the open fifth every medieval drone holds.
+  const droneLow = ctx.createBiquadFilter();
+  droneLow.type = "lowpass";
+  droneLow.frequency.value = 320;
+  const droneGain = ctx.createGain();
+  droneGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+  droneGain.gain.linearRampToValueAtTime(0.09, ctx.currentTime + 4);
+  droneLow.connect(droneGain).connect(master);
+  const droneOscs = [midiHz(50), midiHz(57)].map((f) => {
+    const osc = ctx!.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = f;
+    osc.connect(droneLow);
+    osc.start();
+    return osc;
+  });
+
+  // The lute's own channel into the master.
+  melodyOut = ctx.createGain();
+  melodyOut.gain.value = 1;
+  melodyOut.connect(master);
+  songStart = ctx.currentTime + 0.4;
+  scheduledUntil = songStart;
+
   ambientSources = [
     { stop: () => room.stop(), disconnect: () => room.disconnect() },
     { stop: () => lfo.stop(), disconnect: () => lfoDepth.disconnect() },
+    ...droneOscs.map((osc) => ({
+      stop: () => osc.stop(),
+      disconnect: () => osc.disconnect(),
+    })),
+    {
+      stop: () => {},
+      disconnect: () => {
+        droneGain.disconnect();
+        melodyOut?.disconnect();
+        melodyOut = null;
+      },
+    },
   ];
   armCrackles();
+  armMusic();
 }
 
 function stopAmbientGraph() {
   disarmCrackles();
+  disarmMusic();
   for (const s of ambientSources) {
     try {
       s.stop();
@@ -379,11 +581,13 @@ export function initSoundscape(): void {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden" && status === "on") {
       disarmCrackles();
+      disarmMusic();
       void ctx?.suspend();
       setStatus("paused");
     } else if (document.visibilityState === "visible" && status === "paused" && enabled) {
       void ctx?.resume().then(() => {
         armCrackles();
+        armMusic();
         setStatus("on");
       });
     }

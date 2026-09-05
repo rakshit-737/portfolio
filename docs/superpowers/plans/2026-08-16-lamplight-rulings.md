@@ -221,3 +221,16 @@ hearth starts unprompted. Still default-on — no opt-in anywhere — and the
 threshold was never touched. A `userActivation.hasBeenActive` fast-path
 was tried and dropped: script injection leaves it sticky-true, firing the
 load-time attempt in exactly the environments that verify it must not.
+
+**Amended again the same day, at the owner's word: louder, and a tune.**
+"Increase the sound … change the music to something good ancient medieval
+themed music but with a good tune." Volume 12% → 22% (the spec's 10–15%
+clause yields to the owner). The music became an authored piece rather
+than texture: sixteen bars of D Dorian, composed directly in
+`src/lib/sound.ts`, played on a Karplus–Strong plucked string over a D–A
+bourdon, hearth kept underneath. Still zero audio files, zero requests —
+composing in-repo is what keeps the never-invent/never-scrape bar
+satisfiable at all; a downloaded "medieval" track would carry
+performer/label rights this project cannot verify. Nothing runs at load:
+the score's scheduler and the string model live entirely behind the
+first-interaction gate, so the perf ruling above is untouched.

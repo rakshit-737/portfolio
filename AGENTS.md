@@ -75,7 +75,10 @@ the authority on the visual system; this is the short version.
   other entrance animations.
 - **The night archive** (`src/lib/sound.ts`, the engine; `Soundscape.tsx`,
   its boot shim; `SoundToggle.tsx`, its one control) is the sound layer:
-  a hearth — low room tone plus sparse crackle — at 12% volume, on by
+  a candlelit chamber — an authored D-Dorian tune on a Karplus–Strong
+  plucked string (composed IN `src/lib/sound.ts`, not sourced), over a
+  drone fifth, room tone and sparse crackle — at 22% volume (raised from
+  12% at the owner's request, 2026-09-05), on by
   default but never against the browser or the load: **no AudioContext
   exists until the page's first real interaction** (`new AudioContext()`
   alone measured 72ms of real main thread — ~290ms of simulated mobile
