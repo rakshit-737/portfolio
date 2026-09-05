@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
+import { playUi } from "@/lib/sound";
 
 export default function CopyEmailButton({ email }: { email: string }) {
   const [copied, setCopied] = useState(false);
@@ -18,6 +19,7 @@ export default function CopyEmailButton({ email }: { email: string }) {
     try {
       await navigator.clipboard.writeText(email);
       setCopied(true);
+      playUi("seal"); // success only — the wax pressing; "Copied" is the confirmation
       if (timer.current !== null) window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => setCopied(false), 2000);
     } catch {

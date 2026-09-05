@@ -119,6 +119,16 @@ export default function CommandPalette() {
     setCopiedEmail(false);
     setCopiedUrl(false);
     restoreFocusRef.current?.focus();
+    playUi("tap"); // the panel closing — wood, one of the four sanctioned sounds
+  }, []);
+
+  // Every way in (Ctrl+K, "/", the nav's open event) funnels through
+  // here — one place for the focus bookkeeping and the one wood tap.
+  const openNow = useCallback(() => {
+    restoreFocusRef.current = document.activeElement as HTMLElement;
+    setRecents(readRecents());
+    setOpen(true);
+    playUi("tap");
   }, []);
 
   const commands = useMemo<Command[]>(() => {
@@ -191,7 +201,10 @@ export default function CommandPalette() {
         label: `Copy email — ${links.email}`,
         keywords: "contact mail",
         run: () => {
-          navigator.clipboard?.writeText(links.email).catch(() => {});
+          navigator.clipboard
+            ?.writeText(links.email)
+            .then(() => playUi("seal")) // the copy landing — wax
+            .catch(() => {});
           setCopiedEmail(true);
         },
       },
@@ -293,29 +306,20 @@ export default function CommandPalette() {
         if (open) {
           close();
         } else {
-          restoreFocusRef.current = document.activeElement as HTMLElement;
-          setRecents(readRecents());
-          setOpen(true);
+          openNow();
         }
       } else if (isSlash && !open) {
         e.preventDefault();
-        restoreFocusRef.current = document.activeElement as HTMLElement;
-        setRecents(readRecents());
-        setOpen(true);
+        openNow();
       }
     };
-    const onOpen = () => {
-      restoreFocusRef.current = document.activeElement as HTMLElement;
-      setRecents(readRecents());
-      setOpen(true);
-    };
     window.addEventListener("keydown", onKey);
-    window.addEventListener(OPEN_PALETTE_EVENT, onOpen);
+    window.addEventListener(OPEN_PALETTE_EVENT, openNow);
     return () => {
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener(OPEN_PALETTE_EVENT, onOpen);
+      window.removeEventListener(OPEN_PALETTE_EVENT, openNow);
     };
-  }, [open, close]);
+  }, [open, close, openNow]);
 
   useEffect(() => {
     if (open) inputRef.current?.focus();

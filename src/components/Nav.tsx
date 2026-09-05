@@ -8,6 +8,7 @@ import LiveClock from "@/components/LiveClock";
 import Mark from "@/components/Mark";
 import SoundToggle from "@/components/SoundToggle";
 import { withBase } from "@/lib/base";
+import { playUi } from "@/lib/sound";
 
 // The eight acts, in their declared order — `acts` is a `Record<ActId,
 // …>` object literal, so `Object.keys` walks it in that same insertion
@@ -210,7 +211,10 @@ export default function Nav() {
             aria-expanded={open}
             aria-controls={open ? "mobile-menu" : undefined}
             aria-label={open ? "Close menu" : "Open menu"}
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => {
+              setOpen((v) => !v);
+              playUi("tap"); // the panel — wood, on the explicit control only
+            }}
           >
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>

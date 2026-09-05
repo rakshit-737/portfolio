@@ -122,6 +122,51 @@ test("the toggle is visible, keyboard-operable, persists, and survives reload", 
   ).toBeVisible();
 });
 
+test("interface sounds fire on the sanctioned events and never on hover or scroll", async ({ page }) => {
+  await installUiLog(page);
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  const kinds = () =>
+    page.evaluate(() => (window as unknown as { __ui: string[] }).__ui);
+
+  // Hover and scroll: silence.
+  await page.mouse.move(300, 300);
+  await page.mouse.move(600, 500);
+  await page.mouse.wheel(0, 800);
+  await page.waitForTimeout(300);
+  expect(await kinds()).toEqual([]);
+
+  // Palette open + close: two wood taps.
+  await page.keyboard.press("Control+k");
+  await page.keyboard.press("Escape");
+  expect(await kinds()).toEqual(["tap", "tap"]);
+});
+
+test("copying the email presses the seal", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await installUiLog(page);
+  await page.goto("/#contact");
+  await page.getByRole("button", { name: /copy email address/i }).click();
+  await expect(page.getByRole("button", { name: /^Copied/ })).toBeVisible();
+  expect(
+    await page.evaluate(() => (window as unknown as { __ui: string[] }).__ui),
+  ).toEqual(["seal"]);
+});
+
+test("interface sounds obey the global setting", async ({ page }) => {
+  await installUiLog(page);
+  await page.addInitScript(() => {
+    window.localStorage.setItem("night-archive:sound", "off");
+  });
+  await page.goto("/");
+  await page.keyboard.press("Control+k");
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(200);
+  expect(
+    await page.evaluate(() => (window as unknown as { __ui: string[] }).__ui),
+  ).toEqual([]);
+});
+
 test("palette carries the soundscape action", async ({ page }) => {
   await page.goto("/");
   await page.keyboard.press("Control+k");
