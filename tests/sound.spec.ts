@@ -182,6 +182,37 @@ test("interface sounds obey the global setting", async ({ page }) => {
   ).toEqual([]);
 });
 
+test("an unvoiced button chimes; a voiced one keeps its single voice", async ({ page }) => {
+  await installUiLog(page);
+  await page.goto("/");
+  await page.mouse.click(400, 400); // first touch: starts the hearth, silently
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  const kinds = () =>
+    page.evaluate(() => (window as unknown as { __ui: string[] }).__ui);
+  expect(await kinds()).toEqual([]);
+
+  // Any plain button — the certificate lightbox trigger in the ledger —
+  // gets the chime from the delegated listener.
+  await page
+    .locator("button:not([data-voice])")
+    .first()
+    .click();
+  expect(await kinds()).toEqual(["chime"]);
+  // That button opened the certificate lightbox (a modal dialog that
+  // would swallow every later click) — close it before moving on.
+  await page.keyboard.press("Escape");
+
+  // A voiced button never doubles up: the toggle turning OFF is silent
+  // by design (the text change is the confirmation), and turning back
+  // ON speaks brass once — no chime either way, because it is marked
+  // data-voice.
+  const toggle = page.getByRole("button", { name: /^Soundscape: on$/ }).first();
+  await toggle.click();
+  expect(await kinds()).toEqual(["chime"]);
+  await page.getByRole("button", { name: /^Soundscape: off$/ }).first().click();
+  expect(await kinds()).toEqual(["chime", "click"]);
+});
+
 test("palette carries the soundscape action", async ({ page }) => {
   await page.goto("/");
   await page.keyboard.press("Control+k");

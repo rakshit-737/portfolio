@@ -171,6 +171,7 @@ export default function Nav() {
           <SoundToggle className="border border-rule px-2.5 py-2 hover:border-signal" />
           <button
             type="button"
+            data-voice // the palette taps wood on open — no chime on top
             onClick={openPalette}
             aria-label="Search the field (Ctrl+K)"
             className="label flex items-center gap-2 border border-rule px-2.5 py-2 transition-colors hover:border-signal"
@@ -201,6 +202,7 @@ export default function Nav() {
               inflating the icon. */}
           <button
             type="button"
+            data-voice // the palette taps wood on open — no chime on top
             onClick={openPalette}
             aria-label="Search the field"
             className="flex min-h-11 min-w-11 items-center justify-center md:hidden"
@@ -209,6 +211,7 @@ export default function Nav() {
           </button>
           <button
             type="button"
+            data-voice // taps wood itself — the global chime skips it
             ref={menuButtonRef}
             className="-mr-1.5 flex min-h-11 min-w-11 items-center justify-center"
             aria-expanded={open}

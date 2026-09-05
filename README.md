@@ -175,9 +175,10 @@ all eight paintings with their Commons sources; tokens live in
   string, over a drone fifth, with room tone and sparse hearth crackle
   beneath (all synthesized, composed in `src/lib/sound.ts`) at 22%, on
   by default behind an honest first-interaction gate, muted by one
-  visible control ("Soundscape: on/off", rail and menu). Four interface sounds
-  exist — wood for the panels, brass for the switch, wax for the seal —
-  and no fifth; sound never carries a confirmation alone. On a fine
+  visible control ("Soundscape: on/off", rail and menu). The interface speaks
+  in small physical sounds — wood for the panels, brass for the switch,
+  wax for the seal, and a minor harp chime for every other button —
+  never on hover or scroll, and never as the only confirmation. On a fine
   pointer the cursor is a bone compass needle with a lens ring
   (pure CSS, inline SVG, no ember — it is a graphic); coarse pointers,
   text, form fields and forced-colors keep their native cursors.

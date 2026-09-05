@@ -56,11 +56,15 @@ export const AMBIENT_GAIN = 0.22;
 
 export type SoundStatus = "unavailable" | "off" | "pending" | "on" | "paused";
 
-/** The three physical sounds, and the closed list of them: wood for a
- *  panel (palette, mobile menu), brass for the switch (the soundscape
- *  toggle), wax for the seal (email copied). Nothing plays on hover,
- *  scroll, or ordinary clicks. */
-export type UiSound = "tap" | "click" | "seal";
+/** The four physical sounds: wood for a panel (palette, mobile menu),
+ *  brass for the switch (the soundscape toggle), wax for the seal
+ *  (email copied), and a chime — a small minor-arpeggio harp flourish —
+ *  for every other button on the site (owner request 2026-09-05,
+ *  overriding the original "never on ordinary clicks" clause; wired as
+ *  one delegated listener in initSoundscape, skipping any button marked
+ *  `data-voice` because it already speaks for itself). Hover and scroll
+ *  stay silent. */
+export type UiSound = "tap" | "click" | "seal" | "chime";
 
 /**
  * The preference, read through an injected getter so the default is
@@ -574,6 +578,18 @@ export function initSoundscape(): void {
     setStatus("pending");
     armGestureStart();
   }
+  // Every button on the site chimes (owner request 2026-09-05) — one
+  // delegated listener rather than a call site per component. Buttons
+  // that already carry a dedicated sound mark themselves `data-voice`
+  // and are skipped, so nothing ever plays two sounds for one press.
+  // Registered unconditionally but voiced through playUi, which gates
+  // on the global setting like every other sound.
+  document.addEventListener("click", (e) => {
+    if (!(e.target instanceof Element)) return;
+    const btn = e.target.closest("button, [role='button']");
+    if (btn && !btn.hasAttribute("data-voice")) playUi("chime");
+  });
+
   // The tab-hidden pause, and its symmetric resume — resuming what the
   // visitor already had playing is the expected behaviour; the state
   // machine makes resuming past an explicit "off" impossible (off tears
@@ -598,11 +614,12 @@ export function initSoundscape(): void {
 
 function uiOut(ac: AudioContext): GainNode {
   // UI sounds share the context but not the ambient master — they sit a
-  // touch above the room tone, still quiet.
+  // touch above the room tone, still quiet. The teardown timer outlives
+  // the longest tail (the chime's halo, ~700ms).
   const g = ac.createGain();
   g.gain.value = 0.18;
   g.connect(ac.destination);
-  window.setTimeout(() => g.disconnect(), 600);
+  window.setTimeout(() => g.disconnect(), 1100);
   return g;
 }
 
@@ -677,10 +694,46 @@ function seal(ac: AudioContext) {
   thud.start(t, Math.random() * 0.8, 0.1);
 }
 
+/** The chime: a quick D-minor harp flourish (D5–F5–A5, the site's own
+ *  plucked string an octave up) under a faint sine halo — the
+ *  "something happened" sound for any button without a voice of its
+ *  own. Minor, so it stays mysterious rather than triumphant; the same
+ *  string model as the tune, so it belongs to this room. */
+function chime(ac: AudioContext) {
+  const out = uiOut(ac);
+  const t = ac.currentTime;
+  const flourish: [number, number, number][] = [
+    [74, 0, 0.5], // D5
+    [77, 0.07, 0.45], // F5
+    [81, 0.14, 0.55], // A5
+  ];
+  for (const [midi, dt, vel] of flourish) {
+    const src = ac.createBufferSource();
+    src.buffer = pluckBuffer(ac, midi);
+    const g = ac.createGain();
+    g.gain.value = vel;
+    src.connect(g).connect(out);
+    src.start(t + dt);
+    src.onended = () => {
+      src.disconnect();
+      g.disconnect();
+    };
+  }
+  const halo = ac.createOscillator();
+  halo.frequency.value = midiHz(86); // D6, a thin shimmer over the top
+  const hg = ac.createGain();
+  hg.gain.setValueAtTime(0.12, t + 0.14);
+  hg.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
+  halo.connect(hg).connect(out);
+  halo.start(t + 0.14);
+  halo.stop(t + 0.8);
+}
+
 const UI_SYNTHS: Record<UiSound, (ac: AudioContext) => void> = {
   tap,
   click,
   seal,
+  chime,
 };
 
 /**

@@ -234,3 +234,14 @@ satisfiable at all; a downloaded "medieval" track would carry
 performer/label rights this project cannot verify. Nothing runs at load:
 the score's scheduler and the string model live entirely behind the
 first-interaction gate, so the perf ruling above is untouched.
+
+**And once more the same day: every button chimes.** "Can u add like a
+mysterious achievement type sound whenever a button is clicked anywhere."
+The original spec's never-on-ordinary-clicks clause was the owner's own;
+the owner has now reversed it, so the rule is rewritten rather than
+worked around. The chime is a quick D-minor harp flourish (D5–F5–A5 on
+the site's own plucked string, a thin D6 halo over it) — minor so it
+reads mysterious, the tune's instrument so it belongs to the room. One
+delegated listener; buttons with a dedicated sound carry `data-voice`
+and are skipped, so no press ever speaks twice. Hover and scroll remain
+silent, and no sound is ever the only confirmation.

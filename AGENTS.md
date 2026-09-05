@@ -89,11 +89,16 @@ the authority on the visual system; this is the short version.
   `night-archive:sound`. **Every sound is synthesized at
   runtime — there is no audio file in this repo and no audio request
   anywhere** (a rights ruling as much as a perf one; see the night-archive
-  plan). Interface sounds are a closed list of four events — palette
-  open/close and mobile-menu toggle (wood tap), soundscape toggle (brass
-  click), email-copy success (wax seal) — via `playUi()`, which gates on
-  the global setting itself; never add a sound to hover, scroll, or an
-  ordinary click, and never let a sound be the only confirmation. The
+  plan). Interface sounds, all via `playUi()` (which gates on the global
+  setting itself): palette open/close and mobile-menu toggle (wood tap),
+  soundscape toggle (brass click), email-copy success (wax seal), and —
+  owner request 2026-09-05, overriding the original
+  never-on-ordinary-clicks clause — a chime (a small minor harp
+  flourish) on EVERY other button, wired as one delegated click
+  listener in `initSoundscape`; a button with a dedicated sound marks
+  itself `data-voice` so nothing ever plays two sounds for one press.
+  Hover and scroll stay silent, and a sound is never the only
+  confirmation. The
   compass cursor (globals.css, pure CSS) shows only under
   `(pointer: fine) and (hover: hover)`, is bone-on-ground (no ember — it
   is a graphic), keeps native cursors on links, form fields and prose,

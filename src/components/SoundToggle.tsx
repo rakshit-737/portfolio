@@ -36,6 +36,7 @@ export default function SoundToggle({ className = "" }: { className?: string }) 
   return (
     <button
       type="button"
+      data-voice // speaks brass for itself — the global chime skips it
       onClick={() => {
         setSoundEnabled(!on);
         playUi("click");
