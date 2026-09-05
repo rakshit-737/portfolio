@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -15,8 +22,16 @@ import {
   links,
   moreProjects,
   navSections,
+  soundscape,
 } from "@/content";
 import { withBase } from "@/lib/base";
+import {
+  getSoundStatus,
+  isSoundEnabled,
+  playUi,
+  setSoundEnabled,
+  subscribeSound,
+} from "@/lib/sound";
 
 /** Nav (or anything else) can open the palette by dispatching this event. */
 export const OPEN_PALETTE_EVENT = "evidence-index:open";
@@ -88,6 +103,14 @@ export default function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
+  // The soundscape action's label names the transition ("turn off"), so
+  // the commands memo below must recompute when the engine's status
+  // changes — this subscription is that dependency.
+  const soundStatus = useSyncExternalStore(
+    subscribeSound,
+    getSoundStatus,
+    () => "off" as const,
+  );
 
   const close = useCallback(() => {
     setOpen(false);
@@ -96,6 +119,16 @@ export default function CommandPalette() {
     setCopiedEmail(false);
     setCopiedUrl(false);
     restoreFocusRef.current?.focus();
+    playUi("tap"); // the panel closing — wood, one of the four sanctioned sounds
+  }, []);
+
+  // Every way in (Ctrl+K, "/", the nav's open event) funnels through
+  // here — one place for the focus bookkeeping and the one wood tap.
+  const openNow = useCallback(() => {
+    restoreFocusRef.current = document.activeElement as HTMLElement;
+    setRecents(readRecents());
+    setOpen(true);
+    playUi("tap");
   }, []);
 
   const commands = useMemo<Command[]>(() => {
@@ -168,7 +201,10 @@ export default function CommandPalette() {
         label: `Copy email — ${links.email}`,
         keywords: "contact mail",
         run: () => {
-          navigator.clipboard?.writeText(links.email).catch(() => {});
+          navigator.clipboard
+            ?.writeText(links.email)
+            .then(() => playUi("seal")) // the copy landing — wax
+            .catch(() => {});
           setCopiedEmail(true);
         },
       },
@@ -201,8 +237,27 @@ export default function CommandPalette() {
         label: "Open LinkedIn",
         run: external(links.linkedin.url),
       },
+      // The night archive's switch, reachable from the keyboard surface
+      // too. Hidden entirely when the sound layer is absent (no
+      // AudioContext) — same rule as SoundToggle.
+      ...(soundStatus !== "unavailable"
+        ? [
+            {
+              id: "soundscape",
+              group: "actions" as const,
+              label: `${soundscape.label}: ${soundscape.paletteVerb} ${
+                isSoundEnabled() ? soundscape.off : soundscape.on
+              }`,
+              keywords: "sound audio mute ambient quiet hearth music",
+              run: () => {
+                setSoundEnabled(!isSoundEnabled());
+                playUi("click");
+              },
+            },
+          ]
+        : []),
     ];
-  }, []);
+  }, [soundStatus]);
 
   const filtered = useMemo(() => {
     const q = query.trim();
@@ -251,29 +306,20 @@ export default function CommandPalette() {
         if (open) {
           close();
         } else {
-          restoreFocusRef.current = document.activeElement as HTMLElement;
-          setRecents(readRecents());
-          setOpen(true);
+          openNow();
         }
       } else if (isSlash && !open) {
         e.preventDefault();
-        restoreFocusRef.current = document.activeElement as HTMLElement;
-        setRecents(readRecents());
-        setOpen(true);
+        openNow();
       }
     };
-    const onOpen = () => {
-      restoreFocusRef.current = document.activeElement as HTMLElement;
-      setRecents(readRecents());
-      setOpen(true);
-    };
     window.addEventListener("keydown", onKey);
-    window.addEventListener(OPEN_PALETTE_EVENT, onOpen);
+    window.addEventListener(OPEN_PALETTE_EVENT, openNow);
     return () => {
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener(OPEN_PALETTE_EVENT, onOpen);
+      window.removeEventListener(OPEN_PALETTE_EVENT, openNow);
     };
-  }, [open, close]);
+  }, [open, close, openNow]);
 
   useEffect(() => {
     if (open) inputRef.current?.focus();

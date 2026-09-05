@@ -6,7 +6,9 @@ import { acts, links, navSections, type ActId } from "@/content";
 import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
 import LiveClock from "@/components/LiveClock";
 import Mark from "@/components/Mark";
+import SoundToggle from "@/components/SoundToggle";
 import { withBase } from "@/lib/base";
+import { playUi } from "@/lib/sound";
 
 // The eight acts, in their declared order — `acts` is a `Record<ActId,
 // …>` object literal, so `Object.keys` walks it in that same insertion
@@ -138,11 +140,14 @@ export default function Nav() {
           <LiveClock className="hidden md:inline-block" />
         </div>
 
-        {/* `xl`, not `lg`: at 1024px these seven links plus the two
-            clusters beside them measured 1110px of a 1024px rail — an
-            overflow that predates the clock — and the clock adds 158.
-            From 1280px everything fits with the clock in place. */}
-        <div className="hidden items-center gap-1 xl:flex">
+        {/* `min-[90rem]` (1440px), raised from `xl`: at 1024px these seven
+            links plus the two clusters beside them measured 1110px of a
+            1024px rail — an overflow that predates the clock — the clock
+            adds 158, and the soundscape toggle another 144. At 1280px the
+            rail measured 1327px with all three, so the links now wait for
+            1440, where everything fits with ~110px to spare (the
+            brand.spec.ts width sweep gates this). */}
+        <div className="hidden items-center gap-1 min-[90rem]:flex">
           {navSections.map((s) => (
             <a
               key={s.id}
@@ -161,6 +166,9 @@ export default function Nav() {
         </div>
 
         <div className="hidden shrink-0 items-center gap-2 md:flex">
+          {/* The soundscape's mute control (see SoundToggle.tsx) — same
+              border treatment as the ctrl-K button beside it. */}
+          <SoundToggle className="border border-rule px-2.5 py-2 hover:border-signal" />
           <button
             type="button"
             onClick={openPalette}
@@ -179,13 +187,13 @@ export default function Nav() {
           </a>
         </div>
 
-        {/* Shown until `xl`, where the section links above take over — a
-              `md:hidden` here once left every viewport between 48rem and the
-              links' breakpoint (a portrait tablet, a narrow laptop window)
-              with no way to reach a section at all. Only the search icon
-              drops at `md`, where the labelled ctrl-K button above takes
-              over. */}
-        <div className="flex items-center xl:hidden">
+        {/* Shown until `min-[90rem]`, where the section links above take
+              over — a `md:hidden` here once left every viewport between
+              48rem and the links' breakpoint (a portrait tablet, a narrow
+              laptop window) with no way to reach a section at all. Only
+              the search icon drops at `md`, where the labelled ctrl-K
+              button above takes over. */}
+        <div className="flex items-center min-[90rem]:hidden">
           {/* 44px minimum tap target (WCAG 2.5.5) — the icon itself stays
               small (18px), so the extra hit area comes from `min-h-11
               min-w-11` centring, the same device `Bracket.tsx` and the
@@ -206,7 +214,10 @@ export default function Nav() {
             aria-expanded={open}
             aria-controls={open ? "mobile-menu" : undefined}
             aria-label={open ? "Close menu" : "Open menu"}
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => {
+              setOpen((v) => !v);
+              playUi("tap"); // the panel — wood, on the explicit control only
+            }}
           >
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -215,12 +226,15 @@ export default function Nav() {
         {open && (
           <div
             id="mobile-menu"
-            className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-rule bg-ground xl:hidden"
+            className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-rule bg-ground min-[90rem]:hidden"
           >
             <div className="mx-auto flex max-w-[110rem] flex-col px-5 py-3 sm:px-8">
               {/* The clock's home on a phone, where the rail beside the
                   name has no room for it; from `md` it sits on the rail. */}
               <LiveClock className="block border-b border-rule-soft px-2 py-4 md:hidden" />
+              {/* The soundscape toggle's phone home, for the widths where
+                  the rail cluster that carries it is hidden. */}
+              <SoundToggle className="border-b border-rule-soft px-2 py-4 text-left md:hidden" />
               {navSections.map((s) => (
                 <a
                   key={s.id}

@@ -788,3 +788,59 @@ section[id] {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── The compass cursor (night archive) ──────────────────────────────────
+   Desktop only: a fine pointer that can hover. The needle points at the
+   declared 3 3 hotspot; the trailing ring is the inspection lens. Bone
+   over ground — legible on the dark ground and on a lit plate alike; no
+   ember (ember marks a lit number, never a graphic). Inline data URI: no
+   request to fail and no basePath to resolve, and the trailing `auto`
+   keeps the native cursor wherever a browser refuses SVG cursors.
+   The cursor is static — there is nothing here for reduced-motion to
+   reduce, and no script behind it.
+
+   `cursor` inherits, and overriding it at the root means elements whose
+   native cursor comes from `auto`'s UA magic (links' pointer, prose's
+   I-beam) would show the compass too — so the interactive and text
+   surfaces below re-assert their native cursors explicitly. */
+@media (pointer: fine) and (hover: hover) {
+  html {
+    cursor:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3l11.5 4.5-4.9 2.1-2.1 4.9z' fill='%2308070A' stroke='%23F2EDE3' stroke-width='1.4' stroke-linejoin='round'/%3E%3Ccircle cx='18.5' cy='18.5' r='5.2' fill='none' stroke='%23F2EDE3' stroke-width='1.4'/%3E%3Ccircle cx='18.5' cy='18.5' r='1.1' fill='%23F2EDE3'/%3E%3C/svg%3E")
+        3 3,
+      auto;
+  }
+  a,
+  button,
+  [role="button"],
+  summary,
+  select,
+  label[for] {
+    cursor: pointer;
+  }
+  input,
+  textarea,
+  [contenteditable="true"],
+  p,
+  li,
+  blockquote,
+  dd,
+  .statement,
+  .prose-field {
+    cursor: text;
+  }
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"] {
+    cursor: pointer;
+  }
+}
+
+/* High-contrast / forced-colors users get their platform cursor — a
+   themed cursor is exactly the authored colour these modes exist to
+   override. */
+@media (forced-colors: active) {
+  html {
+    cursor: auto;
+  }
+}

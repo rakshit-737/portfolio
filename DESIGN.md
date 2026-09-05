@@ -165,6 +165,12 @@ every act is a still and the lamp's light is the only thing that moves.
   is CSS reading custom properties.
 - The default, JavaScript-free state is fully lit, so no-JS and
   reduced-motion visitors see a painted page, never a black one.
+- The night archive: a synthesized hearth at 12% (on by default behind an
+  honest autoplay gate, one visible "Soundscape: on/off" control), four
+  physical interface sounds — wood, brass, wax — on a closed list of
+  events, and a bone compass cursor on fine pointers only. No audio file
+  exists in the repo; the cursor carries no ember (it is a graphic) and
+  yields to native cursors over text, controls, and under forced-colors.
 
 ## Colors
 

@@ -45,6 +45,11 @@ test("command palette opens with Ctrl+K or / and jumps to a section", async ({
 });
 
 test("section anchors navigate", async ({ page }) => {
+  // The rail's section links wait for 90rem (1440px) since the soundscape
+  // toggle joined the rail — below that they live in the menu (the
+  // brand.spec.ts width sweep gates that a path always exists). This test
+  // exercises the rail links themselves, so it needs the wide rail.
+  await page.setViewportSize({ width: 1512, height: 900 });
   await page.goto(`${BASE}/`);
   await page.getByRole("link", { name: "Ledger", exact: true }).click();
   await expect(page).toHaveURL(/#ledger$/);

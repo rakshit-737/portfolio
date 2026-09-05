@@ -169,3 +169,40 @@ finished tasks never re-ran.
 
 **DocForge was added from its README only.** Every phrase in the archive entry
 traces to the repo's own text; dates from the GitHub API; nothing extrapolated.
+
+## Night-archive addendum (2026-09-05)
+
+**Every sound is synthesized in-repo; no recording was sourced.** The spec
+allowed "owner-supplied or verified CC0/public-domain" audio. Cost-if-wrong:
+the soundscape reads as cheap next to a real recording. Ruled anyway because
+a Web Audio graph authored in this repository is owner-supplied in the
+strongest sense, while every "CC0" early-music recording still carries
+performer/label rights this project cannot verify to its own never-invent
+bar — and the zero-asset route satisfies the spec's own performance clauses
+(no early request, budgets intact) absolutely. Swapping in an owner
+recording later is a one-function change in `src/lib/sound.ts`.
+
+**The toggle is the mute control; volume is a constant 0.12.** The spec
+asked for a toggle and "a volume or mute control" — one on/off control
+satisfies both, and a slider would be the layer's least restrained element.
+
+**No ember on the compass cursor.** Ember marks a lit number, never a
+graphic. The cursor is bone over ground, legible on both the dark frame
+and a lit plate.
+
+**Tab-visible resume is not "unexpected resume."** Hidden suspends; visible
+resumes only what was playing. The guarded case — resuming past an explicit
+"off" — is structurally impossible: off tears the graph down.
+
+**Autoplay gating is tested with a deterministic policy double, not
+Chromium flags.** Playwright's own evaluate calls can carry user
+activation, which resolved the policy-pending resume() from inside the
+assertion checking it stayed blocked — the observer unblocking the
+observed. The double mirrors Chromium's semantics exactly (suspended until
+the first real gesture) and the engine cannot tell the difference.
+
+**The rail's section links moved from `xl` to `min-[90rem]`.** The toggle's
+144px overflowed the 1280px rail by 47px — first caught by the lamplight
+far-corner luminance test (the shifted right cluster brightened the corner
+it samples), then pinned by the brand.spec width sweep. Links live in the
+menu until 1440; a way to reach a section exists at every width.

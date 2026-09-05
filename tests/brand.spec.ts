@@ -70,8 +70,11 @@ test("the clock beside the name shows Chennai time and ticks", async ({ browser 
 
 // The rail must hold everything it shows at every width — and the clock
 // must be on it from `md` up. At 1024px the seven section links alone
-// overflowed the rail by 54px before they moved to `xl`, and the clock
-// (~150px with its gap) has to fit beside the name wherever it shows.
+// overflowed the rail by 54px before they moved to `xl`; the clock
+// (~150px with its gap) has to fit beside the name wherever it shows;
+// and the soundscape toggle's 144px then overflowed the 1280px rail by
+// 47px, which pushed the links out again, to `min-[90rem]` (1440) —
+// this sweep's 1280/1366 rows are the widths that catch exactly that.
 for (const width of [768, 1024, 1263, 1280, 1366, 1440]) {
   test(`at ${width}px the rail fits its content and carries the clock`, async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width, height: 700 } });
