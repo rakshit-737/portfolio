@@ -140,11 +140,14 @@ export default function Nav() {
           <LiveClock className="hidden md:inline-block" />
         </div>
 
-        {/* `xl`, not `lg`: at 1024px these seven links plus the two
-            clusters beside them measured 1110px of a 1024px rail — an
-            overflow that predates the clock — and the clock adds 158.
-            From 1280px everything fits with the clock in place. */}
-        <div className="hidden items-center gap-1 xl:flex">
+        {/* `min-[90rem]` (1440px), raised from `xl`: at 1024px these seven
+            links plus the two clusters beside them measured 1110px of a
+            1024px rail — an overflow that predates the clock — the clock
+            adds 158, and the soundscape toggle another 144. At 1280px the
+            rail measured 1327px with all three, so the links now wait for
+            1440, where everything fits with ~110px to spare (the
+            brand.spec.ts width sweep gates this). */}
+        <div className="hidden items-center gap-1 min-[90rem]:flex">
           {navSections.map((s) => (
             <a
               key={s.id}
@@ -184,13 +187,13 @@ export default function Nav() {
           </a>
         </div>
 
-        {/* Shown until `xl`, where the section links above take over — a
-              `md:hidden` here once left every viewport between 48rem and the
-              links' breakpoint (a portrait tablet, a narrow laptop window)
-              with no way to reach a section at all. Only the search icon
-              drops at `md`, where the labelled ctrl-K button above takes
-              over. */}
-        <div className="flex items-center xl:hidden">
+        {/* Shown until `min-[90rem]`, where the section links above take
+              over — a `md:hidden` here once left every viewport between
+              48rem and the links' breakpoint (a portrait tablet, a narrow
+              laptop window) with no way to reach a section at all. Only
+              the search icon drops at `md`, where the labelled ctrl-K
+              button above takes over. */}
+        <div className="flex items-center min-[90rem]:hidden">
           {/* 44px minimum tap target (WCAG 2.5.5) — the icon itself stays
               small (18px), so the extra hit area comes from `min-h-11
               min-w-11` centring, the same device `Bracket.tsx` and the
@@ -223,7 +226,7 @@ export default function Nav() {
         {open && (
           <div
             id="mobile-menu"
-            className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-rule bg-ground xl:hidden"
+            className="absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b border-rule bg-ground min-[90rem]:hidden"
           >
             <div className="mx-auto flex max-w-[110rem] flex-col px-5 py-3 sm:px-8">
               {/* The clock's home on a phone, where the rail beside the
