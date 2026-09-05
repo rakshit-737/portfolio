@@ -73,6 +73,24 @@ the authority on the visual system; this is the short version.
   after another (`Statement.tsx` wraps them as `.word`; a case-file
   header plays the same beat on load via `data-reveal`). There are no
   other entrance animations.
+- **The night archive** (`src/lib/sound.ts`, the engine; `Soundscape.tsx`,
+  its boot shim; `SoundToggle.tsx`, its one control) is the sound layer:
+  a hearth — low room tone plus sparse crackle — at 12% volume, on by
+  default but never against the browser (an autoplay-blocked context
+  reports `blocked` on `<html data-soundscape>` and waits for the first
+  real interaction; one retry, never a loop), paused when the tab hides,
+  persisted under `night-archive:sound`. **Every sound is synthesized at
+  runtime — there is no audio file in this repo and no audio request
+  anywhere** (a rights ruling as much as a perf one; see the night-archive
+  plan). Interface sounds are a closed list of four events — palette
+  open/close and mobile-menu toggle (wood tap), soundscape toggle (brass
+  click), email-copy success (wax seal) — via `playUi()`, which gates on
+  the global setting itself; never add a sound to hover, scroll, or an
+  ordinary click, and never let a sound be the only confirmation. The
+  compass cursor (globals.css, pure CSS) shows only under
+  `(pointer: fine) and (hover: hover)`, is bone-on-ground (no ember — it
+  is a graphic), keeps native cursors on links, form fields and prose,
+  falls back to `auto`, and yields entirely under forced-colors.
 - **Document order is paint order** in the three-layer plate stack
   (`.plate-dark` → `.plate-lit` → `.plate::after`, all `position: absolute`
   with no `z-index`). Reordering these layers makes the lamp invisible —

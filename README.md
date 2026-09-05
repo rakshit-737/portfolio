@@ -170,6 +170,15 @@ all eight paintings with their Commons sources; tokens live in
   **The default, JavaScript-free state is fully lit** —
   the reveal mask only exists once the client turns the lamp on, so a no-JS or
   reduced-motion visitor gets a painted page, never a black one.
+- The night archive is the sound of the room the paintings hang in: a
+  synthesized hearth (room tone + sparse crackle, `src/lib/sound.ts`) at
+  12%, on by default behind an honest autoplay gate, muted by one visible
+  control ("Soundscape: on/off", rail and menu). Four interface sounds
+  exist — wood for the panels, brass for the switch, wax for the seal —
+  and no fifth; sound never carries a confirmation alone. On a fine
+  pointer the cursor is a bone compass needle with a lens ring
+  (pure CSS, inline SVG, no ember — it is a graphic); coarse pointers,
+  text, form fields and forced-colors keep their native cursors.
 - The lamp has a **frame-budget breaker** that sheds the effect on a device
   that genuinely cannot hold it — judged over a rolling window, and
   **recoverable**: it suspends rather than destroys, and restores itself once
