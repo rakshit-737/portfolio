@@ -76,10 +76,14 @@ the authority on the visual system; this is the short version.
 - **The night archive** (`src/lib/sound.ts`, the engine; `Soundscape.tsx`,
   its boot shim; `SoundToggle.tsx`, its one control) is the sound layer:
   a hearth — low room tone plus sparse crackle — at 12% volume, on by
-  default but never against the browser (an autoplay-blocked context
-  reports `blocked` on `<html data-soundscape>` and waits for the first
-  real interaction; one retry, never a loop), paused when the tab hides,
-  persisted under `night-archive:sound`. **Every sound is synthesized at
+  default but never against the browser or the load: **no AudioContext
+  exists until the page's first real interaction** (`new AudioContext()`
+  alone measured 72ms of real main thread — ~290ms of simulated mobile
+  TBT, a whole CI perf-gate failure), so `<html data-soundscape>` reads
+  `pending` at load and the first touch starts the hearth unprompted —
+  which also satisfies every autoplay policy; attempts only ever run on
+  a gesture, never a loop. Paused when the tab hides; persisted under
+  `night-archive:sound`. **Every sound is synthesized at
   runtime — there is no audio file in this repo and no audio request
   anywhere** (a rights ruling as much as a perf one; see the night-archive
   plan). Interface sounds are a closed list of four events — palette

@@ -206,3 +206,18 @@ the first real gesture) and the engine cannot tell the difference.
 far-corner luminance test (the shifted right cluster brightened the corner
 it samples), then pinned by the brand.spec width sweep. Links live in the
 menu until 1440; a way to reach a section exists at every width.
+
+**Amended same day: the hearth's AudioContext waits for the first
+interaction — there is no load-time attempt at all.** The merged layer
+attempted playback at load; CI failed the mobile perf ratchet (median 74,
+floor 75) and the A/B against the previous green run isolated it: TBT
+84→276ms with LCP/SI/CLS identical. Measured mechanism: `new
+AudioContext()` alone costs 72ms of real main thread in headless Chromium
+(~290ms at Lighthouse's 4× throttling), unsplittable and pre-TTI wherever
+scheduled. So the attempt-at-load clause yields to the ratchet: status
+`pending` until the first real gesture (which also satisfies every
+autoplay policy, collapsing the old allowed/blocked split), then the
+hearth starts unprompted. Still default-on — no opt-in anywhere — and the
+threshold was never touched. A `userActivation.hasBeenActive` fast-path
+was tried and dropped: script injection leaves it sticky-true, firing the
+load-time attempt in exactly the environments that verify it must not.

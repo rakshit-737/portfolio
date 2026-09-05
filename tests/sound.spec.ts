@@ -12,16 +12,6 @@ import { expect, test } from "@playwright/test";
  * keeps for tests and CSS alike.
  */
 
-// This file models the browser that PERMITS autoplay (a returning
-// visitor with media-engagement history, or a user's explicit site
-// permission) — the flag makes that stance explicit, because Playwright's
-// default Chromium blocks Web Audio on real pages. The blocked stance
-// lives in tests/sound-blocked.spec.ts. launchOptions is worker-scoped,
-// hence file-level.
-test.use({
-  launchOptions: { args: ["--autoplay-policy=no-user-gesture-required"] },
-});
-
 /** Install the observability log before any page script runs. */
 const installUiLog = (page: import("@playwright/test").Page) =>
   page.addInitScript(() => {
@@ -36,9 +26,30 @@ const installUiLog = (page: import("@playwright/test").Page) =>
     });
   });
 
-test("soundscape is on by default (autoplay permitted here)", async ({ page }) => {
+test("on by default — pending at load, playing at the first touch", async ({ page }) => {
   await page.goto("/");
+  // No opt-in anywhere, and yet no sound infrastructure at load either:
+  // the hearth waits for the first real interaction (which also settles
+  // every autoplay policy), then starts unprompted.
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "pending");
+  await page.mouse.click(400, 400);
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+});
+
+test("no AudioContext exists before the first interaction (the perf gate)", async ({ page }) => {
+  // `new AudioContext()` measured 72ms of real main thread in headless
+  // Chromium — ~290ms at Lighthouse's 4× mobile throttling, which took
+  // CI's mobile TBT from 84ms to 276ms and failed the perf ratchet.
+  // The engine must not build one at load, only on the first gesture.
+  await installUiLog(page);
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "pending");
+  const ctxCount = () =>
+    page.evaluate(() => (window as unknown as { __ctx: number }).__ctx);
+  expect(await ctxCount()).toBe(0);
+  await page.mouse.click(400, 400);
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  expect(await ctxCount()).toBe(1);
 });
 
 test("no audio file is ever requested", async ({ page }) => {
@@ -67,6 +78,7 @@ test("a persisted off preference builds no AudioContext at all", async ({ page }
 
 test("hidden tab pauses; visible resumes", async ({ page }) => {
   await page.goto("/");
+  await page.mouse.click(400, 400); // the first touch starts the hearth
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
   await page.evaluate(() => {
     Object.defineProperty(document, "visibilityState", {
@@ -95,6 +107,8 @@ test("blocked localStorage still yields a working default-on soundscape", async 
     });
   });
   await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "pending");
+  await page.mouse.click(400, 400);
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
 });
 
@@ -125,6 +139,7 @@ test("the toggle is visible, keyboard-operable, persists, and survives reload", 
 test("interface sounds fire on the sanctioned events and never on hover or scroll", async ({ page }) => {
   await installUiLog(page);
   await page.goto("/");
+  await page.mouse.click(400, 400); // the first touch starts the hearth (and is itself silent)
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
   const kinds = () =>
     page.evaluate(() => (window as unknown as { __ui: string[] }).__ui);

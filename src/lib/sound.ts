@@ -20,16 +20,25 @@
  *                 the toggle renders nothing.
  *   off         — the user's persisted choice (or a toggle this visit).
  *                 No AudioContext is ever built in this state.
- *   blocked     — preference is on but the browser's autoplay policy
- *                 refused; one-time gesture listeners wait for the
- *                 first real interaction, then retry exactly once.
- *                 Never a retry loop.
+ *   pending     — preference is on and the hearth is waiting for the
+ *                 page's first real interaction. No AudioContext exists
+ *                 yet: `new AudioContext()` measured 72ms of real main
+ *                 thread in headless Chromium (~290ms at Lighthouse's
+ *                 4× mobile throttling — the whole of a CI perf-gate
+ *                 failure, TBT 84→276ms), so the context is never built
+ *                 at load. The first gesture builds it — and a gesture
+ *                 also satisfies every autoplay policy, so the old
+ *                 allowed/blocked split collapses into this one state.
+ *                 One-time listeners, removed on first fire; an attempt
+ *                 can only ever run on a user gesture — never a loop.
  *   on          — the hearth is playing.
  *   paused      — tab hidden while on; visibility back restores on.
  *
- * Defaulting ON is the owner's call, but never against the browser:
- * the gate is honest — a blocked attempt stays silent until the
- * visitor actually touches the page.
+ * Defaulting ON is the owner's call, but never against the browser and
+ * never against the load: no sound infrastructure exists until the
+ * visitor actually touches the page (a scroll, a key, a tap), at which
+ * point the hearth starts unprompted — still on by default, without an
+ * opt-in, and without competing with the first paint.
  *
  * Observability (tests listen on window; both events are dispatched
  * only when the thing they name actually happened):
@@ -43,7 +52,7 @@ export const SOUND_PREF_KEY = "night-archive:sound";
 /** Ambient master volume — the spec's "low by default (10–15%)". */
 export const AMBIENT_GAIN = 0.12;
 
-export type SoundStatus = "unavailable" | "off" | "blocked" | "on" | "paused";
+export type SoundStatus = "unavailable" | "off" | "pending" | "on" | "paused";
 
 /** The three physical sounds, and the closed list of them: wood for a
  *  panel (palette, mobile menu), brass for the switch (the soundscape
@@ -269,29 +278,43 @@ async function tryStartAmbient(): Promise<"on" | "blocked"> {
   return "on";
 }
 
-/** The one retry the gate allows: armed only while "blocked", removed
- *  on first fire, never re-armed by itself. */
-function armGestureRetry() {
-  const retry = () => {
-    window.removeEventListener("pointerdown", retry);
-    window.removeEventListener("keydown", retry);
-    window.removeEventListener("touchend", retry);
-    if (!enabled || status !== "blocked") return;
-    void tryStartAmbient().then((r) => setStatus(r));
+/** The first-interaction start: armed only while "pending", removed on
+ *  first fire. Every attempt this arms runs on a real user gesture, so
+ *  it can never loop against a policy — and in the vanishingly odd case
+ *  a gesture-borne attempt still reports blocked, it re-arms for the
+ *  next gesture rather than spinning. */
+function armGestureStart() {
+  const start = () => {
+    window.removeEventListener("pointerdown", start);
+    window.removeEventListener("keydown", start);
+    window.removeEventListener("touchend", start);
+    if (!enabled || status !== "pending") return;
+    userStartPending = true;
+    void tryStartAmbient().then((r) => {
+      userStartPending = false;
+      if (r === "blocked") {
+        setStatus("pending");
+        armGestureStart();
+      } else {
+        setStatus(r);
+      }
+    });
   };
-  window.addEventListener("pointerdown", retry);
-  window.addEventListener("keydown", retry);
-  window.addEventListener("touchend", retry);
+  window.addEventListener("pointerdown", start);
+  window.addEventListener("keydown", start);
+  window.addEventListener("touchend", start);
 }
 
 /**
- * True while a resume initiated by an explicit user action (the toggle)
- * is still in flight — the one window where playUi may schedule on a
- * still-suspended context, because the gesture guarantees the resume
- * lands and the scheduled nodes sound moments later. Outside it, a
- * suspended context means blocked, and scheduling there would dispatch
- * a "sound really played" event for silence (adversarial review,
- * finding 1).
+ * True while a gesture-initiated start (the toggle, or the pending
+ * state's first-interaction listener) is still in flight — the one
+ * window where playUi may schedule on a still-suspended context,
+ * because the gesture guarantees the resume lands and the scheduled
+ * nodes sound moments later. (The same first click that starts the
+ * hearth can also be the click that copies the email — its seal must
+ * not be swallowed by the race.) Outside it, a suspended context makes
+ * no sound, and scheduling there would dispatch a "sound really
+ * played" event for silence (adversarial review, finding 1).
  */
 let userStartPending = false;
 
@@ -307,7 +330,9 @@ export function setSoundEnabled(v: boolean): void {
     userStartPending = true;
     void tryStartAmbient().then((r) => {
       userStartPending = false;
-      setStatus(r);
+      // A gesture-borne attempt can't realistically be refused, but the
+      // type says it can — map it back to waiting rather than lying "on".
+      setStatus(r === "blocked" ? "pending" : r);
     });
   } else {
     stopAmbientGraph();
@@ -318,10 +343,12 @@ export function setSoundEnabled(v: boolean): void {
 
 /**
  * Boot, called once from Soundscape.tsx on mount (idempotent — dev
- * strict mode runs effects twice). Reads the persisted preference and,
- * if on, starts the hearth behind the autoplay gate. With the
- * preference off, no AudioContext is ever built — the "lazy-load only
- * when playback will begin" requirement, satisfied absolutely.
+ * strict mode runs effects twice). Deliberately cheap: it reads the
+ * persisted preference and arms listeners, and NEVER builds an
+ * AudioContext — that waits for the first real interaction (see the
+ * "pending" status above for the measured why). With the preference
+ * off, no listener is even armed — the "lazy-load only when playback
+ * will begin" requirement, satisfied absolutely.
  */
 export function initSoundscape(): void {
   if (initialized || typeof window === "undefined") return;
@@ -334,10 +361,16 @@ export function initSoundscape(): void {
   if (!enabled) {
     setStatus("off");
   } else {
-    void tryStartAmbient().then((r) => {
-      setStatus(r);
-      if (r === "blocked") armGestureRetry();
-    });
+    // Always via the first-interaction listener — even when
+    // `navigator.userActivation.hasBeenActive` says a gesture already
+    // happened. A fast-path on that flag was tried and dropped: script
+    // injection (Playwright's init scripts, and anything else that
+    // evaluates with user gesture semantics) leaves it sticky-true, so
+    // the "attempt now" branch fired in exactly the environments trying
+    // to verify it wouldn't — and a real visitor who interacted before
+    // boot interacts again within moments anyway.
+    setStatus("pending");
+    armGestureStart();
   }
   // The tab-hidden pause, and its symmetric resume — resuming what the
   // visitor already had playing is the expected behaviour; the state
