@@ -6,6 +6,7 @@ import { acts, links, navSections, type ActId } from "@/content";
 import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
 import LiveClock from "@/components/LiveClock";
 import Mark from "@/components/Mark";
+import SoundToggle from "@/components/SoundToggle";
 import { withBase } from "@/lib/base";
 
 // The eight acts, in their declared order — `acts` is a `Record<ActId,
@@ -161,6 +162,9 @@ export default function Nav() {
         </div>
 
         <div className="hidden shrink-0 items-center gap-2 md:flex">
+          {/* The soundscape's mute control (see SoundToggle.tsx) — same
+              border treatment as the ctrl-K button beside it. */}
+          <SoundToggle className="border border-rule px-2.5 py-2 hover:border-signal" />
           <button
             type="button"
             onClick={openPalette}
@@ -221,6 +225,9 @@ export default function Nav() {
               {/* The clock's home on a phone, where the rail beside the
                   name has no room for it; from `md` it sits on the rail. */}
               <LiveClock className="block border-b border-rule-soft px-2 py-4 md:hidden" />
+              {/* The soundscape toggle's phone home, for the widths where
+                  the rail cluster that carries it is hidden. */}
+              <SoundToggle className="border-b border-rule-soft px-2 py-4 text-left md:hidden" />
               {navSections.map((s) => (
                 <a
                   key={s.id}

@@ -209,6 +209,21 @@ export const links = {
 } as const;
 
 /**
+ * The night archive's one audible control, worded here because every
+ * visible word lives in this file. The toggle's accessible name is
+ * "Soundscape: on" / "Soundscape: off" (state in the text, no
+ * aria-pressed — a changing name and a pressed state would announce
+ * twice); the palette action names the transition instead ("turn off"),
+ * because a palette row is an imperative.
+ */
+export const soundscape = {
+  label: "Soundscape",
+  on: "on",
+  off: "off",
+  paletteVerb: "turn",
+} as const;
+
+/**
  * Contact section copy. The headline states what the owner confirmed
  * during the product interview: both internships and full-time roles.
  */

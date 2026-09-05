@@ -98,7 +98,35 @@ test("blocked localStorage still yields a working default-on soundscape", async 
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
 });
 
-// The autoplay-blocked path needs a Chromium launched with the policy
-// actually enforced (`--autoplay-policy=user-gesture-required`), and
-// launchOptions is worker-scoped — it lives in its own file,
-// tests/sound-blocked.spec.ts, with a file-level test.use.
+// The autoplay-blocked path needs its own deterministic policy double
+// (Playwright's own evaluate calls can carry user activation, unblocking
+// the thing under test) — it lives in tests/sound-blocked.spec.ts.
+
+test("the toggle is visible, keyboard-operable, persists, and survives reload", async ({ page }) => {
+  await page.goto("/");
+  const toggle = page.getByRole("button", { name: /^Soundscape: on$/ }).first();
+  await expect(toggle).toBeVisible();
+  await toggle.focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("button", { name: /^Soundscape: off$/ }).first(),
+  ).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "off");
+  expect(
+    await page.evaluate(() => window.localStorage.getItem("night-archive:sound")),
+  ).toBe("off");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "off");
+  await expect(
+    page.getByRole("button", { name: /^Soundscape: off$/ }).first(),
+  ).toBeVisible();
+});
+
+test("palette carries the soundscape action", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+k");
+  await page.getByRole("combobox").fill("sound");
+  await expect(
+    page.getByRole("option", { name: /Soundscape: turn off/ }),
+  ).toBeVisible();
+});
