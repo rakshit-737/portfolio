@@ -99,10 +99,14 @@ the authority on the visual system; this is the short version.
   itself `data-voice` so nothing ever plays two sounds for one press.
   Hover and scroll stay silent, and a sound is never the only
   confirmation. The
-  compass cursor (globals.css, pure CSS) shows only under
-  `(pointer: fine) and (hover: hover)`, is bone-on-ground (no ember — it
-  is a graphic), keeps native cursors on links, form fields and prose,
-  falls back to `auto`, and yields entirely under forced-colors.
+  cursor is the key and the lock (globals.css, pure CSS, 40px): a
+  medieval key as the default, the padlock it opens over anything
+  clickable — both ORIGINAL drawings (the owner's downloaded cursor pack
+  was license-barred from redistribution; rulings doc, 2026-09-05) —
+  shown only under `(pointer: fine) and (hover: hover)`, bone-on-ground
+  (no ember — graphics), text keeps its I-beam, `auto`/`pointer`
+  fallbacks declared, and the whole thing yields under forced-colors.
+  Browsers cannot animate a CSS cursor; no script may drive one.
 - **Document order is paint order** in the three-layer plate stack
   (`.plate-dark` → `.plate-lit` → `.plate::after`, all `position: absolute`
   with no `z-index`). Reordering these layers makes the lamp invisible —

@@ -789,25 +789,30 @@ section[id] {
   }
 }
 
-/* ── The compass cursor (night archive) ──────────────────────────────────
-   Desktop only: a fine pointer that can hover. The needle points at the
-   declared 3 3 hotspot; the trailing ring is the inspection lens. Bone
-   over ground — legible on the dark ground and on a lit plate alike; no
-   ember (ember marks a lit number, never a graphic). Inline data URI: no
-   request to fail and no basePath to resolve, and the trailing `auto`
-   keeps the native cursor wherever a browser refuses SVG cursors.
-   The cursor is static — there is nothing here for reduced-motion to
-   reduce, and no script behind it.
+/* ── The key and the lock (night archive cursor) ─────────────────────────
+   Desktop only: a fine pointer that can hover. The default cursor is a
+   medieval key, tip at the declared 5 5 hotspot; anything clickable
+   shows the padlock the key opens — the click is the unlocking. Both
+   are ORIGINAL drawings authored here, 40px ("somewhat big"), bone
+   strokes over a ground underlay so they read on the dark frame and on
+   a lit plate alike; no ember (ember marks a lit number, never a
+   graphic). The owner's downloaded cursor pack (Sweezy Cursors) could
+   not be used: its license forbids redistributing the files, and
+   serving them from this site is redistribution — see the rulings doc,
+   2026-09-05. Inline data URIs: no request to fail, no basePath to
+   resolve; the trailing `auto`/`pointer` keywords keep native cursors
+   wherever a browser refuses SVG cursors. Static by nature — browsers
+   cannot animate a CSS cursor, and no script drives one here.
 
    `cursor` inherits, and overriding it at the root means elements whose
    native cursor comes from `auto`'s UA magic (links' pointer, prose's
-   I-beam) would show the compass too — so the interactive and text
-   surfaces below re-assert their native cursors explicitly. */
+   I-beam) would show the key too — so the interactive surfaces take the
+   lock and the text surfaces re-assert their I-beam explicitly. */
 @media (pointer: fine) and (hover: hover) {
   html {
     cursor:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 3l11.5 4.5-4.9 2.1-2.1 4.9z' fill='%2308070A' stroke='%23F2EDE3' stroke-width='1.4' stroke-linejoin='round'/%3E%3Ccircle cx='18.5' cy='18.5' r='5.2' fill='none' stroke='%23F2EDE3' stroke-width='1.4'/%3E%3Ccircle cx='18.5' cy='18.5' r='1.1' fill='%23F2EDE3'/%3E%3C/svg%3E")
-        3 3,
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%2308070A' stroke-width='5.4' stroke-linecap='square'%3E%3Cpath d='M6 6 L23.5 23.5'/%3E%3Cpath d='M9 9 L12.5 5.5'/%3E%3Cpath d='M13.5 13.5 L17 10'/%3E%3Ccircle cx='28' cy='28' r='6.2'/%3E%3C/g%3E%3Cg fill='none' stroke='%23F2EDE3' stroke-width='2.4' stroke-linecap='square'%3E%3Cpath d='M6 6 L23.5 23.5'/%3E%3Cpath d='M9 9 L12.5 5.5'/%3E%3Cpath d='M13.5 13.5 L17 10'/%3E%3Ccircle cx='28' cy='28' r='6.2'/%3E%3C/g%3E%3Ccircle cx='28' cy='28' r='2' fill='none' stroke='%23F2EDE3' stroke-width='1.2'/%3E%3C/svg%3E")
+        5 5,
       auto;
   }
   a,
@@ -815,10 +820,16 @@ section[id] {
   [role="button"],
   summary,
   select,
-  label[for] {
-    cursor: pointer;
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"] {
+    cursor:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M14 17 V11.5 A6 6 0 0 1 26 11.5 V17' fill='none' stroke='%2308070A' stroke-width='5.2'/%3E%3Cpath d='M14 17 V11.5 A6 6 0 0 1 26 11.5 V17' fill='none' stroke='%23F2EDE3' stroke-width='2.4'/%3E%3Crect x='9.5' y='16.5' width='21' height='18' fill='%2308070A' stroke='%23F2EDE3' stroke-width='2.2'/%3E%3Ccircle cx='20' cy='24.5' r='2.6' fill='%23F2EDE3'/%3E%3Crect x='18.9' y='25' width='2.2' height='5.5' fill='%23F2EDE3'/%3E%3C/svg%3E")
+        20 25,
+      pointer;
   }
-  input,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   textarea,
   [contenteditable="true"],
   p,
@@ -828,11 +839,6 @@ section[id] {
   .statement,
   .prose-field {
     cursor: text;
-  }
-  input[type="checkbox"],
-  input[type="radio"],
-  input[type="range"] {
-    cursor: pointer;
   }
 }
 

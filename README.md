@@ -179,9 +179,10 @@ all eight paintings with their Commons sources; tokens live in
   in small physical sounds — wood for the panels, brass for the switch,
   wax for the seal, and a minor harp chime for every other button —
   never on hover or scroll, and never as the only confirmation. On a fine
-  pointer the cursor is a bone compass needle with a lens ring
-  (pure CSS, inline SVG, no ember — it is a graphic); coarse pointers,
-  text, form fields and forced-colors keep their native cursors.
+  pointer the cursor is a medieval key, and anything clickable shows
+  the padlock it opens (original drawings, pure CSS, inline SVG, no
+  ember — they are graphics); coarse pointers, text, form fields and
+  forced-colors keep their native cursors.
 - The lamp has a **frame-budget breaker** that sheds the effect on a device
   that genuinely cannot hold it — judged over a rolling window, and
   **recoverable**: it suspends rather than destroys, and restores itself once

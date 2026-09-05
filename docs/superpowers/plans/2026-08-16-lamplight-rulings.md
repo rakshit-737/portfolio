@@ -245,3 +245,20 @@ reads mysterious, the tune's instrument so it belongs to the room. One
 delegated listener; buttons with a dedicated sound carry `data-voice`
 and are skipped, so no press ever speaks twice. Hover and scroll remain
 silent, and no sound is ever the only confirmation.
+
+**The cursor becomes the key and the lock — but not Sweezy's.** The owner
+supplied "Medieval Key & Lock Animated Cursor.zip" (Sweezy Cursors) and
+asked for it as the site cursor, somewhat bigger. The pack's own
+AGREEMENT forbids it: "You are NOT allowed to … distribute the cursor
+files directly (.cur, .ani, or ZIP)" — and serving a cursor from a public
+website (or committing it to a public repo) is direct distribution; the
+license's allowed uses are personal-device and their browser extension.
+So the files were not used. Instead the same metaphor was drawn from
+scratch in the site's own hand: an original 40px key (default cursor,
+tip-hotspot 5 5) and padlock (over anything clickable, hotspot 20 25),
+bone over a ground underlay, inline data URIs, square corners per the
+system. The click is the unlocking. Two constraints stand regardless of
+rights: CSS cannot animate a cursor (the .ani could never have run), and
+a JS-driven cursor loop is barred by the site's own idle-loop and
+frame-budget rules. If the owner obtains written permission from Sweezy,
+swapping the artwork is a two-declaration change in globals.css.
