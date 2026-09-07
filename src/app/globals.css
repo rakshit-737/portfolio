@@ -111,11 +111,18 @@ section[id] {
 }
 /* The live clock (LiveClock.tsx) is a `.label` set a shade tighter: on a
    1280px rail with the section links up, the full row measures within
-   ~12px of the width, and a scrollbar takes 17 — the 0.04em here and the
-   cluster's gap-3 buy that margin back. Here rather than a Tailwind
-   `tracking-*` utility because `.label` is unlayered and wins. */
+   ~12px of the width, and a scrollbar takes 17 — the tightening here and
+   the cluster's gap-3 buy that margin back. Here rather than a Tailwind
+   `tracking-*` utility because `.label` is unlayered and wins.
+
+   0.1em → 0.06em with the odometer (2026-09-07): each glyph now sits in
+   its own inline-block span so a changed digit can turn, and layout
+   rounds every span's advance up to a whole pixel — ~3px across the
+   reading, which was exactly the 768px rail's remaining slack on CI's
+   font renderer (the brand.spec.ts width sweep caught it). The tighter
+   tracking buys that rounding back with real margin. */
 [data-clock] {
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
 }
 
 .prose-field {

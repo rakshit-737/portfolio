@@ -189,6 +189,12 @@ test("the cartouche rests unpressed — bone seal, no transform — and presses 
   // Pressed: the chamber dips exactly 1px and the wax square carries
   // the seal-press keyframe. The audit wave's interim `group-active`
   // colour swap is gone — hover's swap is the chamber's only swap.
+  // The release below completes a real click on a real link — swallow
+  // it, or the navigation races the released-state poll (it won on a
+  // loaded machine, and the poll then queried a detached page).
+  await page.evaluate(() =>
+    addEventListener("click", (e) => e.preventDefault(), { capture: true, once: true }),
+  );
   await cta.hover();
   await page.mouse.down();
   expect(await chamber.evaluate((el) => getComputedStyle(el).transform)).toBe(
@@ -216,7 +222,13 @@ test("an external cartouche's arrow leads on hover — and only the arrow", asyn
 
   // The scoping cannot catch a non-arrow svg: the GitHub cartouche's
   // brand icon (icons.tsx, no lucide class) never moves on hover.
-  const github = page.getByRole("link", { name: "GitHub" });
+  // Scoped to the contact act with an exact name: a CI build reaches the
+  // GitHub API, so `liveSegments` renders provenance anchors a local
+  // build omits — one of them ("github.com/…") substring-matches a bare
+  // { name: "GitHub" } and trips strict mode only on CI.
+  const github = page
+    .locator("#contact")
+    .getByRole("link", { name: "GitHub", exact: true });
   await github.scrollIntoViewIfNeeded();
   await github.hover();
   expect(
@@ -234,6 +246,11 @@ test("reduced motion pins the press and the arrow to rest in every state", async
   const page = await ctx.newPage();
   await page.goto("/");
   const cta = page.getByRole("link", { name: "Read the Warden case file" });
+  // The release completes a real click on a real link — swallow it so
+  // the arrow assertions below still run against the index.
+  await page.evaluate(() =>
+    addEventListener("click", (e) => e.preventDefault(), { capture: true, once: true }),
+  );
   await cta.hover();
   await page.mouse.down();
   expect(
