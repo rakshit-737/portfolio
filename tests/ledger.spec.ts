@@ -80,7 +80,21 @@ test("Tab into a row moves the marker — focus is a row entry too", async ({ pa
     .toBeCloseTo(await rowCentre(rows.nth(0)), 1);
 
   // Tab reaches the next row's link; :focus-within carries the marker.
-  await page.keyboard.press("Tab");
+  // A row carries a variable number of receipt links — a build that
+  // reaches the GitHub API renders head-SHA/CI segments a local build
+  // omits — so Tab until focus actually leaves the first row rather
+  // than assuming one focusable per row.
+  for (let i = 0; i < 12; i++) {
+    await page.keyboard.press("Tab");
+    const inFirst = await rows
+      .nth(0)
+      .evaluate((el) => el.contains(document.activeElement));
+    if (!inFirst) break;
+  }
+  expect(
+    await rows.nth(1).evaluate((el) => el.contains(document.activeElement)),
+    "after leaving the first row, focus lands in the second",
+  ).toBe(true);
   await expect
     .poll(() => markerY(marker))
     .toBeCloseTo(await rowCentre(rows.nth(1)), 1);
