@@ -158,3 +158,99 @@ test("under reduced motion the words are simply present", async ({ browser }) =>
   expect(hidden).toBe(0);
   await ctx.close();
 });
+
+/**
+ * The cartouche's press and arrow lead (CollectUI brief, item 1 — ref
+ * @turaluix, @RalconStudio): `:active` is a transform, never a colour
+ * swap — the inner chamber dips 1px and the wax square compresses once
+ * (`seal-press`, globals.css) — and an external cartouche's lucide
+ * arrow leads +2px,−2px on hover/focus and returns. Everything rests at
+ * `none`, and reduced motion pins the whole device to rest — a state
+ * transform survives zeroed durations, so "instant" is not enough.
+ */
+
+test("the cartouche rests unpressed — bone seal, no transform — and presses as a transform", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const cta = page.getByRole("link", { name: "Read the Warden case file" });
+  const chamber = cta.locator(".cartouche-label");
+  const wax = cta.locator(".seal > span");
+
+  // At rest — the pointer has not moved, so nothing here is hover: the
+  // seal's wax square is bone (ember is hover/focus only, never rest)
+  // and the label chamber carries no transform.
+  expect(
+    (await wax.evaluate((el) => getComputedStyle(el).backgroundColor)).replace(/\s/g, ""),
+    // rgb(242, 237, 227) === --color-signal (bone).
+  ).toBe("rgb(242,237,227)");
+  expect(await chamber.evaluate((el) => getComputedStyle(el).transform)).toBe("none");
+
+  // Pressed: the chamber dips exactly 1px and the wax square carries
+  // the seal-press keyframe. The audit wave's interim `group-active`
+  // colour swap is gone — hover's swap is the chamber's only swap.
+  await cta.hover();
+  await page.mouse.down();
+  expect(await chamber.evaluate((el) => getComputedStyle(el).transform)).toBe(
+    "matrix(1, 0, 0, 1, 0, 1)",
+  );
+  expect(await wax.evaluate((el) => getComputedStyle(el).animationName)).toBe("seal-press");
+  await page.mouse.up();
+  // Released: the press returns fully.
+  await expect
+    .poll(async () => chamber.evaluate((el) => getComputedStyle(el).transform))
+    .toBe("none");
+});
+
+test("an external cartouche's arrow leads on hover — and only the arrow", async ({ page }) => {
+  await page.goto("/");
+  const study = page.getByRole("link", { name: "View the study" });
+  await study.scrollIntoViewIfNeeded();
+  const arrow = study.locator("svg.lucide-arrow-up-right");
+  await expect(arrow).toHaveCount(1);
+  expect(await arrow.evaluate((el) => getComputedStyle(el).transform)).toBe("none");
+  await study.hover();
+  await expect
+    .poll(async () => arrow.evaluate((el) => getComputedStyle(el).transform))
+    .toBe("matrix(1, 0, 0, 1, 2, -2)");
+
+  // The scoping cannot catch a non-arrow svg: the GitHub cartouche's
+  // brand icon (icons.tsx, no lucide class) never moves on hover.
+  const github = page.getByRole("link", { name: "GitHub" });
+  await github.scrollIntoViewIfNeeded();
+  await github.hover();
+  expect(
+    await github
+      .locator("svg")
+      .first()
+      .evaluate((el) => getComputedStyle(el).transform),
+  ).toBe("none");
+});
+
+test("reduced motion pins the press and the arrow to rest in every state", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  const cta = page.getByRole("link", { name: "Read the Warden case file" });
+  await cta.hover();
+  await page.mouse.down();
+  expect(
+    await cta.locator(".cartouche-label").evaluate((el) => getComputedStyle(el).transform),
+  ).toBe("none");
+  expect(
+    await cta.locator(".seal > span").evaluate((el) => getComputedStyle(el).animationName),
+  ).toBe("none");
+  await page.mouse.up();
+
+  const study = page.getByRole("link", { name: "View the study" });
+  await study.scrollIntoViewIfNeeded();
+  await study.hover();
+  expect(
+    await study
+      .locator("svg.lucide-arrow-up-right")
+      .evaluate((el) => getComputedStyle(el).transform),
+  ).toBe("none");
+  await ctx.close();
+});

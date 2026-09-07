@@ -541,6 +541,24 @@ seal is a bordered square holding a solid square, never a circle.
   appears on hover and the chamber's fill never swaps on focus alone, so
   the two states stay visually distinct even though both may carry the
   ember seal.
+- **Press:** `:active` is a transform, never a second colour swap — the
+  inner chamber dips 1px (instant, a mechanical press) and the seal's
+  wax square compresses once, `1 → 0.75 → 1` over 120ms with the site's
+  easing (`seal-press`, `globals.css`): the seal pressed into the wax.
+  This replaced an interim `group-active` swap on the chamber, so
+  hover's swap stays the chamber's only swap, and it is the immediate
+  press cue on touch, where hover never fires. Under reduced motion
+  both transforms are pinned to rest — inert, not merely instant
+  (state transforms survive zeroed durations). The outer ring never
+  moves. No rule is narrowed: transform-only, inside the ≤240ms /
+  two-property motion budget, no ember, no inversion (ref CollectUI
+  @turaluix, @adrianabelarde_).
+- **Arrow lead:** an external cartouche's lucide `ArrowUpRight` (passed
+  as children at the call sites) translates `+2px, −2px` over 160ms on
+  hover and focus-visible and returns. Nothing else in the control
+  moves: the rule is scoped by lucide's own `.lucide-arrow-up-right`
+  class, which the brand icons (`icons.tsx`, no lucide class) and the
+  seal (a span) can never match (ref CollectUI @RalconStudio).
 - **Ember exception:** the seal is the one place ember appears on a
   control — hover/focus only, never at rest. This narrows the
   Ember-Is-Rare Rule above by exactly one component; ember still never
