@@ -73,19 +73,23 @@ export default function Provenance({
                 `EvidenceSegment.disabled`'s own comment in content.ts. */}
             {s.href ? (
               /* A plain anchor (repo, head SHA, verify) is a ~12px-tall
-                 target; the same WCAG 2.5.8 device as the chip above —
-                 block padding with a compensating negative margin, legal
-                 here because the li's flex blockifies the anchor — lifts
-                 it past the 24px floor without moving the printed line. A
-                 chip anchor is exempt: its span already carries the
-                 py-1.5 that clears the floor, and doubling it would
-                 overlap neighbouring hit areas across the 12px gaps. */
+                 target; py-1.5 lifts it past the 24px WCAG 2.5.8 floor
+                 the same way the chip above already does. Real padding,
+                 no compensating negative margin: the first cut paired
+                 py-1.5 with -my-1.5 to keep the printed line unmoved,
+                 and on a renderer that wraps a receipt list the
+                 out-of-flow boxes overlapped the next row's anchors —
+                 axe's target-size counts only the UNOBSCURED area, so
+                 the overlap read as sub-24px targets and failed the
+                 Lighthouse gate on CI (2026-09-07). In-flow padding
+                 cannot overlap, and rows holding a chip were already
+                 this tall — the receipt rhythm just evens out. */
               <a
                 href={s.href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal ${
-                  chip ? "" : "-my-1.5 py-1.5"
+                  chip ? "" : "py-1.5"
                 }`}
               >
                 {content}
