@@ -354,3 +354,147 @@ test("below min-[90rem] the swap stays plain — no snapshot for a rail without 
   expect(await vtCount(page)).toBe(0);
   await ctx.close();
 });
+
+/**
+ * The odometer (CollectUI brief, item 4 — ref @thecuvii, @ahmetloca):
+ * the clock and the NN/08 act counter render every glyph in its own
+ * inline-block span (Odometer.tsx — real text, no aria-hidden twin),
+ * and only a changed glyph turns, one WAAPI animation per span with a
+ * fill that releases. The lingering check is scoped to each
+ * instrument's subtree, not document.getAnimations() whole: the sine's
+ * own draw (`sine-draw`/`node-in`, fill `both`) stays relevant
+ * page-wide forever by design, and the guard here is that the
+ * *odometer* leaves nothing behind between ticks.
+ */
+
+test("the clock turns like an instrument — per-glyph spans, few wheels, none lingering", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/`);
+  const clock = page.locator("[data-clock]");
+  await expect(clock).toBeVisible();
+  await expect(clock).not.toHaveText(CLOCK_PLACEHOLDER);
+
+  // The spans concatenate to exactly formatClock()'s shape — splitting
+  // the reading never changed the text.
+  const reading = (await clock.textContent()) ?? "";
+  expect(reading).toMatch(/^\d{2} [A-Za-z]{3} · \d{2}:\d{2}:\d{2} IST$/);
+  // One span per glyph, each its own inline-block wheel, and no
+  // aria-hidden anywhere inside — the accessible name is the reading.
+  const wheels = clock.locator(":scope > span > span");
+  await expect(wheels).toHaveCount(reading.length);
+  expect(await wheels.first().evaluate((el) => getComputedStyle(el).display)).toBe(
+    "inline-block",
+  );
+  await expect(clock.locator("[aria-hidden]")).toHaveCount(0);
+
+  // Watch ~2.6s (at least two ticks): some wheel turns, never more than
+  // 3 at once, and after the window the subtree drains to zero within
+  // one tick's ~820ms still stretch — finished turns must not persist.
+  const report = await clock.evaluate(
+    (el) =>
+      new Promise<{ saw: boolean; max: number; drained: boolean }>((resolve) => {
+        let saw = false;
+        let max = 0;
+        const t0 = performance.now();
+        const sample = () => {
+          const n = el.getAnimations({ subtree: true }).length;
+          saw = saw || n > 0;
+          max = Math.max(max, n);
+          if (performance.now() - t0 < 2600) {
+            requestAnimationFrame(sample);
+            return;
+          }
+          const t1 = performance.now();
+          const drain = () => {
+            if (el.getAnimations({ subtree: true }).length === 0) {
+              resolve({ saw, max, drained: true });
+            } else if (performance.now() - t1 > 900) {
+              resolve({ saw, max, drained: false });
+            } else {
+              requestAnimationFrame(drain);
+            }
+          };
+          drain();
+        };
+        sample();
+      }),
+  );
+  expect(report.saw, "a passing second turns at least one wheel").toBe(true);
+  expect(report.max, "at most 3 wheels turn per tick").toBeLessThanOrEqual(3);
+  expect(report.drained, "between ticks no animation persists").toBe(true);
+  await ctx.close();
+});
+
+test("the act counter pads to two digits and tracks aria-current, wheel by wheel", async ({
+  browser,
+}) => {
+  // 1600px: past min-[90rem], so the section links (the aria-current
+  // carriers the counter must track) are on the rail beside it.
+  const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/`);
+  const counter = page.locator("[data-act-counter]");
+  await expect(counter).toHaveText("01/08");
+  // Five glyphs, five wheels. (The wrapper's aria-hidden is the
+  // indicator's own pre-odometer state — the position it shows is
+  // announced by aria-current on the matching link — not a text twin.)
+  await expect(counter.locator(":scope > span > span")).toHaveCount(5);
+  for (const [i, s] of navSections.entries()) {
+    await page.locator(`#${s.id}`).scrollIntoViewIfNeeded();
+    await expect(page.locator(`header nav a[href="#${s.id}"]`)).toHaveAttribute(
+      "aria-current",
+      "location",
+    );
+    // navSections[i] is act i+2 (`acts` opens with the hero) — always
+    // two padded digits, tracking the same spy state as aria-current.
+    await expect(counter).toHaveText(`${String(i + 2).padStart(2, "0")}/08`);
+  }
+  // The hero reset reads 01/08 again, exactly as before the odometer.
+  await page.locator("#hero").scrollIntoViewIfNeeded();
+  await expect(counter).toHaveText("01/08");
+  await ctx.close();
+});
+
+test("under reduced motion the digits simply change — no odometer animation ever runs", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({
+    viewport: { width: 1600, height: 900 },
+    reducedMotion: "reduce",
+  });
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/`);
+  const clock = page.locator("[data-clock]");
+  await expect(clock).not.toHaveText(CLOCK_PLACEHOLDER);
+  const before = await clock.textContent();
+  // Watch across at least two ticks: no Animation ever appears in the
+  // clock's subtree — WAAPI sits outside the CSS reduced-motion block,
+  // so Odometer.tsx checks matchMedia itself; this measures that.
+  const saw = await clock.evaluate(
+    (el) =>
+      new Promise<boolean>((resolve) => {
+        let saw = false;
+        const t0 = performance.now();
+        const sample = () => {
+          if (el.getAnimations({ subtree: true }).length > 0) saw = true;
+          if (performance.now() - t0 < 2200) requestAnimationFrame(sample);
+          else resolve(saw);
+        };
+        sample();
+      }),
+  );
+  expect(saw).toBe(false);
+  // The swap is instant, not suppressed: the reading still ticked.
+  expect(await clock.textContent()).not.toBe(before);
+  // The act counter likewise: the state moves, nothing animates.
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const counter = page.locator("[data-act-counter]");
+  await expect(counter).toHaveText("02/08");
+  expect(
+    await counter.evaluate((el) => el.getAnimations({ subtree: true }).length),
+  ).toBe(0);
+  await ctx.close();
+});

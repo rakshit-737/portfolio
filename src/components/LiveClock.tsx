@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { hero, site } from "@/content";
+import Odometer from "@/components/Odometer";
 
 /**
  * The owner's local time, live, beside the name in the nav — the
@@ -17,6 +18,13 @@ import { hero, site } from "@/content";
  * are tabular (`tnum` is global), so the width never changes and the nav
  * never reflows as the seconds turn. Plain text, no live region: a
  * screen reader hears it once on navigation, not sixty times a minute.
+ *
+ * The reading renders through Odometer.tsx (CollectUI brief, item 4):
+ * each glyph in its own span, and only the glyphs a tick actually
+ * changes turn over — the `<time>` stays a single element and its
+ * text stays exactly `formatClock()`'s. The placeholder's swap to the
+ * first real reading never animates: it differs at every digit
+ * position, far past the odometer's three-wheel cap.
  */
 export const CLOCK_PLACEHOLDER = `·· ··· · ··:··:·· ${site.timeZoneLabel}`;
 
@@ -62,7 +70,7 @@ export default function LiveClock({ className = "" }: { className?: string }) {
       title={`Current time in ${hero.location}`}
       className={`label tabular-nums whitespace-nowrap ${className}`.trim()}
     >
-      {text}
+      <Odometer text={text} />
     </time>
   );
 }

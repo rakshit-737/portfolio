@@ -7,6 +7,7 @@ import { acts, links, navSections, type ActId } from "@/content";
 import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
 import LiveClock from "@/components/LiveClock";
 import Mark from "@/components/Mark";
+import Odometer from "@/components/Odometer";
 import SoundToggle from "@/components/SoundToggle";
 import { withBase } from "@/lib/base";
 import { playUi } from "@/lib/sound";
@@ -190,12 +191,20 @@ export default function Nav() {
               ctrl-K + Résumé cluster needs 818px of a 768px rail with it
               — only ~3px of slack without — so it sits out `md`–`lg` and
               returns at `lg`, where the wider rail holds everything
-              (the brand.spec.ts width sweep gates all of this). */}
+              (the brand.spec.ts width sweep gates all of this). The
+              reading renders through Odometer (CollectUI brief, item 4):
+              when an act passes, only the changed digit turns over —
+              the visibility bands above are untouched, and Odometer
+              itself skips a hidden instance, so the md–lg gap never
+              animates invisibly. */}
           <span
             aria-hidden="true"
+            data-act-counter
             className="label hidden tabular-nums min-[24rem]:inline-block md:hidden lg:inline-block"
           >
-            {String(actNumber).padStart(2, "0")}/{String(ACT_IDS.length).padStart(2, "0")}
+            <Odometer
+              text={`${String(actNumber).padStart(2, "0")}/${String(ACT_IDS.length).padStart(2, "0")}`}
+            />
           </span>
           {/* Chennai time, live, from `md` up. Measured at 1600px: the rail
               needs 1110px without it and 1268px with it, so the section

@@ -602,6 +602,35 @@ pinned off in that block alongside the seal press. No rule is narrowed:
 transform and opacity only, inside the ≤240ms budget, no ember, no
 inversion, no new dependency.
 
+### Odometer (`Odometer.tsx`)
+The two live readings — the nav clock (`LiveClock.tsx`) and the `NN/08`
+act counter (`Nav.tsx`) — turn like instruments rather than repainting
+(ref CollectUI @thecuvii, @ahmetloca — the split-flap's 3D fold dropped,
+only the turn translated). Every glyph sits in its own inline-block
+span: real text, never an `aria-hidden` twin (the Ignite history binds
+here too), so the accessible name, find-in-page and copy read exactly
+the concatenated reading — which also means the exiting half of a turn
+necessarily shows the incoming glyph, racing to opacity 0 in 90ms.
+When a reading changes, only the changed glyphs move: one WAAPI
+animation per changed span — up 0.6em and out, the incoming rising
+from below — 180ms in two halves on the site's easing, transform and
+opacity only; tabular figures (`tnum` is global) keep a turn from ever
+reflowing the rail. The fill releases on finish, so between ticks the
+instrument's subtree reports zero animations — nothing persists, and
+`tests/brand.spec.ts` measures exactly that. At most three wheels turn
+per change: anything bigger — an hour rollover, above all the server
+placeholder's swap to the first real reading — is a plain swap, as is
+any change while the instrument is display-hidden (`checkVisibility()`;
+the rail clock below `md` and the counter in its measured `md`–`lg`
+gap keep ticking without animating — those visibility bands are
+untouched). WAAPI sits outside the CSS reduced-motion block, so the
+component checks `matchMedia("(prefers-reduced-motion: reduce)")` per
+change and simply swaps. The clock's `setInterval` stays a
+`setInterval`, its `<time datetime>` stays a single element, and the
+counter stays presentational (`aria-current` on the matching link
+remains the announced state). No rule is narrowed: two properties,
+≤240ms, no ember, no inversion, no new dependency.
+
 ### Chips
 - **Pass / fail chip** (`Provenance`): a verified outcome is a filled chip
   (`signal` ground, `ground` text) with a drawn check; a failing outcome is
