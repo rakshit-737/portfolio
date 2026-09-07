@@ -186,16 +186,17 @@ function CertificationRow({ c }: { c: Certification }) {
     <li className="border-b border-rule py-6">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="min-w-0">
-          {/* A no-event certification is a course completion whose
-              distinguishing fact is the course, not the boilerplate
-              title — four coursework rows share the literal title
-              "Certificate of Completion" — so its h4 leads with `reason`
-              (the course name, verbatim) and the title folds into the
-              body's "…, issued by …" line below (2026-09-07). An awarded
-              certificate (one with an `event`) keeps its own title.
+          {/* The distinguishing fact keyed on directly: a row whose
+              title is the boilerplate "Certificate of Completion" (the
+              four coursework rows share it literally) leads its h4 with
+              `reason` — the course name, verbatim — and folds the title
+              into the body's "…, issued by …" line below (2026-09-07).
+              A row with a distinctive title keeps it, event or no event
+              — Azure Fundamentals carries no event and is not a course
+              completion, so keying on event absence misfiled it.
               Lightbox trigger labels and scan alt text are untouched. */}
           <h4 className="font-mono text-base leading-snug font-semibold tracking-tight">
-            {c.event ? c.title : c.reason}
+            {c.title === "Certificate of Completion" ? c.reason : c.title}
           </h4>
           <p className="prose-field mt-1.5 text-sm">
             {c.awardedTo}
@@ -428,9 +429,13 @@ export default async function Home() {
             </a>
 
             {/* sm and up: every token of "verified" links to its own
-                receipt — a proof strip, not a self-claim. leading-[1.45]
-                because the strip wraps: `.label`'s one-line 1.1 leading
-                sets wrapped token rows nearly touching. */}
+                receipt — a proof strip, not a self-claim. At every width
+                it renders (sm and up) the strip lays out on a single
+                line — the invariant the last token's data-tip-end
+                containment below depends on; flex-wrap/gap-y-1/
+                leading-[1.45] are defensive tolerance for a wrap that
+                does not occur today, since `.label`'s one-line 1.1
+                leading would set wrapped rows nearly touching. */}
             <p className="label mt-6 hidden flex-wrap items-center gap-x-2 gap-y-1 leading-[1.45] normal-case sm:flex">
               <span className="bg-signal px-1.5 py-0.5 text-ground">
                 {hero.provenance.prefix}

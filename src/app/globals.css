@@ -292,7 +292,24 @@ section[id] {
 [data-nav-active] {
   view-transition-name: nav-active;
 }
-::view-transition-group(nav-active) {
+/* The page itself never participates: without this, the API's implicit
+   root capture cross-fades a frozen full-viewport snapshot — paintings
+   and lamp included — over the still-scrolling page at the UA's own
+   250ms/ease on every spy change, a second moving thing the world's
+   law forbids. Un-naming the root leaves only the nav highlight
+   snapshotted, and the overlay never eats input while it plays. The
+   old/new fades inside the named group are pinned to the same 240ms
+   and easing as the group's travel — the UA inherits duration but not
+   timing-function. */
+:root {
+  view-transition-name: none;
+}
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(nav-active),
+::view-transition-old(nav-active),
+::view-transition-new(nav-active) {
   animation-duration: 240ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -715,16 +732,6 @@ section[id] {
 }
 [data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(8) {
   transition-delay: 0.42s;
-}
-/* The warden and scheduler acts carry nine direct children (timeframe/
-   kicker/statement/one-liner/numbers/exhibit-or-caption/teaser/CTAs/
-   provenance — the receipts close the act, 2026-09-07; plantpal reaches
-   nine too once its exhibit's captures arrive). Without this rung the
-   closing provenance fired at child 1's zero delay — the act's receipts
-   landing before the copy above them had moved, the exact break C3 fixed
-   at children 6-8. Continuing the same 0.06s step, not a new cadence. */
-[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(9) {
-  transition-delay: 0.48s;
 }
 
 /* Inside that same moment, the statement resolves word by word

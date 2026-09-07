@@ -105,7 +105,8 @@ export default function Lamp() {
     // REACH_START of centre it nudges at the base factor the lamp has
     // always used, so ordinary mid-frame drift feels identical; only a
     // deliberate reach past that — the cursor pushed toward a frame
-    // edge — leans the lantern further, at REACH_FACTOR on the excess.
+    // edge — leans the lantern further, at that axis's `reach` factor
+    // on the excess.
     // The extension exists because the base factor alone left the text
     // column's own `.ignite` metrics geometrically unreachable on wide
     // viewports: `restX` clamps the rest to the open right half (0.52),

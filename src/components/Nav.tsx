@@ -191,7 +191,9 @@ export default function Nav() {
               ctrl-K + Résumé cluster needs 818px of a 768px rail with it
               — only ~3px of slack without — so it sits out `md`–`lg` and
               returns at `lg`, where the wider rail holds everything
-              (the brand.spec.ts width sweep gates all of this). The
+              (the brand.spec.ts width sweep gates the md–lg gap and
+              the lg return; the 24rem leg is a static-build
+              measurement, not test-gated). The
               reading renders through Odometer (CollectUI brief, item 4):
               when an act passes, only the changed digit turns over —
               the visibility bands above are untouched, and Odometer

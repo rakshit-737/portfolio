@@ -30,9 +30,19 @@ export default function ProofTooltips() {
         }
         anchor.setAttribute("data-tip-dismissed", "");
         const lift = () => {
-          anchor.removeAttribute("data-tip-dismissed");
-          anchor.removeEventListener("pointerleave", lift);
-          anchor.removeEventListener("focusout", lift);
+          // Either departing condition fires this, but the stamp only
+          // lifts once NEITHER still holds — with hover and focus on
+          // the token at once, the pointer leaving used to lift the
+          // stamp while focus still held the reveal open, undoing the
+          // Escape it had just answered. rAF, not synchronous: during
+          // a focus transfer :focus-within can still match the anchor
+          // mid-flight.
+          requestAnimationFrame(() => {
+            if (anchor.matches(":hover, :focus-within")) return;
+            anchor.removeAttribute("data-tip-dismissed");
+            anchor.removeEventListener("pointerleave", lift);
+            anchor.removeEventListener("focusout", lift);
+          });
         };
         anchor.addEventListener("pointerleave", lift);
         anchor.addEventListener("focusout", lift);

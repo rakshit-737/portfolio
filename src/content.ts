@@ -413,9 +413,10 @@ export interface CaseStudy {
   evidence: CaseEvidenceRow[];
   outcome: string[];
   next: string[];
-  /** One line under the act's "Read the case file" button — condensed
-   *  verbatim from this study's own `outcome[0]`, never a new claim. Each
-   *  entry below names the exact sentence(s) it draws from. */
+  /** One line above the act's "Read the case file" button (moved above
+   *  the CTAs 2026-09-07 — the argument closes before the ask) —
+   *  condensed verbatim from this study's own `outcome[0]`, never a new
+   *  claim. Each entry below names the exact sentence(s) it draws from. */
   teaser: string;
 }
 

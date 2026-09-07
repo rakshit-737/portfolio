@@ -138,6 +138,9 @@ export default function CommandPalette() {
   // coordinates here actually change: genuine pointer travel, never a
   // scroll-made replay.
   const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
+  // Whether the current mouse press began on the scrim itself — see the
+  // overlay's onMouseDown/onClick pair below.
+  const scrimPressRef = useRef(false);
   // The soundscape action's label names the transition ("turn off"), so
   // the commands memo below must recompute when the engine's status
   // changes — this subscription is that dependency.
@@ -147,14 +150,18 @@ export default function CommandPalette() {
     () => "off" as const,
   );
 
-  const close = useCallback(() => {
+  // `silent` is the palette's own data-voice: a command with a dedicated
+  // sound (the soundscape action's brass click) closes without the wood
+  // tap, so one press never plays two sounds.
+  const close = useCallback((silent = false) => {
     setOpen(false);
     setQuery("");
     setSelected(0);
     setEmailCopy("idle");
     setUrlCopy("idle");
     restoreFocusRef.current?.focus();
-    playUi("tap"); // the panel closing — wood, one of the four sanctioned sounds
+    if (!silent)
+      playUi("tap"); // the panel closing — wood, one of the four sanctioned sounds
   }, []);
 
   // Every way in (Ctrl+K, "/", the nav's open event) funnels through
@@ -444,7 +451,10 @@ export default function CommandPalette() {
   const run = (c: Command) => {
     pushRecent(c.id.replace(/^recent-/, ""));
     c.run();
-    if (!c.id.endsWith("copy-email") && !c.id.endsWith("copy-url")) close();
+    if (!c.id.endsWith("copy-email") && !c.id.endsWith("copy-url"))
+      // The soundscape action speaks its own brass click — the close
+      // goes silent for it so one press never plays two sounds.
+      close(c.id.endsWith("soundscape"));
   };
 
   // Dialog-level keys: work wherever focus sits inside the dialog, and
@@ -496,7 +506,17 @@ export default function CommandPalette() {
   return (
     <div
       className="fixed inset-0 z-100 flex items-start justify-center bg-ground/85 p-4 pt-[12vh]"
-      onClick={close}
+      // Close only when the press itself began on the scrim: a click's
+      // target is the nearest common ancestor of mousedown and mouseup,
+      // so drag-selecting the query and releasing outside the dialog
+      // used to land the click here and discard the query mid-selection.
+      onMouseDown={(e) => {
+        scrimPressRef.current = e.target === e.currentTarget;
+      }}
+      onClick={(e) => {
+        if (scrimPressRef.current && e.target === e.currentTarget) close();
+        scrimPressRef.current = false;
+      }}
     >
       <div
         role="dialog"

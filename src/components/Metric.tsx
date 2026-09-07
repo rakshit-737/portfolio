@@ -30,13 +30,14 @@ const SUP_RUN = /([⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]+)/g;
  * plain text there and in llms.txt, and the OG cards already flatten it
  * through `ogText()`.
  *
- * A `<sup>` alone reads flat to a screen reader — `2.6×10⁻¹⁶` announced
- * as "2.6 times 10 minus 16", an exponent indistinguishable from a
- * subtraction. So the visual run is `aria-hidden` and paired with an
- * sr-only caret rendering (`^−16`) — the same linearization `ogText()`
- * already uses for Satori — derived from the identical parsed run, never
- * a second hand-typed copy. The mantissa itself stays one visible text
- * node, so find-in-page still matches it exactly as before.
+ * One `<sup>`, one text node, no twin. A `<sup>` reads flat to a screen
+ * reader ("2.6 times 10 minus 16"), and an earlier fix paired it with an
+ * sr-only caret rendering — which put a SECOND copy of the exponent in
+ * the DOM, the exact doubled-text regression Ignite.tsx's history exists
+ * to forbid: copy yielded "…10−16^−16" and find-in-page matched the
+ * exponent twice (reverted 2026-09-07). The exactly-once contract
+ * (DESIGN.md, Number tier) outranks the flat announcement; amending that
+ * contract is the owner's call, not a rendering trick's.
  */
 function superscripts(text: string, keyPrefix: string): ReactNode[] {
   return text.split(SUP_RUN).map((part, i) => {
@@ -44,12 +45,7 @@ function superscripts(text: string, keyPrefix: string): ReactNode[] {
       return <Fragment key={`${keyPrefix}-${i}`}>{part}</Fragment>;
     }
     const plain = [...part].map((ch) => SUPERSCRIPT[ch]).join("");
-    return (
-      <Fragment key={`${keyPrefix}-${i}`}>
-        <sup aria-hidden="true">{plain}</sup>
-        <span className="sr-only">{`^${plain}`}</span>
-      </Fragment>
-    );
+    return <sup key={`${keyPrefix}-${i}`}>{plain}</sup>;
   });
 }
 

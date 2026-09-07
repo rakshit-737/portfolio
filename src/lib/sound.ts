@@ -507,6 +507,19 @@ function armGestureStart() {
       // Orientation, not engagement — return before removal, so the
       // listeners stay armed for the real first gesture.
       if (key !== "Enter" && key !== " ") return;
+      // A space typed into an editable field is text entry, not
+      // activation — without this, the first space of a palette query
+      // started the hearth, closing the silent route to the toggle the
+      // Enter/Space filter exists to keep open. Enter stays a gesture
+      // everywhere: in the palette's input it runs the selected command.
+      const t = e.target;
+      if (
+        key === " " &&
+        (t instanceof HTMLInputElement ||
+          t instanceof HTMLTextAreaElement ||
+          (t instanceof HTMLElement && t.isContentEditable))
+      )
+        return;
     }
     window.removeEventListener("pointerdown", start);
     window.removeEventListener("keydown", start);

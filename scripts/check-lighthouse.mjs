@@ -142,7 +142,22 @@ for (const form of ["mobile", "desktop"]) {
     console.log(
       `${ok ? "OK  " : "FAIL"} ${form} ${cat}: median ${med} of [${scores.join(", ")}] (min ${min})`,
     );
-    if (!ok) failed = true;
+    if (!ok) {
+      failed = true;
+      // Name the audits behind a missed floor — a bare "97 < 100" hides
+      // which check moved, and this gate runs where nobody can attach a
+      // debugger. Weighted, sub-perfect audits only, with the first
+      // offending selector each; weight-0 audits can't move the score.
+      const refs = reports[0].categories[cat]?.auditRefs ?? [];
+      const weights = Object.fromEntries(refs.map((r) => [r.id, r.weight ?? 0]));
+      for (const [id, audit] of Object.entries(reports[0].audits)) {
+        if (audit.score === null || audit.score >= 1 || !(weights[id] > 0)) continue;
+        const sel = audit.details?.items?.[0]?.node?.selector ?? "";
+        console.log(
+          `       failing audit: ${id} (weight ${weights[id]}, score ${audit.score})${sel ? ` — first node: ${sel}` : ""}`,
+        );
+      }
+    }
   }
 
   const clsValues = reports.map((r) => r.audits["cumulative-layout-shift"]?.numericValue ?? 0);
