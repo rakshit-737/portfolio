@@ -8,6 +8,7 @@ import {
   setSoundEnabled,
   subscribeSound,
 } from "@/lib/sound";
+import MorphLabel from "@/components/MorphLabel";
 import { soundscape } from "@/content";
 
 /**
@@ -43,7 +44,10 @@ export default function SoundToggle({ className = "" }: { className?: string }) 
       }}
       className={`label transition-colors ${className}`}
     >
-      {soundscape.label}: {on ? soundscape.on : soundscape.off}
+      {/* Only the state word morphs (MorphLabel — the same 180ms word
+          device the copy button uses); "Soundscape:" holds still, and
+          the accessible name stays this one run of text. */}
+      {soundscape.label}: <MorphLabel text={on ? soundscape.on : soundscape.off} />
     </button>
   );
 }

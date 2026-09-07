@@ -162,10 +162,46 @@ test("copying the email presses the seal", async ({ page, context }) => {
   await installUiLog(page);
   await page.goto("/#contact");
   await page.getByRole("button", { name: /copy email address/i }).click();
-  await expect(page.getByRole("button", { name: /^Copied/ })).toBeVisible();
+  const copied = page.getByRole("button", { name: /^Copied/ });
+  await expect(copied).toBeVisible();
+  // The morph (MorphLabel.tsx) swaps the visible word mid-flight — the
+  // confirmation must still land as real text, never only as ARIA.
+  await expect(copied).toContainText("Copied");
+  // And the polite live region still fires its announcement.
+  await expect(
+    page.locator('[aria-live="polite"]', { hasText: /copied to clipboard/i }),
+  ).toHaveCount(1);
   expect(
     await page.evaluate(() => (window as unknown as { __ui: string[] }).__ui),
   ).toEqual(["seal"]);
+});
+
+test("reduced motion swaps labels instantly — the morph never runs", async ({ page, context }) => {
+  // MorphLabel is WAAPI, which globals.css's reduced-motion block cannot
+  // zero — the component checks the preference itself and swaps in place.
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/#contact");
+  await page.getByRole("button", { name: /copy email address/i }).click();
+  await expect(page.getByRole("button", { name: /^Copied/ })).toContainText(
+    "Copied",
+  );
+  const toggle = page.getByRole("button", { name: /^Soundscape: on$/ }).first();
+  await toggle.click();
+  await expect(
+    page.getByRole("button", { name: /^Soundscape: off$/ }).first(),
+  ).toBeVisible();
+  // Both words changed; nothing may be animating — not the morph (skipped
+  // in JS), not the Check's stamp-in (pinned in the reduced-motion block).
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document.getAnimations().filter((a) => a.playState === "running")
+            .length,
+      ),
+    )
+    .toBe(0);
 });
 
 test("interface sounds obey the global setting", async ({ page }) => {

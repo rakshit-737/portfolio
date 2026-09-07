@@ -580,6 +580,28 @@ seal is a bordered square holding a solid square, never a circle.
   backgrounds drop, the seal is removed — so a Bracket that ever prints
   costs nothing but its own hairlines, never a solid block.
 
+### Morph label (`MorphLabel.tsx`)
+A stateful control's changing word is stamped, not swapped (ref CollectUI
+@SwamiMalode, @lochieaxon): when the label text changes — "Copy" →
+"Copied" on the contact act's copy-email button, "on" → "off" inside the
+nav's "Soundscape:" toggle — the outgoing word slides up 0.3em and out
+and the incoming rises in from below, 180ms in two 90ms halves on the
+site's easing: the statement reveal's own word device, answering input
+instead of arrival. One element, one text node per state (the Ignite
+history binds here too): the text swaps between the halves, so assistive
+tech, find-in-page and copy never meet two words at once — the copy
+button's `aria-label`, its polite live region, the 2s reset,
+`playUi("seal")` and `data-voice` are all untouched, as is the
+soundscape's own sr-only start announcement. On copy success the Check
+icon lands at `1.3 → 1` over 160ms (`stamp-in`, `globals.css`) — a
+one-shot CSS animation on the icon's mount, the wax meeting the paper.
+The morph is WAAPI, which the CSS reduced-motion block cannot reach, so
+the component checks `matchMedia("(prefers-reduced-motion: reduce)")`
+itself at each change and swaps instantly; `stamp-in` is CSS and is
+pinned off in that block alongside the seal press. No rule is narrowed:
+transform and opacity only, inside the ≤240ms budget, no ember, no
+inversion, no new dependency.
+
 ### Chips
 - **Pass / fail chip** (`Provenance`): a verified outcome is a filled chip
   (`signal` ground, `ground` text) with a drawn check; a failing outcome is
