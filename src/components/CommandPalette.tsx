@@ -71,6 +71,22 @@ function fuzzyScore(query: string, target: string): number | null {
   return score;
 }
 
+type CopyOutcome = "idle" | "copied" | "failed";
+
+/**
+ * Success is only ever reported from the resolved path of a real
+ * clipboard write — the rule CopyEmailButton.tsx already holds. An
+ * absent clipboard (insecure context) or a refused write reports
+ * failure instead, so a "Copied" line can never outrun the clipboard.
+ */
+function copyText(text: string, onOk: () => void, onFail: () => void) {
+  if (!navigator.clipboard) {
+    onFail();
+    return;
+  }
+  navigator.clipboard.writeText(text).then(onOk, onFail);
+}
+
 function readRecents(): string[] {
   try {
     const raw = window.localStorage.getItem(RECENTS_KEY);
@@ -97,12 +113,27 @@ export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
-  const [copiedEmail, setCopiedEmail] = useState(false);
-  const [copiedUrl, setCopiedUrl] = useState(false);
+  // A copy command's outcome, narrated in place of its own row (run()
+  // deliberately keeps the palette open for these): "copied" is set
+  // only from the resolved path of a real clipboard write (copyText
+  // above), and "failed" makes the row show the value itself — never a
+  // success the clipboard didn't confirm.
+  const [emailCopy, setEmailCopy] = useState<CopyOutcome>("idle");
+  const [urlCopy, setUrlCopy] = useState<CopyOutcome>("idle");
+  // The section link resolved at copy time — shown on the row when the
+  // clipboard couldn't take it.
+  const [sectionUrl, setSectionUrl] = useState("");
   const [recents, setRecents] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
+  // Keyboard selection scrolls the listbox (the scrollIntoView effect
+  // below), and that scroll replays a mouse event on whichever row
+  // lands under a stationary cursor — which stole the selection
+  // straight back. A row selects on mousemove only when the
+  // coordinates here actually change: genuine pointer travel, never a
+  // scroll-made replay.
+  const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
   // The soundscape action's label names the transition ("turn off"), so
   // the commands memo below must recompute when the engine's status
   // changes — this subscription is that dependency.
@@ -116,8 +147,8 @@ export default function CommandPalette() {
     setOpen(false);
     setQuery("");
     setSelected(0);
-    setCopiedEmail(false);
-    setCopiedUrl(false);
+    setEmailCopy("idle");
+    setUrlCopy("idle");
     restoreFocusRef.current?.focus();
     playUi("tap"); // the panel closing — wood, one of the four sanctioned sounds
   }, []);
@@ -133,7 +164,17 @@ export default function CommandPalette() {
 
   const commands = useMemo<Command[]>(() => {
     const jump = (id: string) => () => {
-      document.getElementById(id)?.scrollIntoView({
+      const el = document.getElementById(id);
+      // The palette mounts on the case files too, where the index's act
+      // sections don't exist in this document — navigate the tab to the
+      // index anchor instead, the same device the case-file section
+      // commands below already use. Never replaceState onto a hash with
+      // nothing behind it.
+      if (!el) {
+        window.location.href = withBase(`/#${id}`);
+        return;
+      }
+      el.scrollIntoView({
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
           ? "auto"
           : "smooth",
@@ -201,11 +242,14 @@ export default function CommandPalette() {
         label: `Copy email — ${links.email}`,
         keywords: "contact mail",
         run: () => {
-          navigator.clipboard
-            ?.writeText(links.email)
-            .then(() => playUi("seal")) // the copy landing — wax
-            .catch(() => {});
-          setCopiedEmail(true);
+          copyText(
+            links.email,
+            () => {
+              playUi("seal"); // the copy landing — wax, on success only
+              setEmailCopy("copied");
+            },
+            () => setEmailCopy("failed"),
+          );
         },
       },
       {
@@ -214,8 +258,34 @@ export default function CommandPalette() {
         label: "Copy link to current section",
         keywords: "share url link location",
         run: () => {
-          navigator.clipboard?.writeText(window.location.href).catch(() => {});
-          setCopiedUrl(true);
+          // Resolved at copy time: location.hash only records the last
+          // explicit jump — free scrolling never touches it. The band
+          // is Nav.tsx's scroll-spy geometry (rootMargin -30%/-60%:
+          // the strip from 30% to 40% of the viewport), so the copied
+          // link and the rail's active section agree. The deepest act
+          // whose top has reached the band's lower edge wins — for the
+          // contiguous acts that is the one spanning the band, and it
+          // still resolves at the footer, where the last act's bottom
+          // has left the band upward. A page with none of the observed
+          // sections (a case file) copies its plain pathname link, no
+          // hash — location.href could still carry a stale arrival
+          // anchor the reader has long since scrolled away from.
+          const bandBottom = window.innerHeight * 0.4;
+          let current: string | null = null;
+          for (const id of ["hero", ...navSections.map((s) => s.id)]) {
+            const el = document.getElementById(id);
+            if (el && el.getBoundingClientRect().top <= bandBottom)
+              current = id;
+          }
+          const url = current
+            ? `${location.origin}${location.pathname}#${current}`
+            : `${location.origin}${location.pathname}`;
+          setSectionUrl(url);
+          copyText(
+            url,
+            () => setUrlCopy("copied"),
+            () => setUrlCopy("failed"),
+          );
         },
       },
       {
@@ -370,6 +440,22 @@ export default function CommandPalette() {
     }
   };
 
+  // A copy row narrates its own outcome in place — and on failure
+  // shows the value itself (the address, the resolved link), so the
+  // reader still leaves with what the clipboard refused to take.
+  const optionText = (c: Command) => {
+    if (c.id.endsWith("copy-email")) {
+      if (emailCopy === "copied") return "Copied email to clipboard";
+      if (emailCopy === "failed")
+        return `Clipboard unavailable — ${links.email}`;
+    }
+    if (c.id.endsWith("copy-url")) {
+      if (urlCopy === "copied") return "Copied section link to clipboard";
+      if (urlCopy === "failed") return sectionUrl;
+    }
+    return c.label;
+  };
+
   // Group commands preserving order for role="group" list semantics.
   const groups: { name: Command["group"]; items: { c: Command; i: number }[] }[] =
     [];
@@ -449,19 +535,18 @@ export default function CommandPalette() {
                   role="option"
                   aria-selected={i === selected}
                   tabIndex={-1}
-                  onMouseEnter={() => setSelected(i)}
+                  onMouseMove={(e) => {
+                    const last = lastPointerRef.current;
+                    lastPointerRef.current = { x: e.clientX, y: e.clientY };
+                    if (last && (last.x !== e.clientX || last.y !== e.clientY))
+                      setSelected(i);
+                  }}
                   onClick={() => run(c)}
-                  className={`flex min-h-11 cursor-pointer items-center justify-between gap-4 px-4 py-3 font-mono text-sm ${
+                  className={`flex min-h-11 items-center justify-between gap-4 px-4 py-3 font-mono text-sm ${
                     i === selected ? "bg-signal text-ground" : ""
                   }`}
                 >
-                  <span className="truncate">
-                    {c.id.endsWith("copy-email") && copiedEmail
-                      ? "Copied email to clipboard"
-                      : c.id.endsWith("copy-url") && copiedUrl
-                      ? "Copied section link to clipboard"
-                      : c.label}
-                  </span>
+                  <span className="truncate">{optionText(c)}</span>
                   <span className="label flex shrink-0 items-center gap-1.5 normal-case">
                     {c.hint}
                     {c.group === "repositories" ? (
@@ -476,12 +561,17 @@ export default function CommandPalette() {
           ))}
         </div>
 
-        {/* Announce copy success to screen readers. */}
+        {/* Announce a copy's outcome — success or the fallback value —
+            to screen readers. */}
         <span aria-live="polite" className="sr-only">
-          {copiedEmail
+          {emailCopy === "copied"
             ? `Email address ${links.email} copied to clipboard`
-            : copiedUrl
+            : emailCopy === "failed"
+            ? `Clipboard unavailable — email address is ${links.email}`
+            : urlCopy === "copied"
             ? "Link to current section copied to clipboard"
+            : urlCopy === "failed"
+            ? `Clipboard unavailable — the section link is ${sectionUrl}`
             : ""}
         </span>
 

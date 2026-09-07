@@ -101,6 +101,27 @@ export default function Lamp() {
     // than queried inside the per-frame loop — see the class doc comment.
     const igniteByAct = new Map<HTMLElement, HTMLElement[]>();
 
+    // The pointer's authority over the lamp is two-zone. Within
+    // REACH_START of centre it nudges at the base factor the lamp has
+    // always used, so ordinary mid-frame drift feels identical; only a
+    // deliberate reach past that — the cursor pushed toward a frame
+    // edge — leans the lantern further, at REACH_FACTOR on the excess.
+    // The extension exists because the base factor alone left the text
+    // column's own `.ignite` metrics geometrically unreachable on wide
+    // viewports: `restX` clamps the rest to the open right half (0.52),
+    // and ±0.14 viewport of authority minus the lit radius put every
+    // metric left of x≈163px at 1440×900 permanently bone under JS —
+    // the lamp could never perform its one trick on the hero rail's own
+    // proof numbers, at any pointer position. (The idle-pointer
+    // geometry is untouched: with no pointer there is no nudge at all,
+    // so the no-void and never-lit-reference CI assertions measure the
+    // exact same lamp as before.) A reach is still a nudge: the lamp
+    // leans toward the cursor's half and never sits on the cursor — the
+    // torch that did was removed 2026-09-05.
+    const REACH_START = 0.3;
+    const nudge = (d: number, base: number, reach: number) =>
+      d * base + (Math.abs(d) > REACH_START ? (d - Math.sign(d) * REACH_START) * reach : 0);
+
     const collect = () => {
       // disconnect() fires no final "not intersecting" callback, so any
       // element that leaves the query between collections would otherwise
@@ -230,12 +251,13 @@ export default function Lamp() {
         const restY = narrow ? Math.min(0.38, rawY) : rawY;
 
         // Scroll walks the light down the frame around its rest position;
-        // the pointer nudges it, but never takes it over.
+        // the pointer nudges it, but never takes it over — two-zone
+        // authority, see `nudge` above.
         let x = restX;
         let y = restY - 0.22 + p * 0.44;
         if (fine && pointer.active) {
-          x += (smooth.x - 0.5) * 0.28;
-          y += (smooth.y - 0.5) * 0.18;
+          x += nudge(smooth.x - 0.5, 0.28, 0.55);
+          y += nudge(smooth.y - 0.5, 0.18, 0.4);
         }
 
         act.style.setProperty("--p", p.toFixed(4));

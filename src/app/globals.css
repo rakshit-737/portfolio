@@ -151,9 +151,10 @@ section[id] {
    one. Mono, not Newsreader: the One-Statement Rule keeps the display
    serif to `.statement` and case-file `h1`s only, and the Monospace
    Default Rule makes Chivo Mono the fallback for everything that isn't
-   prose. Deliberately short of the 1.5rem/1.875rem `.ignite` "Number"
-   tier (Rail.tsx, headline numbers) so a section title is never
-   mistaken for a lit measurement. */
+   prose. Deliberately short of the `.ignite` "Number" tier (rail values
+   at 1.5rem/1.875rem, headline numbers at 1.875rem/2.25rem — Rail.tsx,
+   both pages' headline rows) so a section title is never mistaken for a
+   lit measurement. */
 .case-heading {
   font-family: var(--font-mono);
   font-size: 1.375rem;
@@ -432,6 +433,22 @@ section[id] {
       transparent 66vh
     );
   }
+  /* The one act the band above cannot guard: the ledger runs ~6 viewports
+     of archive over the site's one sticky — and therefore often fully
+     lit — plate (dovedale), and both narrow-viewport gradients anchor
+     their protection to the bottom 34vh/66vh of the content box, so
+     prose in every upper viewport sat straight on the moonlit sky —
+     measured well under AA against bone at 390px. A full-height veil
+     instead of a band: 88% ground, the same fractional-alpha-on-a-graphic
+     grammar as the gradients' own stops, light enough that the painting
+     still reads behind the archive. Composes with the `inset: 0 -6vw`
+     rule below (Task 20 fix) — that one sets only the pseudo-element's
+     box, this one only its paint. The `prefers-contrast: more` block
+     names this selector too, so the solid-ground guarantee still
+     outranks the veil's ID specificity. */
+  #ledger .scrim::before {
+    background: color-mix(in srgb, var(--color-ground) 88%, transparent);
+  }
 }
 
 /* Task 20 fix: the ledger act is the one act rendered with
@@ -508,6 +525,16 @@ section[id] {
 }
 [data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(8) {
   transition-delay: 0.42s;
+}
+/* The warden and scheduler acts carry nine direct children (timeframe/
+   kicker/statement/one-liner/numbers/exhibit-or-caption/teaser/CTAs/
+   provenance — the receipts close the act, 2026-09-07; plantpal reaches
+   nine too once its exhibit's captures arrive). Without this rung the
+   closing provenance fired at child 1's zero delay — the act's receipts
+   landing before the copy above them had moved, the exact break C3 fixed
+   at children 6-8. Continuing the same 0.06s step, not a new cadence. */
+[data-lamp="on"] [data-act][data-seen] .scrim > :nth-child(9) {
+  transition-delay: 0.48s;
 }
 
 /* Inside that same moment, the statement resolves word by word
@@ -753,10 +780,14 @@ section[id] {
    in this mode; contrast becomes exactly the palette's own signal/ground
    ratio (>4.5:1, `tests/lamplight.spec.ts`'s "palette clears WCAG AA"),
    not a screenshot-measured approximation of one. Documented in DESIGN.md
-   under Colors. */
+   under Colors. `#ledger .scrim::before` is named explicitly: the
+   ledger's narrow-viewport veil carries ID specificity, so the two class
+   selectors alone would lose to it there — same guarantee, spelled at
+   the same rank (and later in source, so it wins the tie). */
 @media (prefers-contrast: more) {
   .scrim::before,
-  .scrim-wide::before {
+  .scrim-wide::before,
+  #ledger .scrim::before {
     background: var(--color-ground);
   }
 }
@@ -807,7 +838,11 @@ section[id] {
    `cursor` inherits, and overriding it at the root means elements whose
    native cursor comes from `auto`'s UA magic (links' pointer, prose's
    I-beam) would show the key too — so the interactive surfaces take the
-   lock and the text surfaces re-assert their I-beam explicitly. */
+   lock and the text surfaces re-assert their I-beam explicitly. The
+   padlock list names `[role="option"]` too: the command palette's option
+   rows are clickable divs (CommandPalette.tsx) no element selector here
+   catches, and they carry no cursor utility of their own — this role is
+   the one rule standing between them and the inherited key. */
 @media (pointer: fine) and (hover: hover) {
   html {
     cursor:
@@ -818,6 +853,7 @@ section[id] {
   a,
   button,
   [role="button"],
+  [role="option"],
   summary,
   select,
   label[for],
@@ -844,9 +880,38 @@ section[id] {
 
 /* High-contrast / forced-colors users get their platform cursor — a
    themed cursor is exactly the authored colour these modes exist to
-   override. */
+   override. The root reset alone is not enough: forced-colors and
+   `(pointer: fine)` are routinely true together, and the padlock and
+   I-beam rules above match their elements directly — inheritance from
+   `html` never enters it — so both selector lists are re-asserted to
+   `auto` here at the same specificity, winning on source order. Kept as
+   a mirror of the two lists above; a selector added there is added
+   here. */
 @media (forced-colors: active) {
   html {
+    cursor: auto;
+  }
+  a,
+  button,
+  [role="button"],
+  [role="option"],
+  summary,
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"] {
+    cursor: auto;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  [contenteditable="true"],
+  p,
+  li,
+  blockquote,
+  dd,
+  .statement,
+  .prose-field {
     cursor: auto;
   }
 }

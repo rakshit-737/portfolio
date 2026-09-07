@@ -60,8 +60,19 @@ export default function BenchmarkChart() {
   const ticks = [0, 0.25, 0.5, 0.75, 1];
 
   return (
-    <Exhibit caption={exhibits.scheduler.caption} wide>
+    // `captionPosition="top"`: the caption and the note below both guide
+    // the reading of ~600px of bars, so both must land before the rows,
+    // not after them (2026-09-07). Same `.label` caption grammar, same
+    // doubled frame — only the position moves.
+    <Exhibit caption={exhibits.scheduler.caption} wide captionPosition="top">
       <div ref={ref} data-grown="false">
+        {/* The guidance leads: the note naming which two rows are the
+            finding renders above the axis, so a reader knows what to look
+            for before scrolling the rows — its old slot after the last bar
+            arrived once the finding rows were already passed (2026-09-07).
+            The sr-only <caption> and the table semantics are untouched. */}
+        <p className="prose-field mb-6 text-sm">{benchmarkChart.note}</p>
+
         {/* Axis */}
         <div
           aria-hidden="true"
@@ -119,8 +130,6 @@ export default function BenchmarkChart() {
             ))}
           </tbody>
         </table>
-
-        <p className="prose-field mt-6 text-sm">{benchmarkChart.note}</p>
       </div>
     </Exhibit>
   );

@@ -184,8 +184,16 @@ function CertificationRow({ c }: { c: Certification }) {
     <li className="border-b border-rule py-6">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="min-w-0">
+          {/* A no-event certification is a course completion whose
+              distinguishing fact is the course, not the boilerplate
+              title — four coursework rows share the literal title
+              "Certificate of Completion" — so its h4 leads with `reason`
+              (the course name, verbatim) and the title folds into the
+              body's "…, issued by …" line below (2026-09-07). An awarded
+              certificate (one with an `event`) keeps its own title.
+              Lightbox trigger labels and scan alt text are untouched. */}
           <h4 className="font-mono text-base leading-snug font-semibold tracking-tight">
-            {c.title}
+            {c.event ? c.title : c.reason}
           </h4>
           <p className="prose-field mt-1.5 text-sm">
             {c.awardedTo}
@@ -234,7 +242,7 @@ function CertificationRow({ c }: { c: Certification }) {
           </>
         ) : (
           <>
-            Completed &ldquo;{c.reason}&rdquo;, issued by {c.organiser}.
+            {c.title}, issued by {c.organiser}.
           </>
         )}
         {c.partners && c.partners.length > 0 && (
@@ -374,7 +382,11 @@ export default async function Home() {
           <Plate id={acts.hero.plate} priority />
 
           <div className={`${SHELL} scrim relative z-10 pb-20 sm:pb-24`}>
-            <p className="label">{hero.role}</p>
+            {/* `hero.role` wraps to two lines at 390px, where `.label`'s
+                one-line 1.1 leading sets them nearly touching — the same
+                looser box Rail's dt ships. Single-line eyebrows keep
+                `.label`'s own leading. */}
+            <p className="label leading-[1.45]">{hero.role}</p>
 
             <Statement as="h1" id="hero-title" className="mt-6">
               {acts.hero.statement}
@@ -398,20 +410,25 @@ export default async function Home() {
                 Ember-Is-Rare rule — the Bracket seal is the one sanctioned
                 control exception, not a plain text link — so this uses
                 the site's standard link treatment instead, the same one
-                the contact email link below uses. */}
+                the contact email link below uses. py-1.5 lifts the ~12px
+                label to WCAG 2.5.8's 24px hit floor; mt-4.5/-mb-1.5 hand
+                the padding back so the line sits exactly where the
+                strip's own mt-6 puts it at sm and up. */}
             <a
               href={ciToken.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="label mt-6 inline-flex items-center gap-1.5 underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal sm:hidden"
+              className="label mt-4.5 -mb-1.5 inline-flex items-center gap-1.5 py-1.5 underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal sm:hidden"
             >
               verified record
               <ArrowUpRight size={11} aria-hidden="true" />
             </a>
 
             {/* sm and up: every token of "verified" links to its own
-                receipt — a proof strip, not a self-claim. */}
-            <p className="label mt-6 hidden flex-wrap items-center gap-x-2 gap-y-1 normal-case sm:flex">
+                receipt — a proof strip, not a self-claim. leading-[1.45]
+                because the strip wraps: `.label`'s one-line 1.1 leading
+                sets wrapped token rows nearly touching. */}
+            <p className="label mt-6 hidden flex-wrap items-center gap-x-2 gap-y-1 leading-[1.45] normal-case sm:flex">
               <span className="bg-signal px-1.5 py-0.5 text-ground">
                 {hero.provenance.prefix}
               </span>
@@ -479,7 +496,7 @@ export default async function Home() {
             {/* P12: plain-English kicker, first beat — the statement stays
                 the second, poetic one. `acts.about.kicker`, src/content.ts. */}
             {acts.about.kicker && (
-              <p className="label mb-4">{acts.about.kicker}</p>
+              <p className="label mb-4 leading-[1.45]">{acts.about.kicker}</p>
             )}
             <Statement id="about-title">{acts.about.statement}</Statement>
 
@@ -555,29 +572,49 @@ export default async function Home() {
               <div
                 className={`${SHELL} scrim ${project.id === "scheduler" ? "scrim-wide" : ""} relative z-10 py-24`}
               >
-                <p className="label">{project.timeframe}</p>
+                {/* The timeframe eyebrow renders only on an act with no
+                    kicker: a kicker-carrying act already closes with the
+                    same date on its own Provenance receipts line, and two
+                    stacked `.label` eyebrows opened the act by stating it
+                    twice (2026-09-07). An act without a kicker keeps the
+                    eyebrow — dropping it there would remove the date from
+                    the act's opening entirely. */}
+                {!act.kicker && (
+                  <p className="label">{project.timeframe}</p>
+                )}
                 {/* P12: plain-English kicker, first beat — the statement
                     stays the second, poetic one. `acts[id].kicker`,
                     src/content.ts. `mb-4` is the same gap the about and
                     research acts give their kicker: without it the
                     statement's ascenders sat on the kicker's baseline,
                     and on a phone, where the kicker wraps, its second
-                    line ran straight through the statement's first. */}
-                {act.kicker && <p className="label mt-2 mb-4">{act.kicker}</p>}
+                    line ran straight through the statement's first; the
+                    kicker that wraps also takes the looser leading-[1.45]
+                    box the other wrap-prone labels use. */}
+                {act.kicker && (
+                  <p className="label mb-4 leading-[1.45]">{act.kicker}</p>
+                )}
                 <Statement id={`${project.id}-title`}>{act.statement}</Statement>
 
                 <p className="prose-field mt-8">{project.oneLiner}</p>
 
+                {/* dt precedes dd — the only order a <dl> group's content
+                    model allows — with `flex-col-reverse` keeping the
+                    number-first visual; no focusable sits inside a stat,
+                    so visual and reading order can't diverge for a
+                    keyboard user. Below `sm` the stats stack as a
+                    deliberate column: left to wrap, a three-stat row
+                    broke 2+1 at 390px by accident of label width. */}
                 {project.headlineNumbers && (
-                  <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-6 border-y border-rule py-6">
+                  <dl className="mt-10 flex flex-col gap-x-12 gap-y-6 border-y border-rule py-6 sm:flex-row sm:flex-wrap">
                     {project.headlineNumbers.map((n) => (
-                      <div key={n.label}>
+                      <div key={n.label} className="flex flex-col-reverse">
+                        <dt className="label mt-2">{n.label}</dt>
                         <Ignite
                           as="dd"
                           value={n.value}
                           className="font-mono text-3xl leading-none font-semibold tracking-tight tabular-nums sm:text-4xl"
                         />
-                        <dt className="label mt-2">{n.label}</dt>
                       </div>
                     ))}
                   </dl>
@@ -603,7 +640,13 @@ export default async function Home() {
                         const match = row.value.match(/^risk (\d+) — (.+)$/);
                         return (
                           <span key={row.label} className="mb-4 block last:mb-0">
-                            <span className="block">
+                            {/* Hanging indent: at 390px the longest
+                                command wraps, and a flush-left second line
+                                read as a fourth typed command. Pad the
+                                block and out-dent line one so wrapped
+                                lines align inside the command text; the →
+                                output lines keep their own pl-4. */}
+                            <span className="block pl-8 -indent-8">
                               $ warden scan {row.label}
                             </span>
                             <span className="block pl-4">
@@ -667,13 +710,17 @@ export default async function Home() {
                     );
                   })()}
 
-                <Provenance
-                  className="mt-8"
-                  segments={withCredit(act.plate, [
-                    ...project.evidence,
-                    ...liveSegments(live),
-                  ])}
-                />
+                {/* One-line teaser, condensed verbatim from the case
+                    study's own `outcome[0]` (src/content.ts) — never a new
+                    claim. The argument closes before the ask: teaser, then
+                    CTAs, then receipts (2026-09-07 — its old slot after
+                    the CTA row sat clipped below the fold at 1440×900), at
+                    the same mt-8 step its siblings keep rather than a
+                    caption hung off the buttons. Not print-hidden: it's
+                    record, not chrome. */}
+                <p className="mt-8 max-w-[46ch] text-sm leading-relaxed">
+                  <Metric text={caseStudies[project.id].teaser} />
+                </p>
 
                 <div className="print-hidden mt-8 flex flex-wrap gap-3">
                   <BracketLink
@@ -691,12 +738,18 @@ export default async function Home() {
                   )}
                 </div>
 
-                {/* One-line teaser, condensed verbatim from the case
-                    study's own `outcome[0]` (src/content.ts) — never a new
-                    claim. Not print-hidden: it's record, not chrome. */}
-                <p className="mt-3 max-w-[46ch] text-sm leading-relaxed">
-                  <Metric text={caseStudies[project.id].teaser} />
-                </p>
+                {/* The receipts close the act — evidence chips and the
+                    plate credit render last, after the ask, so at 390px
+                    the several wrapped provenance rows no longer separate
+                    the numbers from "Read the case file" (2026-09-07).
+                    One DOM order for both viewports. */}
+                <Provenance
+                  className="mt-8"
+                  segments={withCredit(act.plate, [
+                    ...project.evidence,
+                    ...liveSegments(live),
+                  ])}
+                />
               </div>
             </Act>
           );
@@ -715,17 +768,23 @@ export default async function Home() {
                 the second, poetic one. `acts.research.kicker`,
                 src/content.ts. */}
             {acts.research.kicker && (
-              <p className="label mb-4">{acts.research.kicker}</p>
+              <p className="label mb-4 leading-[1.45]">{acts.research.kicker}</p>
             )}
             <Statement id="research-title">{acts.research.statement}</Statement>
 
-            <figure className="mt-10 grid gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-              <blockquote className="prose-field text-lg">
-                {researchSpotlight.quote}
-              </blockquote>
-              <figcaption className="prose-field text-sm lg:pt-2">
+            {/* Orientation before density (2026-09-07): the figcaption —
+                the context line naming which study the quote comes from —
+                reads first, at `prose-field`'s reading width, so a
+                stranger meets "what am I quoting" before the pull-quote's
+                dense insider claim. A figcaption is valid as the figure's
+                first child, so reading order and DOM order agree. */}
+            <figure className="mt-10">
+              <figcaption className="prose-field text-sm">
                 {researchSpotlight.context}
               </figcaption>
+              <blockquote className="prose-field mt-6 text-lg">
+                {researchSpotlight.quote}
+              </blockquote>
             </figure>
 
             <BenchmarkChart />
@@ -1037,24 +1096,35 @@ export default async function Home() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
+              {/* text-base, not text-sm: `contact.body` calls email the
+                  fastest way to reach the owner, so the address is never
+                  the act's smallest text (2026-09-07). Otherwise the
+                  site's standard link treatment — bone, rule underline,
+                  no ember. */}
               <a
                 href={`mailto:${links.email}`}
-                className="font-mono text-sm underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+                className="font-mono text-base underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
               >
                 {links.email}
               </a>
               <CopyEmailButton email={links.email} />
             </div>
 
+            {/* The close asks at full voice: these are the record's final
+                CTAs, so they carry the hero brackets' scale, not the
+                project acts' `small` in-act links (2026-09-07). The beat
+                order stays — `contact.body` introduces the email, the
+                email row answers it, the brackets close. One filled
+                control per surface: the résumé download. */}
             <div className="print-hidden mt-8 flex flex-wrap gap-3">
-              <BracketLink href={withBase(links.resume)} weight="filled" small download>
+              <BracketLink href={withBase(links.resume)} weight="filled" download>
                 Download résumé
               </BracketLink>
-              <BracketLink href={links.github.url} small external>
+              <BracketLink href={links.github.url} external>
                 <GithubIcon size={13} />
                 GitHub
               </BracketLink>
-              <BracketLink href={links.linkedin.url} small external>
+              <BracketLink href={links.linkedin.url} external>
                 <LinkedinIcon size={13} />
                 LinkedIn
               </BracketLink>

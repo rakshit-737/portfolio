@@ -55,9 +55,14 @@ export default function Provenance({
         );
 
         return (
+          /* `.label`'s own 1.1 leading is tuned for one-line eyebrows; a
+             wrapped segment (the plate credit, a signatory's full role)
+             sets its lines nearly touching at 390px. The looser box is
+             the same one Rail's dt already ships — never on `.label`
+             itself, which chips, nav and single-line eyebrows share. */
           <li
             key={`${s.label}-${i}`}
-            className="label flex items-center gap-3 tracking-[0.13em] normal-case"
+            className="label flex items-center gap-3 leading-[1.45] tracking-[0.13em] normal-case"
           >
             {/* The `s.disabled` branch this used to carry (a dashed-
                 outline "pending" chip) was deleted here (B3, final fix
@@ -67,11 +72,21 @@ export default function Provenance({
                 segment genuinely needs a pending state — see
                 `EvidenceSegment.disabled`'s own comment in content.ts. */}
             {s.href ? (
+              /* A plain anchor (repo, head SHA, verify) is a ~12px-tall
+                 target; the same WCAG 2.5.8 device as the chip above —
+                 block padding with a compensating negative margin, legal
+                 here because the li's flex blockifies the anchor — lifts
+                 it past the 24px floor without moving the printed line. A
+                 chip anchor is exempt: its span already carries the
+                 py-1.5 that clears the floor, and doubling it would
+                 overlap neighbouring hit areas across the 12px gaps. */
               <a
                 href={s.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+                className={`underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal ${
+                  chip ? "" : "-my-1.5 py-1.5"
+                }`}
               >
                 {content}
               </a>
@@ -80,12 +95,14 @@ export default function Provenance({
             )}
             {/* The rule trails its item rather than leading the next one:
                 a leading separator orphans onto the start of every wrapped
-                line, which reads as broken markup on narrow widths. */}
+                line, which reads as broken markup on narrow widths. It
+                renders at every width — hidden below sm it left wrapped
+                mobile segments merging into one run while a "·" inside a
+                segment's own label still showed. A trailing rule at a
+                line break is quiet, which is acceptable; no boundary at
+                all is not. */}
             {i < segments.length - 1 && (
-              <span
-                aria-hidden="true"
-                className="hidden h-3 w-px bg-rule sm:block"
-              />
+              <span aria-hidden="true" className="h-3 w-px bg-rule" />
             )}
           </li>
         );

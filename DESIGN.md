@@ -25,7 +25,7 @@ typography:
     letterSpacing: "-0.025em"
   number:
     fontFamily: "Chivo Mono, ui-monospace, monospace"
-    fontSize: "1.5rem"
+    fontSize: "1.875rem"
     fontWeight: 600
     lineHeight: 1
     letterSpacing: "-0.025em"
@@ -43,11 +43,11 @@ typography:
     letterSpacing: "0.001em"
     maxWidth: "62ch"
   label:
-    fontFamily: "Chivo Mono, ui-monospace, monospace"
+    fontFamily: "Manrope, system-ui, sans-serif"
     fontSize: "0.6875rem"
-    fontWeight: 400
+    fontWeight: 600
     lineHeight: 1.1
-    letterSpacing: "0.19em"
+    letterSpacing: "0.14em"
 rounded:
   none: "0px"
 components:
@@ -295,9 +295,12 @@ every number column aligns without per-element opt-in.
 - **Title** (600, Chivo Mono, tracking -0.025em, 1rem): every record
   title — ledger archive names, achievement titles, education degrees, the
   benchmark chart's own heading.
-- **Number** (600, Chivo Mono, 1.5rem rising to 1.875rem at `sm`, tabular,
-  line-height none): a measurement the lamp can light — hero rail values,
-  a project's headline numbers, the benchmark chart's highlighted rows.
+- **Number** (600, Chivo Mono, 1.875rem rising to 2.25rem at `sm`,
+  tabular, line-height none): a project's headline numbers — one size on
+  the index act and its case-file header alike (the header sat a step
+  below the index for the identical figures until 2026-09-07). The hero
+  rail's values set the same grammar one step down, 1.5rem rising to
+  1.875rem at `sm`.
   Driven through `Ignite.tsx` — one element, one text node, whose `color`
   transitions from bone to ember, so assistive tech, find-in-page and copy
   all meet the value exactly once — with an exponent rendered as `<sup>`
@@ -583,12 +586,16 @@ No radius, no shadow, no blur — unchanged.
 ### Navigation
 Sticky top rail, 3.5rem tall, solid `ground`, bottom `rule`. The active
 section swaps to `signal` ground / `ground` text on scroll-spy — the same
-per-control colour swap `Bracket` uses, not a page-region flip. Beside the
-brand link, at `lg` and up, a small `NN/08` act indicator (`.label`,
-tabular figures) reads off the same scroll-spy state — no second
-`IntersectionObserver`. Purely presentational: `aria-hidden`, since the
-position it states is already announced by `aria-current="location"` on
-the matching section link.
+per-control colour swap `Bracket` uses, not a page-region flip. Scrolling
+back to the hero resets the spy — the hero is observed by the same
+observer, no link matches it, so `aria-current` clears. Beside the brand
+link, a small `NN/08` act indicator (`.label`, tabular figures) reads off
+the same scroll-spy state — no second `IntersectionObserver` — at every
+width the rail can hold it: it sits out sub-24rem and the `md`–`lg` band,
+where the measured rail has no slack for it (see the comment at its
+render site in `Nav.tsx`). Purely presentational: `aria-hidden`, since
+the position it states is already announced by `aria-current="location"`
+on the matching section link.
 
 ### Case-file cross-links
 Every case file (`/projects/[id]/`) opens with a breadcrumb — "← the
@@ -600,8 +607,10 @@ second, literal ordering: a prev/next rail in the footer for reading the
 record straight through, and a "Next: the other case files" block naming
 whichever two studies aren't the current page, for a reader who arrived
 on one case file directly and wants the others. A one-line teaser
-(`caseStudies[id].teaser`, `src/content.ts`) sits under each project act's
-"Read the case file" button on the index — condensed verbatim from that
+(`caseStudies[id].teaser`, `src/content.ts`) sits directly above each
+project act's "Read the case file" button on the index — the argument
+closes before the ask, and the provenance receipts close the act after it
+(2026-09-07) — condensed verbatim from that
 study's own `outcome[0]`, never a new claim; every entry's source
 sentence is named in a comment beside it. The command palette carries the
 same three case files as deep links, one per `CaseSection` (Problem /

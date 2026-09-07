@@ -39,11 +39,17 @@ export default function Rail({
           ) : (
             <dd className="mt-1 font-mono text-sm leading-none tracking-tight tabular-nums sm:text-base">
               {item.href ? (
+                /* A leading-none text-sm link is a ~14px target. Same
+                   WCAG 2.5.8 device as Provenance's anchors — block
+                   padding with a compensating negative margin, inline-
+                   block so the padding takes inside the block dd — lifts
+                   the hit area past the 24px floor without moving the
+                   printed value. */
                 <a
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+                  className="-my-1.5 inline-block py-1.5 underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
                 >
                   {item.value}
                 </a>

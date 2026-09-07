@@ -214,13 +214,18 @@ export const links = {
  * "Soundscape: on" / "Soundscape: off" (state in the text, no
  * aria-pressed — a changing name and a pressed state would announce
  * twice); the palette action names the transition instead ("turn off"),
- * because a palette row is an imperative.
+ * because a palette row is an imperative. `started` is spoken once, by
+ * the boot shim's polite live region (Soundscape.tsx), the first time
+ * the hearth actually starts — the start is otherwise invisible to a
+ * screen reader, and the line names where its control lives
+ * (WCAG 1.4.2 ruling, 2026-09-07).
  */
 export const soundscape = {
   label: "Soundscape",
   on: "on",
   off: "off",
   paletteVerb: "turn",
+  started: "Soundscape playing — the sound toggle is in the navigation.",
 } as const;
 
 /**
@@ -293,11 +298,14 @@ export const featuredProjects: FeaturedProject[] = [
     id: "scheduler",
     name: "Proactive Feasibility Scheduler",
     timeframe: "Research, 2026–Present",
-    // P12: reordered so the outcome leads — was "An evaluation study of
-    // ML-based GPU-cluster job scheduling — and a proven negative result."
-    // Same two clauses, swapped around the dash; no claim added or removed.
+    // Restored to its original clause order (2026-09-07): P12's reorder
+    // led with the outcome, but this act's kicker and statement
+    // (`acts.scheduler`) both already open with the finding, so an
+    // outcome-first oneLiner restated it a third time before any
+    // evidence — the study leads here, the result closes. Same two
+    // clauses either way; no claim added or removed.
     oneLiner:
-      "A proven negative result — an evaluation study of ML-based GPU-cluster job scheduling.",
+      "An evaluation study of ML-based GPU-cluster job scheduling — and a proven negative result.",
     bullets: [
       "End-to-end research pipeline: discrete-event cluster simulator, XGBoost wait-time regressor, **14-policy benchmark** (FCFS, SJF, EASY/conservative backfill, SRPT, HRRN, ML) with Holm-adjusted significance testing.",
       "Core finding: the learned scheduler is structurally degenerate — its queue ordering collapses to a sort by requested job size. Verified across **45,432 real dispatch instants with zero counterexamples**; equivalence established with paired TOST (p = 2.6×10⁻¹⁶) rather than difference tests.",
@@ -562,10 +570,11 @@ export const caseStudies: Record<string, CaseStudy> = {
       "Per-job attributes that satisfy the non-degeneracy condition — runtime estimates, user history, partition identity — define what any non-degenerate successor feature set must contain.",
     ],
     // Condensed verbatim from outcome[0]: "the learned score is a function
-    // of requested job size alone" and "...establishes that a size sort is
-    // equivalent to the XGBoost pipeline" (p = 2.6×10⁻¹⁶, also outcome[0]).
-    teaser:
-      "the learned score is a function of requested job size alone — a size sort is statistically equivalent to the full XGBoost pipeline, p = 2.6×10⁻¹⁶.",
+    // of requested job size alone". One clause only (2026-09-07): the
+    // equivalence-to-XGBoost half it used to also carry renders a few
+    // lines above the teaser as `headlineNumbersCaption`, in the same
+    // act — stating it twice on one screen read as answer×2.
+    teaser: "the learned score is a function of requested job size alone.",
   },
   plantpal: {
     id: "plantpal",

@@ -900,7 +900,15 @@ for (const id of ACTS) {
  *  Item 0 is still the right "never lit" reference for the pixel
  *  comparison below — it never lights either, just for the same reason as
  *  item 1 rather than a unique one — and item 2 is still the only one of
- *  the three that reliably differs from it. */
+ *  the three that reliably differs from it.
+ *
+ *  Scope note: all of the above is idle-pointer geometry — the lamp at
+ *  its scroll-driven rest, which is the only state these tests exercise
+ *  (no test here ever moves the mouse). Lamp.tsx's two-zone pointer
+ *  nudge (the deliberate-reach extension) can lean the pool far enough
+ *  left to light items 0 and 1 under a real cursor pushed to the frame
+ *  edge; that changes nothing about the rest-position measurements or
+ *  the assertions below. */
 async function schedulerHeadlineNumbers(page: import("@playwright/test").Page) {
   const act = page.locator("#scheduler");
   return {

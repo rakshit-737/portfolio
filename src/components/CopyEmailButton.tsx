@@ -35,7 +35,11 @@ export default function CopyEmailButton({ email }: { email: string }) {
         data-voice // speaks wax on success — the global chime skips it
         onClick={copy}
         aria-label={copied ? `Copied ${email}` : `Copy email address ${email}`}
-        className="label print-hidden inline-flex items-center gap-2 border border-rule px-3 py-2.5 transition-colors hover:bg-signal hover:text-ground"
+        // border-signal, not border-rule: a real action reads at the same
+        // full-strength weight as the Bracket links beside it — rule-toned
+        // borders belong to passive chrome. Press mirrors hover so a touch
+        // answers visually, never by the wax sound alone.
+        className="label print-hidden inline-flex items-center gap-2 border border-signal px-3 py-2.5 transition-colors hover:bg-signal hover:text-ground active:bg-signal active:text-ground"
       >
         {copied ? (
           <>

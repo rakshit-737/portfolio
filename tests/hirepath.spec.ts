@@ -100,9 +100,9 @@ test("the recruiter can land, orient, and reach the Warden case file in one clic
     `[hirepath] DOM-ready at ${domReadyMs}ms (navigation start) / wall-clock since test start: ${Date.now() - navStart}ms`,
   );
 
-  // (d) The résumé link resolves — checked from the index, where the
-  // full nav renders it (the case-file pages carry a simpler header with
-  // no résumé link, so this step's href must come from here).
+  // (d) The résumé link resolves — checked from the index here; the
+  // case-file header carries the same bordered résumé device now, and
+  // its own copy is asserted in the case-file test below.
   const resumeHref = await page
     .getByRole("link", { name: /résumé/i })
     .first()
@@ -198,4 +198,32 @@ test("Ctrl+K, type 'scheduler', lands on the scheduler act — desktop, 2 intera
     realInteractions(),
     "Ctrl+K then a click on the scheduler result",
   ).toBeLessThanOrEqual(2);
+});
+
+/**
+ * The conversion path must survive the case file itself: a recruiter who
+ * lands on /projects/warden/ directly (a shared link, a search hit) finds
+ * the résumé in the sticky header and a mailto on the footer rail without
+ * a detour through the index — the same two receipts steps (d) and (e)
+ * above already gate on the index.
+ */
+test("a case file itself exposes a résumé link and a mailto link", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/projects/warden/");
+
+  const resumeHref = await page
+    .getByRole("link", { name: /résumé/i })
+    .first()
+    .getAttribute("href");
+  expect(resumeHref).toBeTruthy();
+  const resumeRes = await request.get(resumeHref!);
+  expect(resumeRes.status()).toBe(200);
+  expect(resumeRes.headers()["content-type"]).toBe("application/pdf");
+
+  const mailtoLinks = page.locator('a[href^="mailto:"]');
+  await expect(mailtoLinks).toHaveCount(1);
+  const mailtoHref = await mailtoLinks.first().getAttribute("href");
+  expect(mailtoHref).toMatch(/^mailto:.+@.+/);
 });

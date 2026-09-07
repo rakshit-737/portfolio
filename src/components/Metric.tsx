@@ -29,17 +29,28 @@ const SUP_RUN = /([⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]+)/g;
  * size. content.ts keeps writing the Unicode form: it stays readable as
  * plain text there and in llms.txt, and the OG cards already flatten it
  * through `ogText()`.
+ *
+ * A `<sup>` alone reads flat to a screen reader — `2.6×10⁻¹⁶` announced
+ * as "2.6 times 10 minus 16", an exponent indistinguishable from a
+ * subtraction. So the visual run is `aria-hidden` and paired with an
+ * sr-only caret rendering (`^−16`) — the same linearization `ogText()`
+ * already uses for Satori — derived from the identical parsed run, never
+ * a second hand-typed copy. The mantissa itself stays one visible text
+ * node, so find-in-page still matches it exactly as before.
  */
 function superscripts(text: string, keyPrefix: string): ReactNode[] {
-  return text.split(SUP_RUN).map((part, i) =>
-    i % 2 === 1 ? (
-      <sup key={`${keyPrefix}-${i}`}>
-        {[...part].map((ch) => SUPERSCRIPT[ch]).join("")}
-      </sup>
-    ) : (
-      <Fragment key={`${keyPrefix}-${i}`}>{part}</Fragment>
-    ),
-  );
+  return text.split(SUP_RUN).map((part, i) => {
+    if (i % 2 === 0) {
+      return <Fragment key={`${keyPrefix}-${i}`}>{part}</Fragment>;
+    }
+    const plain = [...part].map((ch) => SUPERSCRIPT[ch]).join("");
+    return (
+      <Fragment key={`${keyPrefix}-${i}`}>
+        <sup aria-hidden="true">{plain}</sup>
+        <span className="sr-only">{`^${plain}`}</span>
+      </Fragment>
+    );
+  });
 }
 
 /**

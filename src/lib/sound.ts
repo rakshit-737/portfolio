@@ -36,9 +36,11 @@
  *
  * Defaulting ON is the owner's call, but never against the browser and
  * never against the load: no sound infrastructure exists until the
- * visitor actually touches the page (a scroll, a key, a tap), at which
- * point the hearth starts unprompted — still on by default, without an
- * opt-in, and without competing with the first paint.
+ * visitor actually engages the page (a click, a tap, an activation
+ * key — Enter or Space; orientation keys like Tab stay silent so the
+ * toggle is reachable first, see armGestureStart), at which point the
+ * hearth starts unprompted — still on by default, without an opt-in,
+ * and without competing with the first paint.
  *
  * Observability (tests listen on window; both events are dispatched
  * only when the thing they name actually happened):
@@ -485,12 +487,27 @@ async function tryStartAmbient(): Promise<"on" | "blocked"> {
 }
 
 /** The first-interaction start: armed only while "pending", removed on
- *  first fire. Every attempt this arms runs on a real user gesture, so
- *  it can never loop against a policy — and in the vanishingly odd case
- *  a gesture-borne attempt still reports blocked, it re-arms for the
- *  next gesture rather than spinning. */
+ *  first fire. Pointer and touch gestures qualify as they are; a
+ *  keydown qualifies only when it is an activation key — Enter or
+ *  Space, wherever the event lands (the document, or a focused control
+ *  being activated). A keyboard or screen-reader user must be able to
+ *  Tab, arrow and Escape their way to the "Soundscape" toggle in
+ *  silence before the tune starts over their reader's speech, so
+ *  orientation keys never start the hearth; activation keys are
+ *  engagement, and still real user gestures under every browser
+ *  autoplay policy (WCAG 1.4.2 ruling, 2026-09-07). Every attempt this
+ *  arms runs on a real user gesture, so it can never loop against a
+ *  policy — and in the vanishingly odd case a gesture-borne attempt
+ *  still reports blocked, it re-arms for the next gesture rather than
+ *  spinning. */
 function armGestureStart() {
-  const start = () => {
+  const start = (e: Event) => {
+    if (e.type === "keydown") {
+      const key = (e as KeyboardEvent).key;
+      // Orientation, not engagement — return before removal, so the
+      // listeners stay armed for the real first gesture.
+      if (key !== "Enter" && key !== " ") return;
+    }
     window.removeEventListener("pointerdown", start);
     window.removeEventListener("keydown", start);
     window.removeEventListener("touchend", start);

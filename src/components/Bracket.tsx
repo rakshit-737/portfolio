@@ -11,7 +11,10 @@ import type { ReactNode } from "react";
  * Two weights — `filled` for the one primary action on a surface, outline
  * for everything else. Hover still resolves by the control swapping its
  * own ground and mark (the established local device — see DESIGN.md's
- * "Do" list), which is what keeps hover safely at full AA contrast. The
+ * "Do" list), which is what keeps hover safely at full AA contrast, and
+ * press (`:active`) mirrors the same swap on the inner chamber — on
+ * touch, where hover never fires, the harp chime must not be the only
+ * immediate press feedback (a sound is never the only confirmation). The
  * seal is the one place ember appears on a control: it warms from bone to
  * ember on hover AND on focus, and never at rest — "ember solely as a
  * hover/focus accent" per the redesign brief. Focus additionally carries
@@ -26,8 +29,12 @@ const base =
   "focus-visible:outline-2 focus-visible:outline-offset-2";
 
 const labelWeights = {
-  filled: "bg-signal text-ground group-hover:bg-transparent group-hover:text-signal",
-  outline: "text-signal group-hover:bg-signal group-hover:text-ground",
+  filled:
+    "bg-signal text-ground group-hover:bg-transparent group-hover:text-signal " +
+    "group-active:bg-transparent group-active:text-signal",
+  outline:
+    "text-signal group-hover:bg-signal group-hover:text-ground " +
+    "group-active:bg-signal group-active:text-ground",
 } as const;
 
 /** The seal: a small bordered chamber holding a solid square "wax" —

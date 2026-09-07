@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { BracketLink } from "@/components/Bracket";
+import CommandPalette from "@/components/CommandPalette";
 import DiagramFlow from "@/components/DiagramFlow";
 import Metric from "@/components/Metric";
 import Plate from "@/components/Plate";
@@ -9,7 +10,7 @@ import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
 import SineLattice from "@/components/SineLattice";
 import Statement from "@/components/Statement";
-import { acts, caseSections, caseStudies, featuredProjects, site } from "@/content";
+import { acts, caseSections, caseStudies, featuredProjects, links, site } from "@/content";
 import { withBase } from "@/lib/base";
 import { withCredit } from "@/lib/credit";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
@@ -198,30 +199,42 @@ export default async function CaseStudyPage({
           aria-label="Case file"
           className={`${SHELL} flex h-14 items-center justify-between gap-6`}
         >
+          {/* The one back device on this surface: the breadcrumb itself,
+              persistent. It returns the reader to their own act on the
+              index (`/#<id>`, DESIGN.md's case-file cross-links rule) —
+              never `/` and the page top, which discards their place. A
+              second, standalone breadcrumb nav below this header said the
+              same thing and was the duplicate; it's gone. */}
           <a
-            href={withBase("/")}
+            href={withBase(`/#${project.id}`)}
             className="label -mx-2 flex min-h-11 items-center gap-2 px-2 py-4 transition-colors hover:bg-signal hover:text-ground"
           >
             <ArrowLeft size={13} aria-hidden="true" />
-            back to the index
+            the record · {actNumeral}
           </a>
-          <span className="font-mono text-sm font-semibold tracking-tight">
-            Rakshit Rameshbabu
-          </span>
+          <div className="flex shrink-0 items-center gap-4">
+            <span className="hidden font-mono text-sm font-semibold tracking-tight sm:inline">
+              Rakshit Rameshbabu
+            </span>
+            {/* The hiring loop must not die on a case file: the same
+                bordered résumé device the index rail carries (Nav.tsx) —
+                bordered, never filled; one filled control per surface.
+                Below `sm` the name yields the room instead, the same
+                responsive collapse the hero's proof strip uses. */}
+            <a
+              href={withBase(links.resume)}
+              download
+              className="label border border-signal px-3 py-2 transition-colors hover:bg-signal hover:text-ground"
+            >
+              Résumé
+            </a>
+          </div>
         </nav>
       </header>
 
-      <main id="top">
-        <nav aria-label="Breadcrumb" className={`${SHELL} pt-5`}>
-          <a
-            href={withBase(`/#${project.id}`)}
-            className="label -mx-2 inline-flex min-h-11 items-center gap-2 px-2 py-4 transition-colors hover:bg-signal hover:text-ground"
-          >
-            <ArrowLeft size={11} aria-hidden="true" />
-            the record · {actNumeral}
-          </a>
-        </nav>
+      <CommandPalette />
 
+      <main id="top">
         <div className="relative isolate h-[60svh] overflow-hidden">
           {/* No scroll mechanics here — this banner has no `[data-act]`
               ancestor, so Lamp.tsx's rAF loop never finds it and nothing
@@ -263,14 +276,26 @@ export default async function CaseStudyPage({
               />
               <p className="prose-field mt-8">{project.oneLiner}</p>
 
+              {/* The same grammar and Number tier as this project's own
+                  headline row on the index (page.tsx) — the identical
+                  figures carry one size on both surfaces (reconciled
+                  2026-09-07): dt-then-dd for the <dl> content model,
+                  `flex-col-reverse` for the number-first visual, a
+                  deliberate sub-`sm` column so a three-stat row never
+                  wraps 2+1 by accident of label width. Values render
+                  through `Metric`, not `Ignite`: `data-lamp="on"` is
+                  global but Lamp.tsx only scrubs `[data-act]`, which no
+                  case-file surface carries, so an `.ignite` here could
+                  only ever sit bone-with-JS — the same standing
+                  contradiction the benchmark chart's values refuse. */}
               {project.headlineNumbers && (
-                <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-6 border-y border-rule py-6">
+                <dl className="mt-10 flex flex-col gap-x-12 gap-y-6 border-y border-rule py-6 sm:flex-row sm:flex-wrap">
                   {project.headlineNumbers.map((n) => (
-                    <div key={n.label}>
-                      <dd className="font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl">
+                    <div key={n.label} className="flex flex-col-reverse">
+                      <dt className="label mt-2">{n.label}</dt>
+                      <dd className="font-mono text-3xl leading-none font-semibold tracking-tight tabular-nums sm:text-4xl">
                         <Metric text={n.value} />
                       </dd>
-                      <dt className="label mt-2">{n.label}</dt>
                     </div>
                   ))}
                 </dl>
@@ -448,21 +473,29 @@ export default async function CaseStudyPage({
           <div
             className={`${SHELL} flex items-center justify-between gap-4 py-6`}
           >
+            {/* The direction words are visible eyebrows, not sr-only — two
+                bare arrows told a sighted reader nothing about where either
+                link led. Same spans, same accessible name ("Previous case
+                file: Warden"), just no longer hidden. */}
             <a
               href={withBase(`/projects/${prevProject.id}/`)}
-              className="label -mx-2 flex min-h-11 items-center gap-2 px-2 py-4 transition-colors hover:bg-signal hover:text-ground"
+              className="label -mx-2 flex min-h-11 flex-col items-start gap-1.5 px-2 py-4 transition-colors hover:bg-signal hover:text-ground"
             >
-              <ArrowLeft size={12} aria-hidden="true" />
-              <span className="sr-only">Previous case file: </span>
-              {shortName(prevProject.name)}
+              <span>Previous case file:</span>
+              <span className="flex items-center gap-2">
+                <ArrowLeft size={12} aria-hidden="true" />
+                {shortName(prevProject.name)}
+              </span>
             </a>
             <a
               href={withBase(`/projects/${nextProject.id}/`)}
-              className="label -mx-2 flex min-h-11 items-center gap-2 px-2 py-4 text-right transition-colors hover:bg-signal hover:text-ground"
+              className="label -mx-2 flex min-h-11 flex-col items-end gap-1.5 px-2 py-4 text-right transition-colors hover:bg-signal hover:text-ground"
             >
-              <span className="sr-only">Next case file: </span>
-              {shortName(nextProject.name)}
-              <ArrowRight size={12} aria-hidden="true" />
+              <span>Next case file:</span>
+              <span className="flex items-center gap-2">
+                {shortName(nextProject.name)}
+                <ArrowRight size={12} aria-hidden="true" />
+              </span>
             </a>
           </div>
         </nav>
@@ -472,12 +505,23 @@ export default async function CaseStudyPage({
           <Provenance
             segments={[{ label: `case file: ${id}` }, { label: "part of the record" }]}
           />
-          <a
-            href={withBase("/")}
-            className="label underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
-          >
-            back to the index
-          </a>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            {/* The way out is never only "back": the contact address rides
+                the rail too, in the same underline treatment the index's
+                contact act gives it (page.tsx, `mailto:${links.email}`). */}
+            <a
+              href={`mailto:${links.email}`}
+              className="font-mono text-sm underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+            >
+              {links.email}
+            </a>
+            <a
+              href={withBase("/")}
+              className="label underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+            >
+              back to the index
+            </a>
+          </div>
         </div>
       </footer>
     </>

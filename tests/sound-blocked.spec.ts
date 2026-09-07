@@ -56,16 +56,18 @@ test("pending until first real interaction, then on — no attempt without a ges
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
 });
 
-test("the first keystroke lights the hearth AND taps the palette — exactly one honest event", async ({ page }) => {
-  // Ctrl+K as the very first interaction. The engine's
-  // first-interaction listener (armed before the palette's, in layout
-  // order) builds the context and starts a gesture-borne resume; the
-  // palette's listener then calls playUi("tap") on that same
-  // keystroke. Because a gesture-initiated start is in flight, the tap
-  // is allowed to schedule — the gesture guarantees it sounds moments
-  // later — so exactly one event fires, and only one (finding 1's
-  // phantom guard: with no such start in flight, a suspended context
-  // refuses and no event lies about silence).
+test("the first activation key lights the hearth AND taps the palette — exactly one honest event", async ({ page }) => {
+  // Enter on the nav's search button as the very first interaction —
+  // an activation key, the only kind of keydown that counts as
+  // engagement now (see armGestureStart). The engine's window keydown
+  // listener builds the context and starts a gesture-borne resume; the
+  // button's default-action click then opens the palette, whose open
+  // handler calls playUi("tap") on that same keystroke. Because a
+  // gesture-initiated start is in flight, the tap is allowed to
+  // schedule — the gesture guarantees it sounds moments later — so
+  // exactly one event fires, and only one (finding 1's phantom guard:
+  // with no such start in flight, a suspended context refuses and no
+  // event lies about silence).
   await page.addInitScript(() => {
     (window as unknown as { __ui: string[] }).__ui = [];
     window.addEventListener("night-archive:ui-sound", (e) =>
@@ -84,7 +86,8 @@ test("the first keystroke lights the hearth AND taps the palette — exactly one
   });
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "pending");
-  await page.keyboard.press("Control+k");
+  await page.getByRole("button", { name: "Search the field (Ctrl+K)" }).focus();
+  await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog")).toBeVisible();
   expect(
     await page.evaluate(() => (window as unknown as { __ui: string[] }).__ui),
@@ -92,7 +95,7 @@ test("the first keystroke lights the hearth AND taps the palette — exactly one
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
 });
 
-test("keyboard is a valid first interaction too", async ({ page }) => {
+test("orientation keys never start the hearth; an activation key does", async ({ page }) => {
   await page.addInitScript(() => {
     // Keyboard lift for this test's double (keydown, like Chromium).
     window.addEventListener(
@@ -105,6 +108,17 @@ test("keyboard is a valid first interaction too", async ({ page }) => {
   });
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "pending");
+  // Tab is orientation, not engagement: a keyboard or screen-reader
+  // user must be able to reach the "Soundscape" toggle in silence
+  // (WCAG 1.4.2; armGestureStart's activation-key filter), so the
+  // hearth keeps waiting — even though the policy double has already
+  // lifted its embargo on this very keydown.
   await page.keyboard.press("Tab");
+  await page.waitForTimeout(600);
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "pending");
+  // Enter — an activation key, still a real user gesture under every
+  // autoplay policy — is engagement, and starts it. (Focus sits on the
+  // skip link after the Tab; activating it only jumps in-page.)
+  await page.keyboard.press("Enter");
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
 });

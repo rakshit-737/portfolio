@@ -28,7 +28,12 @@ export default function Nav() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const ids = navSections.map((s) => s.id);
+    // "hero" is observed alongside the section ids so returning to the
+    // top resets the spy: no nav link's id matches it, so every
+    // `aria-current` clears and the act counter reads 01/08 again
+    // instead of holding whatever section was left last. Same observer —
+    // never a second one.
+    const ids = ["hero", ...navSections.map((s) => s.id)];
     const sections = ids
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
@@ -76,10 +81,10 @@ export default function Nav() {
     };
   }, [open]);
 
-  // `active` is one of `navSections`' ids (a subset of `ACT_IDS`) once the
-  // existing scroll-spy observer above has fired at least once, or "" at
-  // rest before that — which is exactly the hero, act 01. No second
-  // observer: this reads the same `active` state the section links
+  // `active` is "hero" or one of `navSections`' ids (all in `ACT_IDS`)
+  // once the existing scroll-spy observer above has fired at least once,
+  // or "" at rest before that — which is exactly the hero, act 01. No
+  // second observer: this reads the same `active` state the section links
   // already use for `aria-current`.
   const actNumber = ACT_IDS.indexOf((active || "hero") as ActId) + 1;
 
@@ -125,10 +130,17 @@ export default function Nav() {
               scroll-spy state above (no second observer). Its accessible
               name comes from `aria-current` on the matching section link
               instead, so this stays aria-hidden rather than doubling that
-              announcement. */}
+              announcement. Shown at every width the rail can hold its
+              ~53px (41px + gap), measured against the static build: at
+              320px the sub-md rail overflows by 36px (fits from ~356px,
+              so 24rem guards it), and from `md` the clock + soundscape +
+              ctrl-K + Résumé cluster needs 818px of a 768px rail with it
+              — only ~3px of slack without — so it sits out `md`–`lg` and
+              returns at `lg`, where the wider rail holds everything
+              (the brand.spec.ts width sweep gates all of this). */}
           <span
             aria-hidden="true"
-            className="label hidden tabular-nums lg:inline-block"
+            className="label hidden tabular-nums min-[24rem]:inline-block md:hidden lg:inline-block"
           >
             {String(actNumber).padStart(2, "0")}/{String(ACT_IDS.length).padStart(2, "0")}
           </span>
@@ -157,7 +169,7 @@ export default function Nav() {
               className={`label px-2.5 py-1.5 transition-colors ${
                 active === s.id
                   ? "bg-signal text-ground"
-                  : "hover:bg-signal hover:text-ground"
+                  : "hover:bg-signal hover:text-ground active:bg-signal active:text-ground"
               }`}
             >
               {s.label}
@@ -168,13 +180,13 @@ export default function Nav() {
         <div className="hidden shrink-0 items-center gap-2 md:flex">
           {/* The soundscape's mute control (see SoundToggle.tsx) — same
               border treatment as the ctrl-K button beside it. */}
-          <SoundToggle className="border border-rule px-2.5 py-2 hover:border-signal" />
+          <SoundToggle className="border border-rule px-2.5 py-2 hover:border-signal active:border-signal" />
           <button
             type="button"
             data-voice // the palette taps wood on open — no chime on top
             onClick={openPalette}
             aria-label="Search the field (Ctrl+K)"
-            className="label flex items-center gap-2 border border-rule px-2.5 py-2 transition-colors hover:border-signal"
+            className="label flex items-center gap-2 border border-rule px-2.5 py-2 transition-colors hover:border-signal active:border-signal"
           >
             <Search size={12} aria-hidden="true" />
             <kbd className="font-mono text-[10px] tracking-normal">ctrl K</kbd>
@@ -182,7 +194,7 @@ export default function Nav() {
           <a
             href={withBase(links.resume)}
             download
-            className="label border border-signal px-3 py-2 transition-colors hover:bg-signal hover:text-ground"
+            className="label border border-signal px-3 py-2 transition-colors hover:bg-signal hover:text-ground active:bg-signal active:text-ground"
           >
             Résumé
           </a>
@@ -238,13 +250,18 @@ export default function Nav() {
               {/* The soundscape toggle's phone home, for the widths where
                   the rail cluster that carries it is hidden. */}
               <SoundToggle className="border-b border-rule-soft px-2 py-4 text-left md:hidden" />
+              {/* Same local colour swap as the desktop section links —
+                  hover and press alike, so a touch answers visually
+                  before the chime, which is never the only confirmation. */}
               {navSections.map((s) => (
                 <a
                   key={s.id}
                   href={`#${s.id}`}
                   aria-current={active === s.id ? "location" : undefined}
-                  className={`label border-b border-rule-soft px-2 py-4 last:border-b-0 ${
-                    active === s.id ? "bg-signal text-ground" : ""
+                  className={`label border-b border-rule-soft px-2 py-4 transition-colors last:border-b-0 ${
+                    active === s.id
+                      ? "bg-signal text-ground"
+                      : "hover:bg-signal hover:text-ground active:bg-signal active:text-ground"
                   }`}
                   onClick={(e) => {
                     jumpTo(s.id)(e);
@@ -254,10 +271,14 @@ export default function Nav() {
                   {s.label}
                 </a>
               ))}
+              {/* The filled row keeps the filled Bracket's own hover
+                  grammar: the fill drops inside a border-signal frame
+                  (invisible at rest against the matching fill), on hover
+                  and on press. */}
               <a
                 href={withBase(links.resume)}
                 download
-                className="label mt-3 bg-signal px-3 py-4 text-center text-ground"
+                className="label mt-3 border border-signal bg-signal px-3 py-4 text-center text-ground transition-colors hover:bg-transparent hover:text-signal active:bg-transparent active:text-signal"
                 onClick={() => setOpen(false)}
               >
                 Download résumé
