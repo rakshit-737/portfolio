@@ -14,6 +14,7 @@ import Ignite from "@/components/Ignite";
 import Metric from "@/components/Metric";
 import Nav from "@/components/Nav";
 import Plate, { narrowSrcset, narrowTiers, srcset } from "@/components/Plate";
+import ProofTooltips from "@/components/ProofTooltips";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
 import SineLattice from "@/components/SineLattice";
@@ -371,6 +372,7 @@ export default async function Home() {
 
       <Nav />
       <CommandPalette />
+      <ProofTooltips />
 
       <main id="top">
         <Act
@@ -439,18 +441,42 @@ export default async function Home() {
                       ·
                     </span>
                   )}
-                  <a
-                    href={t.href.startsWith("/") ? withBase(t.href) : t.href}
-                    {...(t.href.startsWith("/")
-                      ? {}
-                      : { target: "_blank", rel: "noopener noreferrer" })}
-                    aria-describedby={`hero-proof-${i}`}
-                    className="underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+                  {/* Receipts you can see (CollectUI brief, item 5): the
+                      sr-only proof below doubles as a visible tooltip on
+                      hover/focus-within — the SAME element, same id, same
+                      aria-describedby, so AT behaviour is unchanged
+                      (`.proof-tip`, globals.css). The wrapper is both the
+                      positioning context and the hover surface: the
+                      tooltip is its child, so the pointer can travel onto
+                      it without it closing (WCAG 1.4.13). The last
+                      token's tooltip end-aligns (`data-tip-end`) so it
+                      can never overflow the viewport's right edge — the
+                      strip is a single line at every width it renders at,
+                      so the last token is always the rightmost. Escape
+                      closes it: ProofTooltips.tsx. */}
+                  <span
+                    data-proof-anchor=""
+                    {...(i === hero.provenance.tokens.length - 1
+                      ? { "data-tip-end": "" }
+                      : {})}
                   >
-                    {t.label}
-                  </a>
-                  <span id={`hero-proof-${i}`} className="sr-only">
-                    {t.proof}
+                    <a
+                      href={t.href.startsWith("/") ? withBase(t.href) : t.href}
+                      {...(t.href.startsWith("/")
+                        ? {}
+                        : { target: "_blank", rel: "noopener noreferrer" })}
+                      aria-describedby={`hero-proof-${i}`}
+                      className="underline decoration-rule underline-offset-4 transition-colors hover:decoration-signal"
+                    >
+                      {t.label}
+                    </a>
+                    <span
+                      id={`hero-proof-${i}`}
+                      role="tooltip"
+                      className="proof-tip"
+                    >
+                      {t.proof}
+                    </span>
                   </span>
                 </span>
               ))}

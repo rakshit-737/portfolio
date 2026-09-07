@@ -426,6 +426,115 @@ test("axe: no violations with the command palette open", async ({ page }) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────
+// 3b. The hero proof tooltip (CollectUI brief, item 5 — "Receipts you can
+// see"). The VERIFIED strip's per-token sr-only proof (`t.proof`, the
+// aria-describedby target) doubles as a visible tooltip on hover and
+// focus-within — the SAME element in both states (`.proof-tip`,
+// globals.css), clipped sr-only-style when hidden, never display:none, so
+// AT behaviour never changed. Escape dismisses it without moving focus
+// (ProofTooltips.tsx); the reveal itself is pure CSS and survives no-JS.
+// ─────────────────────────────────────────────────────────────────────────
+
+/** The tooltip's box unclips instantly on open (only its opacity waits
+ *  out the 120ms delay), so "open" is asserted on both: a real box and
+ *  full opacity. "Closed" is the 1px clipped state. */
+async function tipWidth(tip: ReturnType<Page["locator"]>) {
+  return (await tip.boundingBox())?.width ?? 0;
+}
+
+test("Tab to a hero proof token opens its tooltip under the token; Escape hides it and keeps focus on the token", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const token = page.getByRole("link", { name: "builds end-to-end" });
+  const tip = page.locator("#hero-proof-0");
+
+  // Reach the token by real keyboard Tabs — the same DOM-order tagging
+  // the Bracket focus test above uses, not `.focus()`.
+  const index = await page.evaluate((selector) => {
+    const isVisible = (el: HTMLElement) =>
+      typeof el.checkVisibility === "function"
+        ? el.checkVisibility()
+        : el.offsetParent !== null;
+    const els = [...document.querySelectorAll<HTMLElement>(selector)].filter(isVisible);
+    return els.findIndex((el) => el.textContent?.trim() === "builds end-to-end");
+  }, TAB_STOP_SELECTOR);
+  expect(index, "token not found among the page's tab stops").toBeGreaterThanOrEqual(0);
+  for (let i = 0; i <= index; i++) {
+    await page.keyboard.press("Tab");
+  }
+  await expect(token).toBeFocused();
+
+  // Open: a real box, then full opacity once the 120ms delay and the fade
+  // have run.
+  await expect.poll(() => tipWidth(tip)).toBeGreaterThan(20);
+  await expect
+    .poll(() => tip.evaluate((el) => parseFloat(getComputedStyle(el).opacity)))
+    .toBe(1);
+
+  // It sits under the token and never covers it (WCAG 1.4.13).
+  const tokenBox = await token.boundingBox();
+  const tipBox = await tip.boundingBox();
+  expect(tipBox!.y).toBeGreaterThanOrEqual(tokenBox!.y + tokenBox!.height - 1);
+
+  // Escape closes it — back to the clipped sr-only box, still in the
+  // accessibility tree — and focus never moves off the token.
+  await page.keyboard.press("Escape");
+  await expect.poll(() => tipWidth(tip)).toBeLessThanOrEqual(1);
+  await expect(token).toBeFocused();
+
+  // The dismissal lifts on focusout, so the tooltip can reopen on the
+  // next visit rather than staying dead for the session.
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Tab");
+  await expect(token).toBeFocused();
+  await expect.poll(() => tipWidth(tip)).toBeGreaterThan(20);
+});
+
+test("axe: no violations with a hero proof tooltip open", async ({ page }) => {
+  await page.goto("/");
+  const token = page.getByRole("link", { name: "tested in CI" });
+  // Wait out the hero's one-time copy reveal first — axe factors ancestor
+  // opacity into colour-contrast, and the strip fades in on arrival.
+  await expectRevealed(token);
+  await token.hover();
+  const tip = page.locator("#hero-proof-1");
+  await expect
+    .poll(() => tip.evaluate((el) => parseFloat(getComputedStyle(el).opacity)))
+    .toBe(1);
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
+test("the proof tooltip reveal is pure CSS: it opens on hover with JavaScript disabled, stays hoverable, and never overflows the viewport", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto("/");
+
+  // The last token — the one whose tooltip end-aligns (`data-tip-end`)
+  // because a left-aligned box under the strip's rightmost token is the
+  // one that could run off the right edge.
+  const token = page.getByRole("link", { name: "reproducible" });
+  await token.hover();
+  const tip = page.locator("#hero-proof-2");
+  await expect.poll(() => tipWidth(tip)).toBeGreaterThan(20);
+
+  const tipBox = await tip.boundingBox();
+  const viewport = page.viewportSize()!;
+  expect(tipBox!.x).toBeGreaterThanOrEqual(0);
+  expect(tipBox!.x + tipBox!.width).toBeLessThanOrEqual(viewport.width);
+
+  // The pointer may travel onto the tooltip without it closing —
+  // WCAG 1.4.13's hoverable clause (the tooltip is the wrapper's child).
+  await page.mouse.move(tipBox!.x + 10, tipBox!.y + 10);
+  await expect.poll(() => tipWidth(tip)).toBeGreaterThan(20);
+
+  await ctx.close();
+});
+
+// ─────────────────────────────────────────────────────────────────────────
 // 4. Assistive text (spot re-verification — the full decorative-layer sweep
 // is already true in the current build; see components read during this
 // task's investigation. This pins the two claims most likely to regress

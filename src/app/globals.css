@@ -290,6 +290,67 @@ section[id] {
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Receipts you can see (CollectUI brief, item 5 — ref @colmtuite's
+   cursor-tracking tooltip, @byJWXN's link preview, @noechague's hover
+   receipts; the tracking, the preview card and the photo stack all
+   dropped — only "hover the claim, read its receipt" translated). The
+   hero VERIFIED strip's per-token proof is already the aria-describedby
+   target (`hero-proof-N`, page.tsx); the SAME element now doubles as
+   the visible tooltip, so AT behaviour is identical in both states.
+   Hidden, it stays sr-only-style clipped — a 1px box under clip-path,
+   opacity 0, never display:none, so it never leaves the accessibility
+   tree. On the token wrapper's :hover/:focus-within it opens after
+   120ms, opacity only (the box unclips instantly at opacity 0, so
+   nothing ever moves): a label-voice line (inherited from the strip's
+   own `.label` parent) in a square full-signal hairline box on solid
+   ground — no shadow, no arrow, no radius — flush under the token
+   (relative wrapper + top: 100%), never covering it, and hoverable
+   without closing because it is the wrapper's own child (WCAG 1.4.13).
+   Closing is instant — the base state carries no transition, so only
+   opening waits. Escape dismisses an open tooltip via
+   `data-tip-dismissed` (ProofTooltips.tsx — the one bit of JS; this
+   reveal is pure CSS and survives no-JS), and the `:not()` guard below
+   is what that stamp switches off. The width cap and the last token's
+   end-alignment (`data-tip-end`, set statically in page.tsx) keep every
+   tooltip inside the viewport; the print block drops it outright.
+   Reduced motion needs no extra rule: the global block zeroes the fade
+   and the only property here is opacity — nothing transforms. */
+[data-proof-anchor] {
+  position: relative;
+  display: inline-flex;
+}
+.proof-tip {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  opacity: 0;
+}
+[data-tip-end] > .proof-tip {
+  left: auto;
+  right: 0;
+}
+[data-proof-anchor]:not([data-tip-dismissed]):hover > .proof-tip,
+[data-proof-anchor]:not([data-tip-dismissed]):focus-within > .proof-tip {
+  z-index: 30;
+  width: max-content;
+  height: auto;
+  max-width: min(19rem, calc(100vw - 4rem));
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+  line-height: 1.45;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--color-signal);
+  background: var(--color-ground);
+  opacity: 1;
+  transition: opacity 120ms ease 120ms;
+}
+
 /* ── The lamp ────────────────────────────────────────────────────────
    Default state — no JS, or reduced motion — is FULLY LIT. The mask is
    only introduced once <html data-lamp="on"> is set by the client. A
@@ -805,6 +866,13 @@ section[id] {
     border-color: #08070a !important;
   }
   .bracket .seal {
+    display: none !important;
+  }
+  /* The proof tooltip is hover chrome; on paper the strip's receipts
+     already print as appended hrefs (the a[href^="http"]::after rule
+     below), so the tooltip is dropped outright — display:none is fine
+     here, print has no accessibility tree to preserve it in. */
+  .proof-tip {
     display: none !important;
   }
   [data-act] {

@@ -716,6 +716,33 @@ Every act's line now also carries its painting's credit
 (`withCredit()`/`creditOf()`, `src/lib/credit.ts`) — art is sourced the same
 way code is, on the same line as the rest of the evidence.
 
+### Proof tooltip (hero VERIFIED strip)
+Receipts you can see (ref CollectUI @colmtuite, @byJWXN, @noechague —
+the cursor-tracking, the preview card and the photo stack all dropped;
+only "hover the claim, read its receipt" translated): each VERIFIED
+token's sr-only proof (`t.proof`, the existing `aria-describedby`
+target) now doubles as a visible tooltip — the SAME element in both
+states, so assistive tech, find-in-page and the described-by relation
+never changed. Hidden, it stays sr-only-style clipped (a 1px box under
+`clip-path`, opacity 0 — never `display: none`); on the token wrapper's
+`:hover`/`:focus-within` it opens after 120ms, opacity only, as a
+label-voice line in a square full-`signal` hairline box on solid ground
+— no shadow, no arrow, no radius — flush under the token
+(`[data-proof-anchor]`, a relative wrapper + `top: 100%`), never
+covering it, and hoverable without closing because it is the wrapper's
+own child (WCAG 1.4.13). Escape dismisses it while focus stays on the
+token — one delegated keydown listener (`ProofTooltips.tsx`), lifted on
+pointerleave/focusout so the tooltip reopens on the next visit; with no
+JS the pure CSS reveal still works and only Escape is lost. A width cap
+and the last token's end-alignment (`data-tip-end`, static — the strip
+is a single line at every width it renders at) keep every tooltip
+inside the viewport; print drops it. Provenance segments deliberately
+do NOT carry this: at 390px a provenance line already wraps several
+dense rows, and a label-plus-hostname tooltip on every linked segment
+read as noise against exactly that density — the brief's own escape
+hatch, taken. No rule is narrowed: no ember, no shadow, one property
+(opacity), ≤240ms including the open delay, no new dependency.
+
 ### Rail
 A `<dl>` of measurements, unchanged in structure. Optionally `ignite`: the
 value renders through `Ignite.tsx` (a colour transition on the one element),
