@@ -351,6 +351,52 @@ section[id] {
   transition: opacity 120ms ease 120ms;
 }
 
+/* The ledger's one marker glides between records (CollectUI brief, item
+   6 — ref @noechague's events-list arrow sliding down to meet the
+   hovered row, @RachitThakur146's one-hover-device work rows; the drawn
+   arrow dropped — the mark is the site's own 6px seal square, bone,
+   never ember). One absolutely-positioned marker per list — RowMarker.tsx
+   in the ledger's Achievements and Archive lists, CommandPalette.tsx's
+   result list, where it rides the existing selection state — with the
+   target row's centre written as `--row-y` once per pointerover/focusin
+   event, never per frame; the transform transition here is the whole
+   glide. The rest state carries no transition, so the marker lands
+   silently wherever it next appears and vanishes instantly — only
+   travel while visible animates: one property, 200ms, the site's
+   easing, and the global reduced-motion block zeroes the duration (a
+   transition, not a state transform, so zeroed means instant AND done —
+   nothing needs pinning). In the palette the marker sits inside the
+   selected row's own bg-signal fill, so it takes that row's swapped ink
+   (ground) — the established local colour swap, still never ember.
+   Below `md` it never renders (RowMarker returns null; this display
+   gate covers the palette span and a desktop window resized narrow);
+   print drops it outright; under forced-colors the forced background
+   neutralises it like every other painted graphic. */
+.row-marker {
+  position: absolute;
+  top: -3px;
+  left: -1.25rem;
+  width: 6px;
+  height: 6px;
+  background: var(--color-signal);
+  transform: translateY(var(--row-y, 0px));
+  opacity: 0;
+  pointer-events: none;
+}
+.row-marker[data-on] {
+  opacity: 1;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+#palette-list > .row-marker {
+  left: 5px;
+  background: var(--color-ground);
+}
+@media (max-width: 47.9375rem) {
+  .row-marker {
+    display: none;
+  }
+}
+
 /* ── The lamp ────────────────────────────────────────────────────────
    Default state — no JS, or reduced motion — is FULLY LIT. The mask is
    only introduced once <html data-lamp="on"> is set by the client. A
@@ -873,6 +919,12 @@ section[id] {
      below), so the tooltip is dropped outright — display:none is fine
      here, print has no accessibility tree to preserve it in. */
   .proof-tip {
+    display: none !important;
+  }
+  /* The row marker is hover chrome — a pointer affordance paper doesn't
+     have; a marker mid-glide would otherwise print as a stray near-black
+     square beside a row. */
+  .row-marker {
     display: none !important;
   }
   [data-act] {

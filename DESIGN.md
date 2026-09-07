@@ -645,6 +645,34 @@ remains the announced state). No rule is narrowed: two properties,
   Every list — the ledger's archive, achievements, skills, education — is a
   set of rows separated by `border-b border-rule`.
 
+### Row marker (`RowMarker.tsx`)
+The ledger's one marker glides between records (ref CollectUI
+@noechague, @RachitThakur146 — the drawn arrow dropped; the mark is the
+site's own 6px seal square, bone, never ember). One shared `aria-hidden`
+marker per list — the ledger's Achievements and Archive lists, and the
+command palette's result list — sits in the left gutter of the hovered
+or focused row (`:focus-within` moves it too) and *travels* to the next
+row instead of each row lighting independently: rows keep their
+`border-b border-rule` grammar with no background fill, so the glide is
+the rows' only hover device. Delegated `pointerover`/`focusin`
+listeners on the list write the row's centre as `--row-y` — one layout
+read per event, never per frame, never rAF (the lamp keeps the site's
+only rAF loop) — and CSS transitions the transform 200ms on the site's
+easing (`.row-marker`, `globals.css`); the rest state carries no
+transition, so the marker lands silently wherever it next appears and
+only travel between rows animates. In the palette it rides the
+existing selection state (arrow keys and pointer alike) as an extra
+beat — the selected row's `bg-signal text-ground` swap remains the
+accessible state, and the marker, sitting inside that fill, takes the
+row's swapped ink (ground): the established local colour-swap device,
+still never ember. Below `md` (touch) it never renders, which is also
+its no-JS state — the server HTML carries no marker and no listener
+ever attaches; print drops it; forced-colors neutralises its painted
+square like every other graphic; the global reduced-motion block zeroes
+its one transition (a transition, not a state transform, so zeroed
+means inert). No rule is narrowed: one property, 200ms, no ember, no
+inversion, no new dependency.
+
 ### Command Palette
 An 85% `ground` scrim over the page, a dialog at `max-width: 36rem` bordered
 in `signal`, opened at 12vh. Group headings in `.label` on `rule-soft`

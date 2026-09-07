@@ -17,6 +17,7 @@ import Plate, { narrowSrcset, narrowTiers, srcset } from "@/components/Plate";
 import ProofTooltips from "@/components/ProofTooltips";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
+import RowMarker from "@/components/RowMarker";
 import SineLattice from "@/components/SineLattice";
 import Statement from "@/components/Statement";
 import {
@@ -898,7 +899,11 @@ export default async function Home() {
                   >
                     Achievements
                   </h3>
-                  <ul>
+                  {/* `relative` is the marker's positioning box: the
+                      list's one glide marker (RowMarker, last child)
+                      travels to the hovered/focused row — the rows'
+                      only hover device (CollectUI brief, item 6). */}
+                  <ul className="relative">
                     {achievements.map((a) => (
                       <li key={a.title} className="border-b border-rule py-6">
                         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -923,6 +928,7 @@ export default async function Home() {
                         )}
                       </li>
                     ))}
+                    <RowMarker />
                   </ul>
                 </section>
 
@@ -1013,7 +1019,10 @@ export default async function Home() {
                   >
                     Archive
                   </h3>
-                  <ul>
+                  {/* `relative` is the marker's positioning box — same
+                      glide device as the Achievements list above; the
+                      "Full archive" tile is one more row it can meet. */}
+                  <ul className="relative">
                     {moreProjects.map((project, i) => (
                       <li key={project.name} className="border-b border-rule py-6">
                         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -1081,6 +1090,7 @@ export default async function Home() {
                         </div>
                       </div>
                     </li>
+                    <RowMarker />
                   </ul>
                 </section>
               </div>

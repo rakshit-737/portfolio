@@ -126,6 +126,10 @@ export default function CommandPalette() {
   const [recents, setRecents] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  // The list's one glide marker (CollectUI brief, item 6) — an extra
+  // beat riding the selection state below; never selection logic of its
+  // own.
+  const markerRef = useRef<HTMLSpanElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
   // Keyboard selection scrolls the listbox (the scrollIntoView effect
   // below), and that scroll replays a mouse event on whichever row
@@ -405,10 +409,34 @@ export default function CommandPalette() {
     };
   }, [open]);
 
+  // Keyboard selection keeps the row in view — and the list's one
+  // marker glides to meet it (CollectUI brief, item 6): the selected
+  // row's centre is read once per selection change, never per frame,
+  // and written as `--row-y`; the 200ms transform transition lives in
+  // CSS (`.row-marker`, globals.css). The bg-signal selection swap
+  // stays the accessible state — this is an extra beat, not a second
+  // selection device.
   useEffect(() => {
-    listRef.current
-      ?.querySelector('[aria-selected="true"]')
-      ?.scrollIntoView({ block: "nearest" });
+    const row = listRef.current?.querySelector<HTMLElement>(
+      '[aria-selected="true"]',
+    );
+    row?.scrollIntoView({ block: "nearest" });
+    const marker = markerRef.current;
+    if (!marker) return;
+    if (!row) {
+      marker.removeAttribute("data-on");
+      return;
+    }
+    marker.style.setProperty(
+      "--row-y",
+      `${row.offsetTop + row.offsetHeight / 2}px`,
+    );
+    if (!marker.hasAttribute("data-on")) {
+      // Land silently: flush the position while the transition-less rest
+      // state still applies (same device as RowMarker.tsx).
+      marker.getBoundingClientRect();
+      marker.setAttribute("data-on", "");
+    }
   }, [selected, filtered]);
 
   if (!open) return null;
@@ -514,8 +542,15 @@ export default function CommandPalette() {
           ref={listRef}
           role="listbox"
           aria-label="Commands"
-          className="max-h-[52vh] overflow-y-auto py-1"
+          className="relative max-h-[52vh] overflow-y-auto py-1"
         >
+          {/* The one marker, gliding with the selection (see the effect
+              above). Inside the selected row's own bg-signal fill it
+              takes that row's swapped ink — ground, never ember
+              (`#palette-list > .row-marker`, globals.css). aria-hidden
+              and not focusable, so axe's listbox-children walk skips it
+              and aria-selected stays the announced state. */}
+          <span ref={markerRef} aria-hidden="true" className="row-marker" />
           {groups.map((g) => (
             <div
               key={g.name}
