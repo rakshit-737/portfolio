@@ -29,20 +29,26 @@ export default function ProofTooltips() {
           continue;
         }
         anchor.setAttribute("data-tip-dismissed", "");
-        const lift = () => {
-          // Either departing condition fires this, but the stamp only
-          // lifts once NEITHER still holds — with hover and focus on
-          // the token at once, the pointer leaving used to lift the
-          // stamp while focus still held the reveal open, undoing the
-          // Escape it had just answered. rAF, not synchronous: during
-          // a focus transfer :focus-within can still match the anchor
-          // mid-flight.
-          requestAnimationFrame(() => {
-            if (anchor.matches(":hover, :focus-within")) return;
-            anchor.removeAttribute("data-tip-dismissed");
-            anchor.removeEventListener("pointerleave", lift);
-            anchor.removeEventListener("focusout", lift);
-          });
+        const lift = (ev: Event) => {
+          // A departure one way while the other modality still holds is
+          // not a departure: the pointer leaving a token that keyboard
+          // focus still sits on used to lift the stamp and pop the
+          // tooltip back open over the Escape it had just answered.
+          // Synchronous on the departing event's own type — a deferred
+          // (rAF) check lost to a quick Tab-away-and-back, reading the
+          // returned focus as "still held" and leaving the tooltip dead
+          // while focused. Skipping keeps both listeners armed for the
+          // true departure.
+          if (ev.type === "pointerleave" && anchor.matches(":focus-within"))
+            return;
+          if (ev.type === "focusout") {
+            const to = (ev as FocusEvent).relatedTarget;
+            if (anchor.matches(":hover")) return;
+            if (to instanceof Node && anchor.contains(to)) return;
+          }
+          anchor.removeAttribute("data-tip-dismissed");
+          anchor.removeEventListener("pointerleave", lift);
+          anchor.removeEventListener("focusout", lift);
         };
         anchor.addEventListener("pointerleave", lift);
         anchor.addEventListener("focusout", lift);
