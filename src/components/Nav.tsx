@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { Menu, Search, X } from "lucide-react";
 import { acts, links, navSections, type ActId } from "@/content";
 import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
@@ -19,13 +20,22 @@ const ACT_IDS = Object.keys(acts) as ActId[];
 /**
  * The field's top rail. The active section is marked by inversion — the
  * same device the rest of the surface uses — rather than by a colour or a
- * sliding underline, so nothing here needs measuring at runtime.
+ * sliding underline, so nothing here needs measuring at runtime. That
+ * stance survives the carried highlight below: the travel is a View
+ * Transition, so the browser animates the group box between the old and
+ * new link and this component still never reads a layout.
  */
 export default function Nav() {
   const [active, setActive] = useState<string>("");
   const [open, setOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  // The scroll-spy's own mirror of `active` (the observer effect runs
+  // once, so its closure would otherwise hold the initial ""), and
+  // whether a view transition is still mid-flight — both read and
+  // written only inside the observer callback below.
+  const activeRef = useRef("");
+  const inFlight = useRef(false);
 
   useEffect(() => {
     // "hero" is observed alongside the section ids so returning to the
@@ -38,11 +48,54 @@ export default function Nav() {
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
 
+    // The travel's gates (CollectUI brief, item 3), created once and
+    // read per event: the highlight only travels where the section
+    // links exist (`min-[90rem]`, the rail's own breakpoint) and never
+    // under reduced motion — startViewTransition is a WAAPI-like JS
+    // path the CSS reduced-motion block cannot see, so the preference
+    // is checked here before any snapshot is taken.
+    const wide = window.matchMedia("(min-width: 90rem)");
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const carry = (id: string) => {
+      if (id === activeRef.current) return;
+      activeRef.current = id;
+      // Plain swap wherever the travel can't or shouldn't play: the
+      // hero reset (no link carries the name, so there is nothing to
+      // travel to), a transition already mid-flight (this fires from an
+      // IntersectionObserver during scroll — one snapshot at a time,
+      // never a thrash of them), reduced motion, a rail without links,
+      // or a browser without the API — which keeps today's instant
+      // swap, exactly as before.
+      if (
+        id === "hero" ||
+        inFlight.current ||
+        still.matches ||
+        !wide.matches ||
+        typeof document.startViewTransition !== "function"
+      ) {
+        setActive(id);
+        return;
+      }
+      inFlight.current = true;
+      const settle = () => {
+        inFlight.current = false;
+      };
+      // flushSync so the DOM actually updates inside the callback —
+      // the API snapshots before and after it runs. Focus is never
+      // moved: a view transition animates pseudo-elements, not the
+      // links, and `aria-current` (set in the same render) stays the
+      // one source of truth for the state.
+      document
+        .startViewTransition(() => flushSync(() => setActive(id)))
+        .finished.then(settle, settle);
+    };
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            setActive(entry.target.id);
+            carry(entry.target.id);
           }
         }
       },
@@ -160,12 +213,20 @@ export default function Nav() {
             1440, where everything fits with ~110px to spare (the
             brand.spec.ts width sweep gates this). */}
         <div className="hidden items-center gap-1 min-[90rem]:flex">
+          {/* Only the active link carries `data-nav-active` — and with it
+              `view-transition-name: nav-active` (globals.css) — so when
+              the scroll-spy moves, the name moves between links and the
+              browser carries the bg-signal block from the old box to the
+              new. The mobile menu's links never take the attribute: the
+              travel only ever starts at min-[90rem], and a duplicated
+              name would skip the transition outright. */}
           {navSections.map((s) => (
             <a
               key={s.id}
               href={`#${s.id}`}
               onClick={jumpTo(s.id)}
               aria-current={active === s.id ? "location" : undefined}
+              data-nav-active={active === s.id ? "" : undefined}
               className={`label px-2.5 py-1.5 transition-colors ${
                 active === s.id
                   ? "bg-signal text-ground"

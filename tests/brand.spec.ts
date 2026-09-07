@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { MARK_PATH } from "../src/lib/mark";
 import { CLOCK_PLACEHOLDER } from "../src/components/LiveClock";
-import { site } from "../src/content";
+import { navSections, site } from "../src/content";
 
 // Same convention as tests/smoke.spec.ts: empty for the root-shape gate,
 // the sub-path for the GitHub Pages leg.
@@ -252,5 +252,105 @@ test("reduced motion pins the press and the arrow to rest in every state", async
       .locator("svg.lucide-arrow-up-right")
       .evaluate((el) => getComputedStyle(el).transform),
   ).toBe("none");
+  await ctx.close();
+});
+
+/**
+ * The carried nav highlight (CollectUI brief, item 3 — ref @JerryDizs,
+ * @kail_designs, @SwamiMalode): at min-[90rem] the active link's
+ * bg-signal block travels between links via the View Transitions API —
+ * only the active link carries `view-transition-name: nav-active`
+ * (`data-nav-active`, Nav.tsx), so the browser animates the group box
+ * and nothing measures a link's position in JS. `aria-current` stays
+ * the source of truth, and Nav.tsx never calls `startViewTransition`
+ * under reduced motion or below the links' own breakpoint — the spy
+ * below counts real calls, so "never" is measured, not inferred.
+ */
+
+function armViewTransitionSpy(page: import("@playwright/test").Page) {
+  return page.addInitScript(() => {
+    (window as unknown as { __vtCount: number }).__vtCount = 0;
+    const raw = document.startViewTransition.bind(document);
+    document.startViewTransition = ((
+      cb?: ViewTransitionUpdateCallback | StartViewTransitionOptions,
+    ) => {
+      (window as unknown as { __vtCount: number }).__vtCount++;
+      return raw(cb);
+    }) as typeof document.startViewTransition;
+  });
+}
+
+const vtCount = (page: import("@playwright/test").Page) =>
+  page.evaluate(() => (window as unknown as { __vtCount: number }).__vtCount);
+
+test("the scroll-spy carries aria-current through every section — and the highlight travels", async ({
+  browser,
+}) => {
+  // 1600px: past min-[90rem], so the section links are on the rail.
+  const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 } });
+  const page = await ctx.newPage();
+  await armViewTransitionSpy(page);
+  await page.goto(`${BASE}/`);
+  for (const s of navSections) {
+    await page.locator(`#${s.id}`).scrollIntoViewIfNeeded();
+    await expect(page.locator(`header nav a[href="#${s.id}"]`)).toHaveAttribute(
+      "aria-current",
+      "location",
+    );
+  }
+  // Exactly one link carries the travelling name at a time — the
+  // decoration; the state asserted above is aria-current, never this.
+  const carrier = page.locator("header nav a[data-nav-active]");
+  await expect(carrier).toHaveCount(1);
+  expect(
+    await carrier.evaluate((el) =>
+      getComputedStyle(el).getPropertyValue("view-transition-name"),
+    ),
+  ).toBe("nav-active");
+  // The travel is real: this Chromium supports the API, so walking all
+  // seven sections started at least one transition (arrivals mid-flight
+  // coalesce to plain swaps, so the count may be under 7 — never 0).
+  expect(await vtCount(page)).toBeGreaterThan(0);
+  // Scrolling home still resets the spy — the hero carries no link, so
+  // every aria-current (and the travelling name with it) clears.
+  await page.locator("#hero").scrollIntoViewIfNeeded();
+  await expect(page.locator("header nav a[aria-current]")).toHaveCount(0);
+  await expect(carrier).toHaveCount(0);
+  await ctx.close();
+});
+
+test("under reduced motion the spy still walks every section and no view transition ever starts", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({
+    viewport: { width: 1600, height: 900 },
+    reducedMotion: "reduce",
+  });
+  const page = await ctx.newPage();
+  await armViewTransitionSpy(page);
+  await page.goto(`${BASE}/`);
+  for (const s of navSections) {
+    await page.locator(`#${s.id}`).scrollIntoViewIfNeeded();
+    await expect(page.locator(`header nav a[href="#${s.id}"]`)).toHaveAttribute(
+      "aria-current",
+      "location",
+    );
+  }
+  expect(await vtCount(page)).toBe(0);
+  await ctx.close();
+});
+
+test("below min-[90rem] the swap stays plain — no snapshot for a rail without links", async ({
+  browser,
+}) => {
+  // 1280px sits under the links' breakpoint: the spy state still moves
+  // (the act counter reads it), but no view transition ever starts.
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await armViewTransitionSpy(page);
+  await page.goto(`${BASE}/`);
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  await expect(page.locator("header nav")).toContainText("02/08");
+  expect(await vtCount(page)).toBe(0);
   await ctx.close();
 });

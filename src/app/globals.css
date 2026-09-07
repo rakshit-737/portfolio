@@ -267,6 +267,29 @@ section[id] {
   animation: stamp-in 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* The active section is carried, not swapped (CollectUI brief, item 3 —
+   ref @JerryDizs's travelling indicator, @kail_designs' gliding
+   highlight, @SwamiMalode's gooey navbar with the goo — a blur —
+   dropped; only the travel translated). Only the active desktop section
+   link carries the name (`data-nav-active`, Nav.tsx), so when the
+   scroll-spy moves, the name moves with it and the browser animates the
+   highlight's group box from the old link to the new — a shared-element
+   travel with nothing measured in JS, keeping the Nav's
+   no-runtime-measuring stance intact. The transition itself only ever
+   starts from Nav.tsx, gated there on `min-[90rem]` (the width the
+   links exist at), on `prefers-reduced-motion`, and on the API existing
+   — an unsupported browser keeps today's instant swap, and this
+   declaration is inert on its own. 240ms on the site's easing; the
+   group animates only its own transform and box size, and
+   `aria-current` (not this decoration) remains the state. */
+[data-nav-active] {
+  view-transition-name: nav-active;
+}
+::view-transition-group(nav-active) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* ── The lamp ────────────────────────────────────────────────────────
    Default state — no JS, or reduced motion — is FULLY LIT. The mask is
    only introduced once <html data-lamp="on"> is set by the client. A
@@ -876,6 +899,17 @@ section[id] {
   .bracket:active .seal > span,
   .stamp-in {
     animation: none;
+  }
+  /* A view transition's animations live on a pseudo-element tree
+     (`::view-transition-*` on the root) that the `*` duration-zeroing
+     rule below cannot match. Nav.tsx already never starts one under
+     reduced motion — this is the belt to that braces, so the carried
+     nav highlight (and any future view transition) is inert here, not
+     merely fast. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
   *,
   *::before,

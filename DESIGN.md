@@ -637,6 +637,26 @@ render site in `Nav.tsx`). Purely presentational: `aria-hidden`, since
 the position it states is already announced by `aria-current="location"`
 on the matching section link.
 
+The active mark is carried, not swapped, where the links exist
+(`min-[90rem]`): only the active link carries `view-transition-name:
+nav-active` (`data-nav-active`, `Nav.tsx`), and the scroll-spy's state
+change is wrapped in `document.startViewTransition(() =>
+flushSync(setActive))`, so the browser animates the highlight's group
+box from the old link to the new — 240ms on the site's easing
+(`::view-transition-group(nav-active)`, `globals.css`) with nothing
+measured at runtime. Gated in the same handler on the width, on
+`prefers-reduced-motion` (belt-and-braces: the CSS reduced-motion block
+also pins `::view-transition-*` to `animation: none`, a pseudo tree the
+`*` duration-zeroing rule cannot reach), and on the API existing — an
+unsupported browser, a narrow rail, and the hero reset (no link to
+travel to) all keep the instant swap. One transition at a time: a
+change landing mid-flight falls back to the plain swap rather than
+thrashing snapshots on a fast scroll. `aria-current="location"` stays
+the source of truth and keyboard focus is never moved (ref CollectUI
+@JerryDizs, @kail_designs, @SwamiMalode — the goo, a blur, dropped).
+No rule is narrowed: the travel is a browser-managed group's transform
+and box size, ≤240ms, no ember, no inversion, no new dependency.
+
 ### Case-file cross-links
 Every case file (`/projects/[id]/`) opens with a breadcrumb — "← the
 record · act 0N", the numeral read straight off `acts[id].label` — back
