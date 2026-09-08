@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Chivo, Chivo_Mono, Manrope, Newsreader } from "next/font/google";
 import { site } from "@/content";
+import Cursor from "@/components/Cursor";
 import Lamp from "@/components/Lamp";
 import Soundscape from "@/components/Soundscape";
 import "./globals.css";
@@ -135,6 +136,7 @@ export default function RootLayout({
         <div hidden dangerouslySetInnerHTML={{ __html: `<!--${CONTRACT}-->` }} />
         <Lamp />
         <Soundscape />
+        <Cursor variant="playful" />
         {children}
       </body>
     </html>
