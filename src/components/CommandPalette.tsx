@@ -16,6 +16,7 @@ import {
   Search,
 } from "lucide-react";
 import {
+  acts,
   caseSections,
   caseStudies,
   featuredProjects,
@@ -44,6 +45,11 @@ interface Command {
   group: "recent" | "sections" | "case-files" | "repositories" | "actions";
   label: string;
   hint?: string;
+  /** Metadata read straight off `content.ts` — act number, stack — shown
+   *  as `.label` chips beside the hint (CollectUI Phase 2, ref
+   *  @ilyamiskov). Decoration: the container is aria-hidden, so the
+   *  announced option stays the label and its hint. */
+  chips?: string[];
   keywords?: string;
   run: () => void;
 }
@@ -220,11 +226,17 @@ export default function CommandPalette() {
       .filter((p) => caseStudies[p.id])
       .flatMap((p) => {
         const name = p.name.split("—")[0].trim();
+        // "act 03 — warden" → "act 03"; the act's own number, not a new
+        // fact. The stack's first entry is the project's own `tech[0]`.
+        const chips = [acts[p.id].label.split("—")[0].trim(), p.tech[0]].filter(
+          Boolean,
+        );
         return caseSections.map((sec) => ({
           id: `case-${p.id}-${sec.slug}`,
           group: "case-files" as const,
           label: `${name} — ${sec.title}`,
           hint: `#${sec.slug}`,
+          chips,
           keywords: `case file study ${p.id} ${sec.title}`,
           run: navigate(withBase(`/projects/${p.id}/#${sec.slug}`)),
         }));
@@ -446,6 +458,29 @@ export default function CommandPalette() {
     }
   }, [selected, filtered]);
 
+  // The list's clipped edges fade (CollectUI Phase 2, ref @pacovitiello
+  // — "fade effect on scroll overflow w/ CSS masking"). The mask is
+  // driven by the real scroll position, never left on: a permanent fade
+  // over a list that isn't clipped would be dimming text to decorate,
+  // which this palette has no contrast headroom for. `data-clip` names
+  // the edge that genuinely has more behind it; the gradient lives in
+  // CSS (`#palette-list[data-clip]`, globals.css).
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const mark = () => {
+      const top = list.scrollTop > 1;
+      const bottom =
+        list.scrollTop + list.clientHeight < list.scrollHeight - 1;
+      const value = top && bottom ? "both" : top ? "top" : bottom ? "bottom" : null;
+      if (value) list.setAttribute("data-clip", value);
+      else list.removeAttribute("data-clip");
+    };
+    mark();
+    list.addEventListener("scroll", mark, { passive: true });
+    return () => list.removeEventListener("scroll", mark);
+  }, [open, filtered]);
+
   if (!open) return null;
 
   const run = (c: Command) => {
@@ -603,6 +638,26 @@ export default function CommandPalette() {
                 >
                   <span className="truncate">{optionText(c)}</span>
                   <span className="label flex shrink-0 items-center gap-1.5 normal-case">
+                    {/* Metadata chips (CollectUI Phase 2, ref @ilyamiskov):
+                        hairline `.label` chips carrying data content.ts
+                        already holds. aria-hidden — the announced option
+                        stays the label and its hint — and held back below
+                        `sm`, where the row needs its width for the label. */}
+                    {c.chips?.length ? (
+                      <span
+                        aria-hidden="true"
+                        className="hidden items-center gap-1.5 sm:flex"
+                      >
+                        {c.chips.map((chip) => (
+                          <span
+                            key={chip}
+                            className="palette-chip"
+                          >
+                            {chip}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
                     {c.hint}
                     {c.group === "repositories" ? (
                       <ArrowUpRight size={11} aria-hidden="true" />

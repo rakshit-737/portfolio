@@ -421,6 +421,40 @@ section[id] {
   }
 }
 
+/* ── Palette metadata chips ──────────────────────────────────────────
+   CollectUI Phase 2 (ref @ilyamiskov — a command bar whose rows carry
+   metadata chips). A hairline chip on the case-file rows, carrying data
+   `content.ts` already holds (the act's number, the project's first
+   stack entry). The border is drawn from `currentColor`, so inside the
+   selected row's own bg-signal fill it swaps to ground with the rest of
+   that row's ink rather than vanishing into the bone — the established
+   local swap, still never ember. */
+.palette-chip {
+  border: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+  padding: 0.125rem 0.375rem;
+  line-height: 1;
+}
+
+/* The palette list's clipped edges. `data-clip` is written by the
+   component from the real scroll position, so the fade only ever marks
+   content that genuinely continues past the edge — a mask over the clip,
+   not a permanent dimming of text. */
+#palette-list[data-clip="top"] {
+  mask-image: linear-gradient(to bottom, transparent 0, #000 16px);
+}
+#palette-list[data-clip="bottom"] {
+  mask-image: linear-gradient(to top, transparent 0, #000 16px);
+}
+#palette-list[data-clip="both"] {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+}
+
 /* ── The soundscape's square switch ──────────────────────────────────
    CollectUI brief, Phase 2 (Camden @Designownow_ — the one *square*
    toggle; Lynel @LynelSkroll — a two-value control's mood). A hairline

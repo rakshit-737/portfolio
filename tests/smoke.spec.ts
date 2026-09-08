@@ -44,6 +44,37 @@ test("command palette opens with Ctrl+K or / and jumps to a section", async ({
   await expect(page).toHaveURL(/#top$/);
 });
 
+// CollectUI Phase 2: case-file rows carry hairline metadata chips, and
+// the list's clipped edges fade only while there is genuinely more list
+// behind them (never a standing dim over text).
+test("palette rows carry metadata chips and fade only a real clipped edge", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/`);
+  await page.keyboard.press("Control+k");
+  const input = page.getByRole("combobox", { name: "Search the field" });
+  await input.fill("warden outcome");
+  const row = page.locator('#palette-list [role="option"]').first();
+  await expect(row).toBeVisible();
+  // The act's own number and the project's first stack entry, both from
+  // content.ts — and decoration, so the announced option ignores them.
+  const chips = row.locator(".palette-chip");
+  await expect(chips.first()).toHaveText(/^act \d\d$/);
+  await expect(chips).toHaveCount(2);
+  expect(
+    await row.locator(".palette-chip").first().evaluate((el) =>
+      el.closest("[aria-hidden='true']") !== null,
+    ),
+  ).toBe(true);
+
+  // A short result set does not clip, so nothing is masked.
+  const list = page.locator("#palette-list");
+  await expect(list).not.toHaveAttribute("data-clip", /./);
+  // The unfiltered list does clip at the bottom, and only there.
+  await input.fill("");
+  await expect(list).toHaveAttribute("data-clip", "bottom");
+});
+
 test("section anchors navigate", async ({ page }) => {
   // The rail's section links wait for 90rem (1440px) since the soundscape
   // toggle joined the rail — below that they live in the menu (the

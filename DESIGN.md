@@ -901,6 +901,23 @@ A pipeline on a hairline rail, structurally unchanged. The verdict stage is
 now marked with a `signal` fill and `ground` text — the same local
 colour-swap device as a filled `Bracket`, not the retired region inversion.
 
+### Command palette (`CommandPalette.tsx`)
+Each case-file row carries hairline `.label` metadata chips — the act's
+own number and the project's first stack entry, both read straight off
+`content.ts`, never a new fact (ref CollectUI @ilyamiskov). The chips are
+`aria-hidden` decoration, so the announced option stays its label and
+hint; they are held back below `sm`, where the row needs its width for
+the label; and their border is drawn from `currentColor`, so inside the
+selected row's own bg-signal fill it swaps to ground with the rest of
+that row's ink. The list's clipped edges fade through a `mask-image` (a
+graphic, and so allowed) rather than a hard cut (ref @pacovitiello) —
+but only the edge that genuinely has more list behind it: `data-clip` is
+written from the real scroll position, because a standing fade over an
+unclipped list would be dimming text to decorate, which this palette has
+no contrast headroom for. The rows themselves are never dimmed; the
+`bg-signal` swap stays the one selection state, the marker stays the one
+extra beat, and the wood tap on open and close is untouched.
+
 ### Plate
 The three-layer painting (`Plate.tsx`): a dimmed still (`.plate-dark`) and
 a full-brightness still masked to the lamp's pool (`.plate-lit`) — every
