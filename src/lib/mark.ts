@@ -5,15 +5,12 @@
  * around every control. Bone on ground, and nothing else: a mark is a
  * graphic, so it never carries ember (DESIGN.md, Ember Is Rare).
  *
- * One geometry, four renderings: `Mark.tsx` (inline SVG in the nav, in
- * `currentColor` so the brand link's hover inversion carries it),
- * `src/app/icon.svg` (the favicon Next links from `<head>`),
- * `public/favicon.ico` (`scripts/gen-favicon.mjs`, rasterised from
- * icon.svg with a hand-pixelled 16px frame) and `apple-icon.png`
- * (`src/app/apple-icon.png/route.tsx`, drawn by Satori). icon.svg is a
- * static file and cannot import this module, so it carries a verbatim
- * copy of `MARK_PATH`; `tests/brand.spec.ts` fails the build if the two
- * ever drift.
+ * One rendering: `Mark.tsx` (inline SVG in the nav, in `currentColor` so
+ * the brand link's hover inversion carries it). The browser icons are no
+ * longer drawn from this geometry — `public/icon.png`,
+ * `public/apple-icon.png` and `public/favicon.ico`
+ * (`scripts/gen-favicon.mjs`) are all downscales of the owner-supplied
+ * seal plate, so there is no vector copy left to drift.
  *
  * `MARK_PATH` is the glyph's real outline, traced with fontTools from the
  * Newsreader variable font at `opsz` 72 (the display cut `.statement`

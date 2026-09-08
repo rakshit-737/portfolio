@@ -1,6 +1,4 @@
-import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { MARK_PATH } from "../src/lib/mark";
 import { CLOCK_PLACEHOLDER } from "../src/components/LiveClock";
 import { navSections, site } from "../src/content";
 
@@ -33,13 +31,6 @@ test("the head links a real favicon, and it resolves", async ({ page, request })
     const res = await request.get(`${BASE}${path}`);
     expect(res.status(), `${BASE}${path} resolves`).toBe(200);
   }
-});
-
-test("icon.svg carries the same monogram outline as src/lib/mark.ts", async () => {
-  // icon.svg is a static file and cannot import the module, so it holds a
-  // verbatim copy of the path — this is the drift guard.
-  const svg = readFileSync("src/app/icon.svg", "utf8");
-  expect(svg).toContain(`d="${MARK_PATH}"`);
 });
 
 test("the nav carries the monogram, decorative, inside the brand link", async ({ page }) => {

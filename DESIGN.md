@@ -494,9 +494,12 @@ lit ground instead of a flat one:
   "R", traced from the font itself (`src/lib/mark.ts`), inside the same
   square doubled-hairline frame the wax-seal cartouche (below) draws
   around every control. Bone on ground, inverting on hover the way every
-  control does; the favicon, the `.ico` and the Apple icon are the same
-  geometry (`Mark.tsx`, `icon.svg`, `scripts/gen-favicon.mjs`,
-  `apple-icon.png`). It replaced a barcode bar cluster (`.cap`).
+  control does. It replaced a barcode bar cluster (`.cap`). The browser
+  icons are no longer this geometry: `public/icon.png`,
+  `public/apple-icon.png` and `public/favicon.ico`
+  (`scripts/gen-favicon.mjs`) are downscales of the owner-supplied seal
+  plate — a carved stone "R" — which is the one place on the site outside
+  the three-value palette, and it never appears in the page itself.
 - **The square mark.** The sine's 6px node squares, the diagram flow's 6px
   stage node, the benchmark chart's growing bars. Every graphic primitive
   that isn't a painting is an axis-aligned rectangle.

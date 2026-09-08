@@ -112,7 +112,7 @@ export const metadata: Metadata = {
   // favicon on the live site at all (tests/brand.spec.ts guards it now).
   icons: {
     icon: [
-      { url: `${site.url}/icon.svg`, type: "image/svg+xml" },
+      { url: `${site.url}/icon.png`, type: "image/png", sizes: "512x512" },
       { url: `${site.url}/favicon.ico`, sizes: "48x48 32x32 16x16" },
     ],
     shortcut: `${site.url}/favicon.ico`,
