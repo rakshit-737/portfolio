@@ -172,13 +172,11 @@ export default function Nav() {
             href="#top"
             className="group flex items-center gap-3 font-mono text-sm font-semibold tracking-tight"
           >
-            {/* The seal monogram (src/lib/mark.ts). Hover inverts the mark
-                alone — the control swapping its own ground and mark, the
-                site's one hover device — while the name stays as it is. */}
-            <Mark
-              size={22}
-              className="shrink-0 bg-ground text-signal transition-colors group-hover:bg-signal group-hover:text-ground"
-            />
+            {/* The seal plate (Mark.tsx, public/mark.png). It carries no
+                hover inversion: a raster plate has no ground and mark to
+                swap, and this site's hover device is a colour swap or
+                nothing. */}
+            <Mark size={22} className="shrink-0" />
             Rakshit Rameshbabu
           </a>
           {/* Current-act indicator — presentational only, driven by the

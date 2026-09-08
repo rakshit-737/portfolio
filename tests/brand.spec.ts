@@ -33,13 +33,30 @@ test("the head links a real favicon, and it resolves", async ({ page, request })
   }
 });
 
-test("the nav carries the monogram, decorative, inside the brand link", async ({ page }) => {
-  await page.goto("/");
+test("the nav carries the seal plate, decorative, inside the brand link", async ({
+  page,
+  request,
+}) => {
+  await page.goto(`${BASE}/`);
   const brand = page.getByRole("link", { name: "Rakshit Rameshbabu" }).first();
   await expect(brand).toBeVisible();
-  const svg = brand.locator("svg");
-  await expect(svg).toHaveCount(1);
-  expect(await svg.getAttribute("aria-hidden")).toBe("true");
+  const plate = brand.locator("img");
+  await expect(plate).toHaveCount(1);
+  // Decorative: empty alt and aria-hidden, so the link's accessible name
+  // stays the name text beside it.
+  expect(await plate.getAttribute("alt")).toBe("");
+  expect(await plate.getAttribute("aria-hidden")).toBe("true");
+  // The file really exists under the deployed sub-path — the plate goes
+  // through withBase(), like every other internal asset.
+  const src = await plate.getAttribute("src");
+  expect(src).toBe(`${BASE}/mark.png`);
+  expect((await request.get(src!)).status()).toBe(200);
+  // It is served larger than it is drawn, so a 3x screen has pixels.
+  const { natural, drawn } = await plate.evaluate((el) => {
+    const img = el as HTMLImageElement;
+    return { natural: img.naturalWidth, drawn: img.getBoundingClientRect().width };
+  });
+  expect(natural).toBeGreaterThanOrEqual(drawn * 3);
 });
 
 test("the clock beside the name shows Chennai time and ticks", async ({ browser }) => {

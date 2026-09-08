@@ -490,16 +490,17 @@ lit ground instead of a flat one:
 
 - **The hairline.** A 1px rule at `rule` or `rule-soft`, used as divider,
   border, underline decoration, and diagram connector.
-- **The seal.** The mark beside the name is a monogram — Newsreader's
-  "R", traced from the font itself (`src/lib/mark.ts`), inside the same
-  square doubled-hairline frame the wax-seal cartouche (below) draws
-  around every control. Bone on ground, inverting on hover the way every
-  control does. It replaced a barcode bar cluster (`.cap`). The browser
-  icons are no longer this geometry: `public/icon.png`,
-  `public/apple-icon.png` and `public/favicon.ico`
-  (`scripts/gen-favicon.mjs`) are downscales of the owner-supplied seal
-  plate — a carved stone "R" — which is the one place on the site outside
-  the three-value palette, and it never appears in the page itself.
+- **The seal.** The mark beside the name is a carved-stone plate — an "R"
+  cut into a framed panel, with a lit ember cabochon at its centre —
+  supplied by the owner and served from `public/icon.png` (the browser
+  icons: `public/apple-icon.png`, `public/favicon.ico` via
+  `scripts/gen-favicon.mjs`) and `public/mark.png` (the nav, cropped to
+  the inner panel; `Mark.tsx`). It is a photograph, so it is the one
+  thing on the site outside the three-value palette, and the one control
+  that does not invert on hover — there is no ground and mark to swap,
+  and a filter is not this site's hover device. It replaced a traced
+  Newsreader monogram (`src/lib/mark.ts`, deleted), which had replaced a
+  barcode bar cluster (`.cap`).
 - **The square mark.** The sine's 6px node squares, the diagram flow's 6px
   stage node, the benchmark chart's growing bars. Every graphic primitive
   that isn't a painting is an axis-aligned rectangle.
