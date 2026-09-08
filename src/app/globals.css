@@ -314,6 +314,46 @@ section[id] {
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* The brand link's hover, in two parts (the seal is a photographic
+   plate now, so the site's usual device — a control swapping its own
+   ground and mark — has nothing on the mark to swap):
+
+   1. `.brand-plate` is a bone hairline held 2px off the plate, and it
+      is the thing that swaps: its ground fills bone while the
+      photograph underneath never changes. The frame is drawn, so the
+      swap is still bone and ground, not a filter on an image.
+   2. `.brand-rule` wipes a 1px bone rule in under the name, left to
+      right — a background-size transition, so nothing lays out and no
+      element is added beside the text.
+
+   Both are decoration: `aria-current` is not involved and the link's
+   accessible name is the name text either way. The rule's own reduced-
+   motion case is the zeroed durations at the foot of this file — the
+   rule still arrives, it simply arrives at once. */
+.brand-plate {
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--color-signal);
+  transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .brand-plate {
+  background-color: var(--color-signal);
+}
+.brand-rule {
+  padding-bottom: 2px;
+  background-image: linear-gradient(
+    var(--color-signal),
+    var(--color-signal)
+  );
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .brand-rule {
+  background-size: 100% 1px;
+}
+
 /* Receipts you can see (CollectUI brief, item 5 — ref @colmtuite's
    cursor-tracking tooltip, @byJWXN's link preview, @noechague's hover
    receipts; the tracking, the preview card and the photo stack all

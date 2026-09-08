@@ -172,12 +172,16 @@ export default function Nav() {
             href="#top"
             className="group flex items-center gap-3 font-mono text-sm font-semibold tracking-tight"
           >
-            {/* The seal plate (Mark.tsx, public/mark.png). It carries no
-                hover inversion: a raster plate has no ground and mark to
-                swap, and this site's hover device is a colour swap or
-                nothing. */}
-            <Mark size={22} className="shrink-0" />
-            Rakshit Rameshbabu
+            {/* The seal plate (Mark.tsx, public/mark.png) and the link's
+                two-part hover (globals.css, `.brand-plate` /
+                `.brand-rule`): the bone frame around the plate fills on
+                hover — the swap happens on a drawn element, since a
+                photograph has no ground and mark of its own — and a 1px
+                rule wipes in under the name. */}
+            <span className="brand-plate shrink-0">
+              <Mark size={22} />
+            </span>
+            <span className="brand-rule">Rakshit Rameshbabu</span>
           </a>
           {/* Current-act indicator — presentational only, driven by the
               scroll-spy state above (no second observer). Its accessible

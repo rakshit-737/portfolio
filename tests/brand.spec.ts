@@ -59,6 +59,45 @@ test("the nav carries the seal plate, decorative, inside the brand link", async 
   expect(natural).toBeGreaterThanOrEqual(drawn * 3);
 });
 
+test("the brand link answers a pointer in two parts — the frame fills, the rule wipes in", async ({
+  page,
+}) => {
+  // The plate is a photograph, so the swap had to move onto drawn
+  // elements: the bone frame around it (`.brand-plate`) and a 1px rule
+  // under the name (`.brand-rule`). Both are decoration — the assertions
+  // below are on computed style, never on the accessible name.
+  await page.goto(`${BASE}/`);
+  const brand = page.getByRole("link", { name: "Rakshit Rameshbabu" }).first();
+  const frame = brand.locator(".brand-plate");
+  const rule = brand.locator(".brand-rule");
+
+  // At rest the frame is a hairline on ground and the rule has no width.
+  const restFill = await frame.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(["rgba(0, 0, 0, 0)", "transparent"]).toContain(restFill);
+  expect(await rule.evaluate((el) => getComputedStyle(el).backgroundSize)).toBe(
+    "0% 1px",
+  );
+
+  await brand.hover();
+  // rgb(242, 237, 227) === --color-signal (bone) — the swap is a colour
+  // swap on a drawn element, not a filter on the photograph.
+  await expect
+    .poll(async () =>
+      frame.evaluate((el) => getComputedStyle(el).backgroundColor.replace(/\s/g, "")),
+    )
+    .toBe("rgb(242,237,227)");
+  // The rule reaches the full width of the name it underlines, and stays
+  // a hairline — the wipe is the width, never the thickness.
+  await expect
+    .poll(async () => rule.evaluate((el) => getComputedStyle(el).backgroundSize))
+    .toBe("100% 1px");
+
+  // The plate itself never changes — no filter, no swapped image.
+  expect(
+    await brand.locator("img").evaluate((el) => getComputedStyle(el).filter),
+  ).toBe("none");
+});
+
 test("the clock beside the name shows Chennai time and ticks", async ({ browser }) => {
   // Wide enough that the nav has room for it alongside the section links.
   const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 } });
