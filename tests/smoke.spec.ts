@@ -237,3 +237,31 @@ for (const path of [
     expect(results.violations).toEqual([]);
   });
 }
+
+// The two Phase 2 rails are server-rendered markup with plain anchors, so
+// a visitor with no JavaScript gets a working index of the page — not an
+// empty gutter. The lamp's own no-JS stance (fully lit) is covered in
+// lamplight.spec.ts; this is the chrome beside it.
+test("without JavaScript both rails still render, read the first entry, and link", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 1280, height: 900 },
+  });
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/`);
+  const acts = page.getByRole("navigation", { name: "Acts" });
+  await expect(acts.locator("a")).toHaveCount(8);
+  await expect(acts.locator("a[aria-current]")).toHaveAttribute("href", "#hero");
+
+  const casePage = await ctx.newPage();
+  await casePage.goto(`${BASE}/projects/warden/`);
+  const sections = casePage.getByRole("navigation", { name: "Sections" });
+  await expect(sections.locator("a")).toHaveCount(5);
+  await expect(sections.locator("a[aria-current]")).toHaveAttribute("href", "#problem");
+  // A plain anchor still navigates with the scripting gone.
+  await sections.locator('a[href="#outcome"]').click();
+  await expect(casePage).toHaveURL(/#outcome$/);
+  await ctx.close();
+});
