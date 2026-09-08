@@ -183,6 +183,15 @@ test("the square switch tracks the toggle and never joins the accessible name", 
 test("interface sounds fire on the sanctioned events and never on hover or scroll", async ({ page }) => {
   await installUiLog(page);
   await page.goto("/");
+  // Wait for the shim to have hydrated (it writes "pending" from its own
+  // effect, which is where the gesture listeners are armed) before
+  // clicking — the same order the two tests above use. Clicking straight
+  // after `goto` raced hydration: `goto` resolves on `load`, and how far
+  // ahead of `load` hydration finishes depends on how much the page had
+  // left to fetch, so trimming an unused 144 kB font from the preload set
+  // was enough to flip this test from passing to failing with no change
+  // to the sound layer at all.
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "pending");
   await page.mouse.click(400, 400); // the first touch starts the hearth (and is itself silent)
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
   const kinds = () =>

@@ -52,11 +52,17 @@ const manrope = Manrope({
 // weight is intentionally omitted: this Next.js version only allows `axes`
 // on a variable font when `weight` is absent (or "variable"). The statement
 // voice is weight 400 regardless — that's set in .statement's CSS, not here.
+// Normal only: the italic cut was requested here but used nowhere — no
+// `font-style: italic` rule, no `<em>`, no component asks for it — and
+// next/font preloads every declared style, so its 144 kB latin file sat
+// at High priority ahead of the hero plate on the mobile critical path
+// (the whole font set was 346 kB against a 51 kB LCP image; Lighthouse
+// mobile LCP 5.7s, median performance 73 vs. the 75 gate). Adding italic
+// back means adding a rule that actually uses it, and re-measuring.
 const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],
   axes: ["opsz"],
-  style: ["normal", "italic"],
   display: "swap",
 });
 
