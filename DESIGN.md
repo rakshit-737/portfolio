@@ -437,7 +437,10 @@ parentheses.
 through them at native speed. Only the ledger's plate is sticky, and only
 because its content genuinely outruns one viewport. A new act does not get
 scroll-jacking or a sticky content column — it gets `min-h-[100svh]` like
-every other one.
+every other one. The rule governs an act's own content: fixed site chrome
+(the header, and the act rail below) is not pinned content — it is the
+frame the page scrolls under, and it never intercepts a wheel or a touch.
+This is a clarification of the rule's scope, not a narrowing of it.
 
 **The Scrim-Guards-Text Rule.** Content sitting over a plate always sits
 inside `.scrim` (or `.scrim-wide` for a column wider than the standard
@@ -900,6 +903,22 @@ the same grammar as every other bordered surface on the site.
 A pipeline on a hairline rail, structurally unchanged. The verdict stage is
 now marked with a `signal` fill and `ground` text — the same local
 colour-swap device as a filled `Bracket`, not the retired region inversion.
+
+### Act rail (`Nav.tsx`, `.act-notch`)
+Eight square hairline notches fixed at the right edge from `lg` up, one
+per act in `content.ts` order, the current one filled bone (ref CollectUI
+@lucashjin — "what if scrollbars were less boring"; @shariar_design — a
+scroll island showing the current heading; @kazdenc — eight numbered
+stamps). It reads the **same** scroll-spy state the top rail holds — one
+`IntersectionObserver` in `Nav.tsx`, never a second one, and no
+scroll-driven animation. It is a sibling of the header, not a second
+`nav` inside it, and it carries `aria-label="Acts"`. Each notch is a real
+44px link with the 10px square drawn inside it, so the square stays small
+while the target does not; `aria-current="location"` is the state, and the
+act's name sits beside the notch, always in the accessibility tree
+(opacity, never `display: none`), revealed on hover and focus. Hairline to
+filled is a 240ms colour change on a square that never moves — no ember, no
+inversion of anything but the notch's own fill. Print drops it.
 
 ### Command palette (`CommandPalette.tsx`)
 Each case-file row carries hairline `.label` metadata chips — the act's

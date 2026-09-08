@@ -157,7 +157,8 @@ export default function Nav() {
   };
 
   return (
-    <header
+    <>
+      <header
       ref={headerRef}
       data-chrome
       className="sticky top-0 z-50 border-b border-rule bg-ground"
@@ -359,6 +360,40 @@ export default function Nav() {
           </div>
         )}
       </nav>
-    </header>
+      </header>
+
+      {/* The act rail (CollectUI Phase 2, ref @lucashjin, @shariar_design,
+          @kazdenc). Eight square hairline notches at the right edge, one
+          per act, the current one filled. It reads the SAME scroll-spy
+          state the rail above holds — `active`, from the one observer in
+          this component — and adds no second observer and no
+          scroll-driven animation. Fixed site chrome, like the header
+          itself: the Not-Pinned Rule governs an act's own content column,
+          not the chrome the page scrolls under (DESIGN.md says so
+          explicitly now). It is a sibling of the header, not a second
+          `nav` inside it. From `lg` up, where the section links are still
+          in the menu and this is the only visible reading of position
+          besides the counter. Each notch is a real 44px link — the square
+          is drawn inside it — so the target-size audit and the keyboard
+          path both hold; the act's name sits beside it, always in the
+          accessibility tree, revealed on hover and focus. */}
+      <nav
+        aria-label="Acts"
+        data-act-rail
+        className="fixed top-1/2 right-1 z-40 hidden -translate-y-1/2 flex-col lg:flex"
+      >
+        {ACT_IDS.map((id) => (
+          <a
+            key={id}
+            href={`#${id}`}
+            onClick={jumpTo(id)}
+            aria-current={(active || "hero") === id ? "location" : undefined}
+            className="act-notch"
+          >
+            <span className="act-notch-name label">{acts[id].label}</span>
+          </a>
+        ))}
+      </nav>
+    </>
   );
 }

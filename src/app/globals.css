@@ -421,6 +421,60 @@ section[id] {
   }
 }
 
+/* ── The act rail ────────────────────────────────────────────────────
+   CollectUI Phase 2 (ref @lucashjin — "what if scrollbars were less
+   boring"; @shariar_design — a scroll island showing the current
+   heading; @kazdenc — eight numbered stamps). Eight notches at the right
+   edge, reading the nav's own scroll-spy state. The link is a real 44px
+   target with a 10px hairline square drawn inside it, so the square can
+   stay small without the target being small. The current act's square is
+   filled bone; the rest are hairline. Never ember — a graphic. */
+.act-notch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+}
+.act-notch::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--color-rule);
+  transition:
+    background-color 240ms ease,
+    border-color 240ms ease;
+}
+.act-notch:hover::after,
+.act-notch:focus-visible::after {
+  border-color: var(--color-signal);
+}
+.act-notch[aria-current]::after {
+  background: var(--color-signal);
+  border-color: var(--color-signal);
+}
+/* The act's name, beside its notch. It stays in the accessibility tree at
+   all times (opacity, never `display: none`), so the link's accessible
+   name is the act's label whether or not a pointer is near it — the
+   reveal is decoration on a name that is always there. */
+.act-notch-name {
+  position: absolute;
+  right: 100%;
+  margin-right: 2px;
+  padding: 0.25rem 0.5rem;
+  white-space: nowrap;
+  background: var(--color-ground);
+  border: 1px solid var(--color-rule);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms ease;
+}
+.act-notch:hover .act-notch-name,
+.act-notch:focus-visible .act-notch-name {
+  opacity: 1;
+}
+
 /* ── Palette metadata chips ──────────────────────────────────────────
    CollectUI Phase 2 (ref @ilyamiskov — a command bar whose rows carry
    metadata chips). A hairline chip on the case-file rows, carrying data
@@ -1028,6 +1082,10 @@ button:focus-visible > .sound-switch {
   /* The square switch is screen chrome; the "Soundscape: on/off" text
      it sits beside carries the state on paper. */
   .sound-switch {
+    display: none !important;
+  }
+  /* Position chrome for a scrolling reader; paper has page numbers. */
+  [data-act-rail] {
     display: none !important;
   }
   [data-act] {

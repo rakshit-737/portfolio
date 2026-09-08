@@ -96,6 +96,41 @@ for (const width of [768, 1024, 1263, 1280, 1366, 1440]) {
   });
 }
 
+// The act rail (CollectUI Phase 2): eight notches at the right edge from
+// `lg` up, reading the nav's own scroll-spy state — no second observer.
+test("the act rail marks the current act, is reachable, and is absent below lg", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/`);
+  const rail = page.getByRole("navigation", { name: "Acts" });
+  const notches = rail.locator("a");
+  await expect(notches).toHaveCount(8);
+  // At the top of the page the first act is the current one.
+  await expect(notches.first()).toHaveAttribute("aria-current", "location");
+  // Every notch is a real target, not a 10px square.
+  for (const box of await notches.all()) {
+    const size = await box.boundingBox();
+    expect(size!.width).toBeGreaterThanOrEqual(24);
+    expect(size!.height).toBeGreaterThanOrEqual(24);
+  }
+  // The spy moves it: jumping to a section marks that act instead.
+  await page.locator("#ledger").scrollIntoViewIfNeeded();
+  await expect
+    .poll(async () => rail.locator("a[aria-current]").getAttribute("href"))
+    .toBe("#ledger");
+  await ctx.close();
+
+  const narrow = await browser.newContext({ viewport: { width: 900, height: 900 } });
+  const small = await narrow.newPage();
+  await small.goto(`${BASE}/`);
+  await expect(
+    small.getByRole("navigation", { name: "Acts" }),
+  ).not.toBeVisible();
+  await narrow.close();
+});
+
 test("below 768px the clock lives in the menu", async ({ browser }) => {
   const ctx = await browser.newContext({
     viewport: { width: 390, height: 844 },
