@@ -44,6 +44,11 @@ export default function SoundToggle({ className = "" }: { className?: string }) 
       }}
       className={`label transition-colors ${className}`}
     >
+      {/* The square switch (CollectUI Phase 2) — aria-hidden decoration:
+          the knob's position echoes the state the text already carries,
+          so the accessible name stays one run of text. Styled in
+          globals.css (`.sound-switch`); it slides on transform only. */}
+      <span aria-hidden="true" className="sound-switch" data-on={on ? "" : undefined} />
       {/* Only the state word morphs (MorphLabel — the same 180ms word
           device the copy button uses); "Soundscape:" holds still, and
           the accessible name stays this one run of text. */}

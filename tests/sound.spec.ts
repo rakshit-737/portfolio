@@ -136,6 +136,40 @@ test("the toggle is visible, keyboard-operable, persists, and survives reload", 
   ).toBeVisible();
 });
 
+// The square switch (CollectUI Phase 2). It is decoration on top of the
+// text state: the knob moves with the toggle, and the accessible name —
+// asserted above — never gains a second word from it.
+test("the square switch tracks the toggle and never joins the accessible name", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const toggle = page.getByRole("button", { name: /^Soundscape: on$/ }).first();
+  await expect(toggle).toBeVisible();
+  const knob = () =>
+    toggle
+      .locator(".sound-switch")
+      .evaluate((el) => getComputedStyle(el, "::after").transform);
+  // On: the knob sits at the far end of the track.
+  // Default viewport is 1280 wide — `lg` and up, where the track shows.
+  await expect(toggle.locator(".sound-switch")).toBeVisible();
+  const onX = await knob();
+  expect(onX).toContain("10");
+  expect(await toggle.locator(".sound-switch").getAttribute("aria-hidden")).toBe("true");
+  await toggle.click();
+  await expect(
+    page.getByRole("button", { name: /^Soundscape: off$/ }).first(),
+  ).toBeVisible();
+  // Off: it has travelled back to the start (identity, or "none").
+  await expect
+    .poll(async () =>
+      page
+        .locator(".sound-switch")
+        .first()
+        .evaluate((el) => getComputedStyle(el, "::after").transform),
+    )
+    .toMatch(/none|matrix\(1, 0, 0, 1, 0, 0\)/);
+});
+
 test("interface sounds fire on the sanctioned events and never on hover or scroll", async ({ page }) => {
   await installUiLog(page);
   await page.goto("/");

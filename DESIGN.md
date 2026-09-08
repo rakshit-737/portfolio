@@ -602,6 +602,24 @@ pinned off in that block alongside the seal press. No rule is narrowed:
 transform and opacity only, inside the ≤240ms budget, no ember, no
 inversion, no new dependency.
 
+### Square switch (`SoundToggle.tsx`, `.sound-switch`)
+The soundscape's control carries a switch, and the switch is square (ref
+CollectUI @Designownow_ — the one square toggle on the board;
+@LynelSkroll — a two-value control read as if screens were still black
+and white). A 22×12 hairline track in `--color-rule` with an 8px solid
+bone knob that slides 10px on transform over 160ms on the site's easing;
+no track fill, no rounded jelly, no colour change. The visible
+"Soundscape: on/off" text remains the state — the switch is
+`aria-hidden` decoration, so the accessible name stays that one run of
+text and nothing announces twice — and the brass click stays the sound.
+The knob is bone in both positions: the position carries the state, never
+a dimming and never ember. The track borrows the rail button's own
+hover/focus border so the two read as one object; print drops it, and the
+reduced-motion block zeroes the slide with every other transition. It
+renders from `lg` up only: the rail is the tightest row on the site and
+holds 16px of slack at 768px, so below that the text carries the state
+alone — which it always did.
+
 ### Odometer (`Odometer.tsx`)
 The two live readings — the nav clock (`LiveClock.tsx`) and the `NN/08`
 act counter (`Nav.tsx`) — turn like instruments rather than repainting

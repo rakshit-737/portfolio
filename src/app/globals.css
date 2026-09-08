@@ -421,6 +421,56 @@ section[id] {
   }
 }
 
+/* ── The soundscape's square switch ──────────────────────────────────
+   CollectUI brief, Phase 2 (Camden @Designownow_ — the one *square*
+   toggle; Lynel @LynelSkroll — a two-value control's mood). A hairline
+   square track with a solid bone knob that slides 160ms beside the
+   existing "Soundscape: on/off" text. The TEXT is still the state — the
+   switch is `aria-hidden` decoration, so the accessible name stays that
+   one run of text and nothing announces twice. The knob is bone in both
+   positions: position carries the state, never a dimming (this palette
+   has no contrast headroom to spend), and never ember (a graphic). */
+.sound-switch {
+  position: relative;
+  /* Decoration, and the rail is the tightest row on the site: the track
+     plus its gap is 30px, and at 768px the rail has 16px of slack (the
+     brand.spec sweep measures exactly this). So it appears only from
+     `lg` up, where every measured width holds it; below that the text
+     alone carries the state, which it always did. */
+  display: none;
+  box-sizing: border-box;
+  width: 22px;
+  height: 12px;
+  margin-right: 0.5rem;
+  vertical-align: -1px;
+  border: 1px solid var(--color-rule);
+  flex: none;
+}
+.sound-switch::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 8px;
+  height: 8px;
+  background: var(--color-signal);
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sound-switch[data-on]::after {
+  transform: translateX(10px);
+}
+@media (min-width: 64rem) {
+  .sound-switch {
+    display: inline-block;
+  }
+}
+/* The rail button paints its own border on hover; the track follows it
+   so the control reads as one object rather than two. */
+button:hover > .sound-switch,
+button:focus-visible > .sound-switch {
+  border-color: var(--color-signal);
+}
+
 /* ── The lamp ────────────────────────────────────────────────────────
    Default state — no JS, or reduced motion — is FULLY LIT. The mask is
    only introduced once <html data-lamp="on"> is set by the client. A
@@ -939,6 +989,11 @@ section[id] {
      have; a marker mid-glide would otherwise print as a stray near-black
      square beside a row. */
   .row-marker {
+    display: none !important;
+  }
+  /* The square switch is screen chrome; the "Soundscape: on/off" text
+     it sits beside carries the state on paper. */
+  .sound-switch {
     display: none !important;
   }
   [data-act] {
