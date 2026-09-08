@@ -421,6 +421,78 @@ section[id] {
   }
 }
 
+/* ── PROTOTYPE: the lamplight beam (Phase 3, NOT shipped) ────────────
+   CollectUI Phase 3 (ref @Jakubantalik — "Border beam"). A short segment
+   of full-strength signal travels once around the cartouche's outer 1px
+   ring on hover: a conic gradient masked to the ring alone, its angle
+   animated through an `@property` so the gradient itself can be
+   interpolated. Bone only — never ember, which marks a lit number and
+   nothing else.
+
+   INERT BY DESIGN. No element in the app carries `data-beam`, so this
+   costs nothing but its own bytes until someone opts a control in. It is
+   here because the brief asked for a prototype to look at, and it is
+   deliberately not wired to a button: the beam is arguably a second
+   light, which would narrow the One-Light Rule, and the brief says do
+   not ship it without a yes.
+
+   To look at it: add `data-beam` to one Bracket's own element.
+
+   MEASURED RESULT (2026-09-08, captures in docs/screens/): the mechanism
+   works — a red test gradient traces the ring exactly — but in this
+   palette the beam is INVISIBLE. The cartouche's outer ring is already
+   `border: 1px solid var(--color-signal)` at full strength, so a signal
+   beam travelling over it is bone on bone. Making it read would need the
+   ring dimmed at rest (the No-Dimming Rule) or a value brighter than
+   signal (the Three Values Rule). Reference's own version rides a dim
+   ring; this system has none. Recommendation: do not ship. */
+@property --beam-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+.bracket[data-beam]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0deg,
+    transparent 300deg,
+    var(--color-signal) 345deg,
+    transparent 360deg
+  );
+  /* Mask to the ring alone: paint the border box, punch out the content
+     box. `mask-composite: exclude` is the standard spelling; the
+     `-webkit-` pair is the one Chromium still reads. */
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  opacity: 0;
+  pointer-events: none;
+}
+.bracket[data-beam]:hover::before,
+.bracket[data-beam]:focus-visible::before {
+  opacity: 1;
+  /* Once around, then gone — not a loop. A loop would be a second light
+     running whether or not anyone is looking at it. */
+  animation: beam-travel 900ms linear 1 forwards;
+}
+@keyframes beam-travel {
+  from {
+    --beam-angle: 0deg;
+  }
+  to {
+    --beam-angle: 360deg;
+  }
+}
+
 /* ── The act rail ────────────────────────────────────────────────────
    CollectUI Phase 2 (ref @lucashjin — "what if scrollbars were less
    boring"; @shariar_design — a scroll island showing the current
@@ -1160,6 +1232,12 @@ button:focus-visible > .sound-switch {
   .sine-draw,
   .node-in {
     animation: none !important;
+  }
+  /* The beam prototype: a travelling light is exactly what this
+     preference is about. Nothing travels and nothing shows. */
+  .bracket[data-beam]::before {
+    animation: none !important;
+    opacity: 0 !important;
   }
   .sine-draw {
     stroke-dasharray: none;

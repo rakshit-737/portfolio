@@ -1006,6 +1006,25 @@ frame instead of calling `requestAnimationFrame` again — a genuinely idle
 tab costs nothing per frame. Scroll, pointermove, and resize all wake it
 back up.
 
+### The lamplight beam (prototype, not shipped)
+Phase 3 of the CollectUI brief (ref @Jakubantalik — "Border beam"): a
+short segment of full-strength signal travelling once around a
+cartouche's outer 1px ring on hover — a conic gradient masked to the ring,
+its angle animated through an `@property`, bone only. It exists in
+`globals.css` behind `.bracket[data-beam]` and **no element carries that
+attribute**, so it is inert.
+
+It should stay that way. Prototyped and captured 2026-09-08
+(`docs/screens/prototype-beam-*.png`): the mechanism is correct — a red
+test gradient traces the ring exactly — but the beam is invisible in this
+palette, because the cartouche's ring is already `border: 1px solid
+var(--color-signal)` at full strength and the beam is the same bone
+travelling over it. The reference's version rides a dim ring; this system
+has none, and buying one would cost either the No-Dimming Rule (dim the
+ring at rest) or the Three Values Rule (a value brighter than signal).
+The One-Light question the brief raised never had to be answered: the
+palette settled it first.
+
 ### The torch (removed)
 A page-wide cursor flashlight (`Torch.tsx`) used to sit above the lamp on
 desktop, dimming nav, copy, chart and footer outside a pool around the
