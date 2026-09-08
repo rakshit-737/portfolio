@@ -920,6 +920,22 @@ act's name sits beside the notch, always in the accessibility tree
 filled is a 240ms colour change on a square that never moves — no ember, no
 inversion of anything but the notch's own fill. Print drops it.
 
+### Case-file index (`CaseIndex.tsx`)
+The case file carries the act rail's device: five notches fixed at the
+right edge from `lg` up, one per `caseSections` entry, the current one
+filled as you read (ref CollectUI @bemiiis — a catalogue index that marks
+the current row as you scroll). One `IntersectionObserver` over the five
+section ids, no scroll listener and no scroll-driven animation; the
+notches are plain anchors to the same ids the palette deep-links to, so
+the browser scrolls and the hash means what it says.
+
+**The case-file grammar is unchanged.** The brief's literal reading asked
+the sticky `.case-heading` column to list all five sections — but that
+column is per-section (a `<h2>` inside each `CaseSection`'s own grid), so
+an index there would render five times over. Each section still holds its
+own title in its own rail; the index is chrome beside them, not a new
+column.
+
 ### Command palette (`CommandPalette.tsx`)
 Each case-file row carries hairline `.label` metadata chips — the act's
 own number and the project's first stack entry, both read straight off

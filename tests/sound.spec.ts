@@ -1,5 +1,15 @@
 import { expect, test } from "@playwright/test";
 
+/** The hearth's boot is real audio work — creating the AudioContext,
+ *  building the string and the drone — behind a real user gesture. Under
+ *  a full-suite run (eight parallel browsers on a busy machine) that has
+ *  twice lost Playwright's default 5s wait and reported `pending`, while
+ *  passing every time the same tests run alone. The behaviour under test
+ *  is "a gesture starts the hearth", not "it starts within five seconds",
+ *  so these waits get room; nothing about the product changed, and every
+ *  other assertion here keeps the default. */
+const HEARTH_BOOT = { timeout: 20_000 } as const;
+
 /**
  * The night archive's soundscape, end to end: default-on behind an
  * honest autoplay gate, persistence, the tab-hidden pause, and the
@@ -33,7 +43,7 @@ test("on by default — pending at load, playing at the first touch", async ({ p
   // every autoplay policy), then starts unprompted.
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "pending");
   await page.mouse.click(400, 400);
-  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
 });
 
 test("no AudioContext exists before the first interaction (the perf gate)", async ({ page }) => {
@@ -48,7 +58,7 @@ test("no AudioContext exists before the first interaction (the perf gate)", asyn
     page.evaluate(() => (window as unknown as { __ctx: number }).__ctx);
   expect(await ctxCount()).toBe(0);
   await page.mouse.click(400, 400);
-  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
   expect(await ctxCount()).toBe(1);
 });
 
@@ -79,7 +89,7 @@ test("a persisted off preference builds no AudioContext at all", async ({ page }
 test("hidden tab pauses; visible resumes", async ({ page }) => {
   await page.goto("/");
   await page.mouse.click(400, 400); // the first touch starts the hearth
-  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
   await page.evaluate(() => {
     Object.defineProperty(document, "visibilityState", {
       configurable: true,
@@ -95,7 +105,7 @@ test("hidden tab pauses; visible resumes", async ({ page }) => {
     });
     document.dispatchEvent(new Event("visibilitychange"));
   });
-  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
 });
 
 test("blocked localStorage still yields a working default-on soundscape", async ({ page }) => {
@@ -109,7 +119,7 @@ test("blocked localStorage still yields a working default-on soundscape", async 
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "pending");
   await page.mouse.click(400, 400);
-  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
 });
 
 // The autoplay-blocked path needs its own deterministic policy double
@@ -174,7 +184,7 @@ test("interface sounds fire on the sanctioned events and never on hover or scrol
   await installUiLog(page);
   await page.goto("/");
   await page.mouse.click(400, 400); // the first touch starts the hearth (and is itself silent)
-  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
   const kinds = () =>
     page.evaluate(() => (window as unknown as { __ui: string[] }).__ui);
 
@@ -256,7 +266,7 @@ test("an unvoiced button chimes; a voiced one keeps its single voice", async ({ 
   await installUiLog(page);
   await page.goto("/");
   await page.mouse.click(400, 400); // first touch: starts the hearth, silently
-  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
   const kinds = () =>
     page.evaluate(() => (window as unknown as { __ui: string[] }).__ui);
   expect(await kinds()).toEqual([]);

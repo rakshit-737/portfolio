@@ -11,6 +11,7 @@ import Rail, { type RailItem } from "@/components/Rail";
 import SineLattice from "@/components/SineLattice";
 import Statement from "@/components/Statement";
 import { acts, caseSections, caseStudies, featuredProjects, links, site } from "@/content";
+import CaseIndex from "@/components/CaseIndex";
 import { withBase } from "@/lib/base";
 import { withCredit } from "@/lib/credit";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
@@ -330,6 +331,11 @@ export default async function CaseStudyPage({
             />
           </div>
         </section>
+
+        {/* The live index (CaseIndex.tsx) — the act rail's device, in the
+            one other place with a fixed ordered spine. It reads the five
+            section ids below through one IntersectionObserver. */}
+        <CaseIndex />
 
         <CaseSection slug="problem" title={sectionTitle("problem")}>
           <div className="prose-field">

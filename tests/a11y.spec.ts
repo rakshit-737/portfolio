@@ -662,3 +662,35 @@ test("axe: no violations under prefers-contrast: more", async ({ browser }) => {
   expect(results.violations).toEqual([]);
   await ctx.close();
 });
+
+// The case file's live index (CollectUI Phase 2) — the act rail's device,
+// five notches reading one IntersectionObserver over the section ids.
+test("the case-file index marks the section you are reading and is absent below lg", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto("/projects/warden/");
+  const index = page.getByRole("navigation", { name: "Sections" });
+  const notches = index.locator("a");
+  await expect(notches).toHaveCount(5);
+  await expect(notches.first()).toHaveAttribute("aria-current", "location");
+  // Real targets, not 10px squares.
+  const box = await notches.first().boundingBox();
+  expect(box!.width).toBeGreaterThanOrEqual(24);
+  expect(box!.height).toBeGreaterThanOrEqual(24);
+  // Reading on moves it, and the anchor still deep-links the section.
+  await page.locator("#outcome").scrollIntoViewIfNeeded();
+  await expect
+    .poll(async () => index.locator("a[aria-current]").getAttribute("href"))
+    .toBe("#outcome");
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+  await ctx.close();
+
+  const narrow = await browser.newContext({ viewport: { width: 900, height: 900 } });
+  const small = await narrow.newPage();
+  await small.goto("/projects/warden/");
+  await expect(small.getByRole("navigation", { name: "Sections" })).not.toBeVisible();
+  await narrow.close();
+});

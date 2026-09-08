@@ -1085,7 +1085,8 @@ button:focus-visible > .sound-switch {
     display: none !important;
   }
   /* Position chrome for a scrolling reader; paper has page numbers. */
-  [data-act-rail] {
+  [data-act-rail],
+  [data-case-index] {
     display: none !important;
   }
   [data-act] {

@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+/** Same reason as sound.spec.ts: the hearth's boot is real audio work and
+ *  a loaded full-suite run has lost the default 5s wait. The gesture, not
+ *  the clock, is what these tests are about. */
+const HEARTH_BOOT = { timeout: 20_000 } as const;
+
 /**
  * The first-interaction gate under a hostile autoplay policy. The
  * engine never attempts playback before a real gesture (see sound.ts's
@@ -53,7 +58,7 @@ test("pending until first real interaction, then on — no attempt without a ges
   await page.waitForTimeout(1200);
   await expect(page.locator("html")).toHaveAttribute("data-soundscape", "pending");
   await page.mouse.click(200, 300);
-  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
 });
 
 test("the first activation key lights the hearth AND taps the palette — exactly one honest event", async ({ page }) => {
@@ -92,7 +97,7 @@ test("the first activation key lights the hearth AND taps the palette — exactl
   expect(
     await page.evaluate(() => (window as unknown as { __ui: string[] }).__ui),
   ).toEqual(["tap"]);
-  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
 });
 
 test("orientation keys never start the hearth; an activation key does", async ({ page }) => {
@@ -120,5 +125,5 @@ test("orientation keys never start the hearth; an activation key does", async ({
   // autoplay policy — is engagement, and starts it. (Focus sits on the
   // skip link after the Tab; activating it only jumps in-page.)
   await page.keyboard.press("Enter");
-  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on");
+  await expect(page.locator("html")).toHaveAttribute("data-soundscape", "on", HEARTH_BOOT);
 });
