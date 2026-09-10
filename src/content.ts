@@ -1087,7 +1087,11 @@ export interface EducationEntry {
   degree: string;
   institution: string;
   period: string;
+  /** The bare measured value — no unit prose, so the column can set it as a
+      number. "CGPA / 10" style units belong in `scoreLabel`. */
   score: string;
+  /** Small tracked line under the value, naming what was measured. */
+  scoreLabel?: string;
 }
 
 export const education: EducationEntry[] = [
@@ -1095,7 +1099,8 @@ export const education: EducationEntry[] = [
     degree: "B.Tech CSE (Cyber Security)",
     institution: "VIT Chennai",
     period: "2024–Present",
-    score: "CGPA 9.07/10",
+    score: "9.07",
+    scoreLabel: "CGPA / 10",
   },
   {
     degree: "Class XII (PCM-CS)",

@@ -952,7 +952,7 @@ export default async function Home() {
                     {education.map((e) => (
                       <li
                         key={e.degree}
-                        className="grid gap-x-6 gap-y-2 border-b border-rule py-6 sm:grid-cols-[minmax(0,1fr)_7rem] sm:items-baseline"
+                        className="grid gap-x-8 gap-y-3 border-b border-rule py-6 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-baseline"
                       >
                         <div>
                           <h4 className="font-mono text-base leading-snug font-semibold tracking-tight">
@@ -963,9 +963,18 @@ export default async function Home() {
                           </p>
                           <p className="label mt-1.5">{e.period}</p>
                         </div>
-                        <p className="font-mono text-lg leading-none tracking-tight tabular-nums sm:text-right">
-                          {e.score}
-                        </p>
+                        {/* The value is a number and nothing else — its unit
+                            ("CGPA / 10") rides below as a label, so a long
+                            unit string can never wrap the measurement into
+                            two lines inside the fixed score column. */}
+                        <div className="sm:text-right">
+                          <p className="font-mono text-lg leading-none tracking-tight whitespace-nowrap tabular-nums">
+                            {e.score}
+                          </p>
+                          {e.scoreLabel && (
+                            <p className="label mt-1.5">{e.scoreLabel}</p>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>

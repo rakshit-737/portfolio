@@ -70,7 +70,8 @@ export function GET() {
     "## Education",
     "",
     ...education.map(
-      (e) => `- ${e.degree}, ${e.institution}, ${e.period} — ${e.score}`,
+      (e) =>
+        `- ${e.degree}, ${e.institution}, ${e.period} — ${e.scoreLabel ? `${e.scoreLabel}: ` : ""}${e.score}`,
     ),
     "",
   ];
