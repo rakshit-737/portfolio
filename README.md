@@ -4,7 +4,7 @@ Personal portfolio for **Rakshit Rameshbabu — Software & Security Engineer**.
 Built with Next.js (App Router) + TypeScript + Tailwind CSS, fully statically
 exported — no server runtime. One index page plus three case-study pages at
 `/projects/[id]` (`warden`, `scheduler`, `plantpal`).
-
+Deployed in Vercel: https://rakshit-737.vercel.app/
 ## Local development
 
 ```bash
