@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { site } from "../src/content";
 
 // F2 (final fix wave): empty for the primary (root-shape/Vercel) gate —
 // every literal path below is unchanged from before this constant existed.
@@ -9,6 +10,28 @@ import { expect, test } from "@playwright/test";
 // one), so every navigation below still resolves under the GitHub Pages
 // shape without a second copy of this file.
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+// One site, one address: the canonical is the primary on every deploy.
+// Under the GitHub Pages sub-path build (playwright.subpath.config.ts, the
+// only config that runs this with a non-empty BASE), the page's own files
+// load from under the basePath while its canonical never mentions it — the
+// proof that a basePath moves files and never the address. Under the root
+// build both halves still hold, with an empty basePath.
+test("the canonical is the primary URL; the basePath only moves files", async ({
+  page,
+}) => {
+  await page.goto(`${BASE}/`);
+  const canonical = await page
+    .locator('link[rel="canonical"]')
+    .getAttribute("href");
+  expect(canonical).toBe(`${site.url}/`);
+  if (BASE) expect(canonical).not.toContain(BASE);
+  const plateSrc = await page
+    .locator("#hero img.plate-lit")
+    .first()
+    .evaluate((img) => (img as HTMLImageElement).currentSrc || img.getAttribute("src") || "");
+  expect(new URL(plateSrc, page.url()).pathname.startsWith(`${BASE}/art/`)).toBe(true);
+});
 
 test("index renders with hero and evidence", async ({ page }) => {
   await page.goto(`${BASE}/`);

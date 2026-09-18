@@ -123,6 +123,10 @@ the authority on the visual system; this is the short version.
   Pages sub-path. Internal assets and internal page links go through
   `withBase` / `NEXT_PUBLIC_BASE_PATH` (Next 16's export prefetch 404s on
   `next/link` here; a smoke test guards it).
+- **One canonical URL.** `site.url` is the Vercel primary on every deploy;
+  a basePath only changes where files are served from, never what the site
+  says its address is (`deploy-pages.yml` and the CI sub-path job pin it;
+  `smoke.spec.ts` proves it under both build shapes).
 - No heavy dependencies (no UI kits, no animation frameworks). New
   dependencies need a one-line justification. `sharp` is a devDependency —
   the art pipeline (`scripts/fetch-art.mjs`) uses it to crop plates at

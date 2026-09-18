@@ -59,18 +59,21 @@ jobs:
       - run: npm ci
 
       # Project pages (user.github.io/repo) need a base path; a user page
-      # (repo named user.github.io) does not.
+      # (repo named user.github.io) does not. The base path is the only
+      # thing the mirror changes: NEXT_PUBLIC_SITE_URL is the Vercel
+      # primary on both branches, so the mirror's canonical, og:url,
+      # sitemap, robots and JSON-LD all name the primary — one site, one
+      # address, and search engines never treat the primary as the copy.
       - name: Compute Pages URLs
         run: |
           REPO="${{ github.event.repository.name }}"
-          OWNER="${{ github.repository_owner }}"
+          PRIMARY_URL="https://rakshit-737.vercel.app"
           if [[ "$REPO" == *.github.io ]]; then
             echo "NEXT_PUBLIC_BASE_PATH=" >> "$GITHUB_ENV"
-            echo "NEXT_PUBLIC_SITE_URL=https://$OWNER.github.io" >> "$GITHUB_ENV"
           else
             echo "NEXT_PUBLIC_BASE_PATH=/$REPO" >> "$GITHUB_ENV"
-            echo "NEXT_PUBLIC_SITE_URL=https://$OWNER.github.io/$REPO" >> "$GITHUB_ENV"
           fi
+          echo "NEXT_PUBLIC_SITE_URL=$PRIMARY_URL" >> "$GITHUB_ENV"
 
       # Token raises the GitHub API rate limit for the build-time
       # live-evidence fetch (stars / head commit / CI status).

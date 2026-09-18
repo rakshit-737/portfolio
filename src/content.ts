@@ -101,12 +101,19 @@ export const site = {
    *  referenced, but both source strings are unchanged. 136 chars. */
   description:
     "Software & Security Engineer — B.Tech (Cyber Security) @ VIT Chennai. I build full-stack products and backend systems, taken end-to-end.",
-  /** Override with NEXT_PUBLIC_SITE_URL at build time (see README).
-   *  Fallback is the real GitHub Pages project URL — absolute OG/sitemap
-   *  URLs stay valid even when the env var is missing. */
+  /** The site's one address: the canonical, og:url, og:image, sitemap,
+   *  robots and JSON-LD all read it, on every deploy. It is the Vercel
+   *  primary. The GitHub Pages mirror serves the same files under
+   *  `/portfolio`, but a basePath only ever changes where files are
+   *  served from, never what the site says its address is — so the
+   *  mirror declares the primary as canonical and search engines never
+   *  mistake the primary for a copy. Until 2026-09-18 this fell back to
+   *  the mirror's URL and Vercel had no override set, so the primary
+   *  called itself a duplicate of the mirror. NEXT_PUBLIC_SITE_URL still
+   *  overrides it (preview deploys); see README → Environment variables. */
   url:
     process.env.NEXT_PUBLIC_SITE_URL ??
-    "https://rakshit-737.github.io/portfolio",
+    "https://rakshit-737.vercel.app",
   /** The live clock beside the name (`LiveClock.tsx`) always reads the
    *  owner's own zone — `hero.location` below — never the visitor's. */
   timeZone: "Asia/Kolkata",

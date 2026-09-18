@@ -53,8 +53,9 @@ framework) alongside a research result that most portfolios would hide — a
   minute before any deep read happens.
 - Sits next to a PDF résumé (`/resume.pdf`) and a GitHub profile; the site must
   work when the visitor jumps between all three.
-- Deployed two ways at once: Vercel at the domain root and GitHub Pages at a
-  repo sub-path. Both must keep working.
+- Deployed two ways at once: Vercel at the domain root
+  (`https://rakshit-737.vercel.app`, the primary and the canonical on both)
+  and GitHub Pages at a repo sub-path (the mirror). Both must keep working.
 - Machine readers matter: `llms.txt`, JSON-LD (`Person`, `WebSite`,
   `SoftwareSourceCode`), sitemap, and OG cards are part of the surface.
 

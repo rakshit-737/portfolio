@@ -16,13 +16,14 @@ const caseIds = featuredProjects
   .filter((p) => caseStudies[p.id])
   .map((p) => p.id);
 
-// The export's site.url is baked in at build time from NEXT_PUBLIC_SITE_URL
-// (see src/content.ts); this suite runs against a build with that unset, so
-// site.url is the documented GitHub Pages fallback — including its
-// "/portfolio" sub-path. Every absolute-URL assertion below is anchored to
-// this same `site.url` the page code itself used (not `new URL(...).origin`,
-// which would silently drop that sub-path and desync from what the pages
-// actually emit), so it stays correct under either build.
+// The export's site.url is baked in at build time (src/content.ts): the
+// Vercel primary, on every deploy. A basePath (the GitHub Pages mirror's
+// "/portfolio") changes where files are served from, never what the site
+// says its address is, so every absolute URL below — canonical, og:url,
+// og:image, sitemap, robots, JSON-LD — is anchored to that same `site.url`
+// the page code itself used, and stays correct under either build shape.
+// The sub-path shape's own proof (canonical free of the basePath, assets
+// under it) lives in smoke.spec.ts, the one spec that config runs.
 const origin = site.url;
 
 function readPngDims(buf: Buffer): { width: number; height: number } {

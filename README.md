@@ -111,24 +111,27 @@ Two conventions worth knowing before editing it:
 ### Vercel (primary)
 
 Zero-config: import the repo in Vercel. The static export is detected
-automatically. Optionally set `NEXT_PUBLIC_SITE_URL` to the production URL so
-Open Graph tags, `sitemap.xml`, and `robots.txt` emit absolute URLs for the
-right domain.
+automatically. The canonical URL, Open Graph tags, `sitemap.xml`,
+`robots.txt` and JSON-LD all emit `https://rakshit-737.vercel.app` by
+default (`site.url` in `src/content.ts`); set `NEXT_PUBLIC_SITE_URL` only
+for a preview or a custom domain.
 
 ### GitHub Pages (fallback)
 
 [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)
 builds the export and deploys it with the official Pages actions on every push
 to `main`. Enable it once in the repo settings: **Settings → Pages → Source →
-GitHub Actions**. The workflow computes `NEXT_PUBLIC_BASE_PATH` and
-`NEXT_PUBLIC_SITE_URL` from the repo name, so project pages
-(`user.github.io/repo`) work without edits.
+GitHub Actions**. The workflow computes `NEXT_PUBLIC_BASE_PATH` from the
+repo name, so project pages (`user.github.io/repo`) work without edits, and
+pins `NEXT_PUBLIC_SITE_URL` to the Vercel primary: the mirror serves its
+files from `/portfolio` but names the primary as its canonical, so search
+engines see one site, not two.
 
 ## Environment variables (build-time, all optional)
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Absolute origin used in OG tags, sitemap, robots | `https://rakshit-737.github.io` |
+| `NEXT_PUBLIC_SITE_URL` | The site's one address — canonical, OG tags, sitemap, robots, JSON-LD — on every deploy | `https://rakshit-737.vercel.app` |
 | `NEXT_PUBLIC_BASE_PATH` | Sub-path prefix when not served from the domain root | empty |
 
 ## Design notes

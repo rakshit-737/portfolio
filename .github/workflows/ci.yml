@@ -114,7 +114,10 @@ jobs:
       # "/Portfolio" example next.config.ts's own comment uses, which is
       # illustrative rather than this repo's real, case-sensitive name.
       NEXT_PUBLIC_BASE_PATH: /portfolio
-      NEXT_PUBLIC_SITE_URL: https://rakshit-737.github.io/portfolio
+      # The primary's address, exactly as deploy-pages.yml sets it: the
+      # base path moves files, never the canonical (src/content.ts,
+      # `site.url`).
+      NEXT_PUBLIC_SITE_URL: https://rakshit-737.vercel.app
     steps:
       - uses: actions/checkout@v4
 
