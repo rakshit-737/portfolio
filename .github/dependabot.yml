@@ -1,0 +1,30 @@
+# Monthly dependency PRs. Every one runs the full CI quality gate (ci.yml
+# triggers on pull_request), so nothing merges without the art check,
+# typecheck, lint, build, budget, link crawl, content lint, Playwright + axe
+# and Lighthouse all passing.
+#
+# Minor and patch npm updates arrive as one grouped PR. Majors are ignored
+# here on purpose: a major of next, eslint, typescript or React changes
+# conventions (AGENTS.md: "This is NOT the Next.js you know") and needs a
+# human reading the migration notes, not a bot PR.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore(deps)
