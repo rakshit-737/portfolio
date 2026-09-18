@@ -162,8 +162,10 @@ test("the square switch tracks the toggle and never joins the accessible name", 
   // On: the knob sits at the far end of the track.
   // Default viewport is 1280 wide — `lg` and up, where the track shows.
   await expect(toggle.locator(".sound-switch")).toBeVisible();
-  const onX = await knob();
-  expect(onX).toContain("10");
+  // Polled, not sampled once: the knob eases into place, and a single read
+  // taken mid-transition saw matrix(1, 0, 0, 1, 9.99972, 0) on a fast
+  // server. The assertion is unchanged — it settles at exactly 10.
+  await expect.poll(knob).toMatch(/matrix\(1, 0, 0, 1, 10, 0\)/);
   expect(await toggle.locator(".sound-switch").getAttribute("aria-hidden")).toBe("true");
   await toggle.click();
   await expect(
