@@ -1,0 +1,33 @@
+name: Check live headers
+
+# Runs scripts/check-headers.mjs against the deployed primary from
+# GitHub's network — the post-deploy proof that Vercel serves every header
+# in scripts/csp.mjs. Manual only: a deploy lands minutes after a push, so
+# this is triggered once the new build is live (Actions tab, or
+# `gh workflow run check-headers.yml`). Not part of the CI gate, which has
+# no deploy URL to test.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Deployed URL to check
+        default: https://rakshit-737.vercel.app
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  headers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The input reaches the shell through an env var, never through
+      # ${{ }} interpolation into the script text (Actions script injection).
+      - name: Check response headers
+        env:
+          TARGET_URL: ${{ inputs.url }}
+        run: node scripts/check-headers.mjs "$TARGET_URL"

@@ -127,6 +127,11 @@ the authority on the visual system; this is the short version.
   a basePath only changes where files are served from, never what the site
   says its address is (`deploy-pages.yml` and the CI sub-path job pin it;
   `smoke.spec.ts` proves it under both build shapes).
+- **Security headers live in `scripts/csp.mjs`**, the one copy.
+  `vercel.json` is generated from it (`node scripts/check-vercel-json.mjs
+  --write`) and CI fails on drift. A new runtime resource type (a worker,
+  an audio file, a third-party origin) needs a policy change there first —
+  `playwright.csp.config.ts` fails on any violation event.
 - No heavy dependencies (no UI kits, no animation frameworks). New
   dependencies need a one-line justification. `sharp` is a devDependency —
   the art pipeline (`scripts/fetch-art.mjs`) uses it to crop plates at

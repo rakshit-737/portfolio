@@ -123,6 +123,25 @@ rebuilds it every Monday through a Vercel deploy hook. It needs one
 repository secret, `VERCEL_DEPLOY_HOOK` (Vercel → Settings → Git → Deploy
 Hooks, for `main`); until that exists the workflow skips with a notice.
 
+**Response headers.** [`vercel.json`](vercel.json) sends a
+Content-Security-Policy, `X-Content-Type-Options: nosniff`,
+`Referrer-Policy: strict-origin-when-cross-origin`, a `Permissions-Policy`
+that denies camera, microphone, geolocation, payment, USB and FLoC, and
+`X-Frame-Options: DENY` (Vercel already sends HSTS). The policy is written
+down once, in [`scripts/csp.mjs`](scripts/csp.mjs), with the reason for
+every allowance: Next's static export hydrates through inline scripts and
+there is no server to mint nonces (`script-src 'unsafe-inline'`, fenced by
+`object-src 'none'`, `base-uri 'self'` and `frame-ancestors 'none'`); the
+plate placeholders, React's `style` attributes, the lamp's custom
+properties and the data-URI cursors need `style-src 'unsafe-inline'` and
+`img-src data:`; fonts are self-hosted; nothing fetches at runtime
+(`connect-src 'self'`); every sound is synthesized (`media-src 'none'`).
+`npm run check:vercel` fails CI if `vercel.json` drifts from it, a CI step
+re-runs the smoke, lamp and sound suites under the real headers and fails
+on any violation event, and after a deploy
+`npm run check:headers -- https://rakshit-737.vercel.app` checks the live
+response. The GitHub Pages mirror cannot send custom headers.
+
 ### GitHub Pages (fallback)
 
 [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)

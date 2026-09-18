@@ -58,6 +58,11 @@ jobs:
       - name: Content lint (the stranger test)
         run: npm run check:content
 
+      # vercel.json's security headers are written down once, in
+      # scripts/csp.mjs; this fails if the deployed copy drifts from it.
+      - name: vercel.json matches scripts/csp.mjs
+        run: npm run check:vercel
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
@@ -65,6 +70,12 @@ jobs:
       # hand-typed `npx playwright test` duplicate.
       - name: Smoke tests + axe scan (against ./out)
         run: npm test
+
+      # The same export served with the committed vercel.json headers, the
+      # way Vercel serves it: smoke, lamplight and sound re-run under the
+      # CSP, and tests/csp.spec.ts fails on any violation event at all.
+      - name: Smoke, lamp and sound under the production headers
+        run: npx playwright test --config=playwright.csp.config.ts
 
       - name: Lighthouse gate
         run: |

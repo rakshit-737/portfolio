@@ -6,6 +6,9 @@ import { defineConfig } from "@playwright/test";
  */
 export default defineConfig({
   testDir: "./tests",
+  // csp.spec.ts asserts production response headers, which only the
+  // headers-applying server in playwright.csp.config.ts sends.
+  testIgnore: "csp.spec.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
