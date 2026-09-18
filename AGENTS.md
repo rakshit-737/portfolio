@@ -132,6 +132,9 @@ the authority on the visual system; this is the short version.
   --write`) and CI fails on drift. A new runtime resource type (a worker,
   an audio file, a third-party origin) needs a policy change there first —
   `playwright.csp.config.ts` fails on any violation event.
+- **Design captures in `docs/screens/` are WebP**, not PNG
+  (`node scripts/webp-screens.mjs` converts in place); 24 PNG captures had
+  put 17 MB into every clone.
 - No heavy dependencies (no UI kits, no animation frameworks). New
   dependencies need a one-line justification. `sharp` is a devDependency —
   the art pipeline (`scripts/fetch-art.mjs`) uses it to crop plates at

@@ -128,7 +128,7 @@ Gooey/blurred navbars; 3D and "realistic" buttons; jelly/rounded iOS toggles; li
 - Six commits, each self-describing (`feat(bracket): press and arrow lead — ref CollectUI/@turaluix, @RalconStudio`).
 - All gates green: `check:art`, `typecheck`, `lint`, `build`, `budget` (report the gzipped delta per page; total ≤ +3 kB), `check:links`, `check:content`, `npm test` (axe zero on `/` and the three case files), and the Lighthouse script not lowered.
 - `DESIGN.md` Components section updated per item; any narrowed rule named as such.
-- `docs/screens/` has before/after pairs at 1440×900 and 390×844 for each item, plus one reduced-motion and one no-JS capture of the index.
+- `docs/screens/` has before/after pairs at 1440×900 and 390×844 for each item, plus one reduced-motion and one no-JS capture of the index — as WebP (`node scripts/webp-screens.mjs` converts a PNG capture in place).
 - A closing note listing what you dropped from each reference to stay inside the rules, and the two or three things you'd do next.
 
 <!-- PROMPT END -->

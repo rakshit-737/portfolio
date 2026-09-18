@@ -1019,7 +1019,7 @@ its angle animated through an `@property`, bone only. It exists in
 attribute**, so it is inert.
 
 It should stay that way. Prototyped and captured 2026-09-08
-(`docs/screens/prototype-beam-*.png`): the mechanism is correct — a red
+(`docs/screens/prototype-beam-*.webp`): the mechanism is correct — a red
 test gradient traces the ring exactly — but the beam is invisible in this
 palette, because the cartouche's ring is already `border: 1px solid
 var(--color-signal)` at full strength and the beam is the same bone
