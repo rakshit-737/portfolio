@@ -288,7 +288,7 @@ export const featuredProjects: FeaturedProject[] = [
       "TypeScript",
       "Docker",
     ],
-    repoUrl: "https://github.com/rakshit-737/warden-supply-chain-firewall",
+    repoUrl: "https://github.com/rakshit-737/warden-supply-chain-security",
     headlineNumbers: [
       { value: "6", label: "independent analyzers" },
       { value: "0–100", label: "risk verdict" },
@@ -300,7 +300,7 @@ export const featuredProjects: FeaturedProject[] = [
       { label: "python · fastapi · react" },
       {
         label: "repo",
-        href: "https://github.com/rakshit-737/warden-supply-chain-firewall",
+        href: "https://github.com/rakshit-737/warden-supply-chain-security",
       },
       { label: "40 tests · CI", tone: "pass" },
     ],
