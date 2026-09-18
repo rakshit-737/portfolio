@@ -1332,8 +1332,8 @@ button:focus-visible > .sound-switch {
    the gem, never on the metal.
 
    Generated — do not hand-edit. The source is the artwork in
-   `Medieval Cursor Animation Design/cursors/lamplight-cursor-art.js`;
-   `node build.mjs` in that folder regenerates this block. It is also
+   `docs/design/cursors/lamplight-cursor-art.js`;
+   `node docs/design/cursors/build.mjs` regenerates this block. It is also
    the first frame for everyone, and the whole cursor for a visitor with
    JS off, a coarse pointer, forced colours, or reduced motion — the
    animated rendering (`src/components/Cursor.tsx`) only ever layers on

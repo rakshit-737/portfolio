@@ -1,14 +1,22 @@
 /* Regenerates every SVG and the CSS block from lamplight-cursor-art.js.
-   node build.mjs — run after editing the artwork. */
+   node docs/design/cursors/build.mjs — run after editing the artwork.
+   Every path resolves from this file's own location, so it works from
+   any working directory. */
 import { readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import vm from "node:vm";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO = join(HERE, "..", "..", "..");
+const here = (f) => join(HERE, f);
 
 const ctx = { window: {} };
 vm.createContext(ctx);
-vm.runInContext(readFileSync("lamplight-cursor-art.js", "utf8"), ctx);
+vm.runInContext(readFileSync(here("lamplight-cursor-art.js"), "utf8"), ctx);
 const A = ctx.window.LamplightCursorArt;
 
-const out = (name, s) => { writeFileSync(name, s + "\n"); console.log(name, s.length); };
+const out = (name, s) => { writeFileSync(here(name), s + "\n"); console.log(name, s.length); };
 
 // Upright artwork for previews and docs.
 out("exhibit-key.svg", A.svg(A.key("k"), A.KEY.w, A.KEY.h));
@@ -32,7 +40,7 @@ out("lamplight-cursors.css", A.css());
    generated-block marker through the close of the forced-colors media
    query is replaced, and the hand-written explanation above the marker
    is left untouched. */
-const CSS_FILE = "../../src/app/globals.css";
+const CSS_FILE = join(REPO, "src", "app", "globals.css");
 const MARK = "/* Lamplight cursors — the key, the lock, and the mark that opens text.";
 const css = readFileSync(CSS_FILE, "utf8");
 const from = css.indexOf(MARK);
@@ -50,5 +58,5 @@ console.log("globals.css cursor block rewritten");
 
 // The three scripts the client loads are served from public/cursors/.
 for (const f of ["lamplight-cursor-art.js", "lamplight-cursor-overlay.js", "lamplight-cursor-playful.js"])
-  writeFileSync("../../public/cursors/" + f, readFileSync(f, "utf8"));
+  writeFileSync(join(REPO, "public", "cursors", f), readFileSync(here(f), "utf8"));
 console.log("public/cursors synced");

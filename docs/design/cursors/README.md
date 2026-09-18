@@ -1,11 +1,28 @@
 # Lamplight cursors — the key, the lock, and the mark that opens text
 
+> **Already installed.** The five steps below happened (2026-09-08). This
+> folder is the source and the build: `lamplight-cursor-art.js` is the
+> artwork, `node docs/design/cursors/build.mjs` regenerates the SVGs, the
+> generated cursor block in `src/app/globals.css` and the shipped copies in
+> `public/cursors/`, and `preview.mjs` renders a judging sheet. Edit here,
+> never in `public/cursors/` or the generated CSS. The shipped
+> `src/components/Cursor.tsx` differs from the copy here: its unlock is
+> silent, because `initSoundscape` already voices every press (one sound
+> per press).
+>
+> **Redrawn 2026-09-10 for 40px.** At cursor size the rose-window tracery,
+> the chased volutes and the struck "R" rendered at one to three screen
+> pixels and averaged to grey. The key's bow is now four pierced openings
+> around a larger gem, the padlock face is two rivets and a keyhole twice
+> the size, and the I-beam is a caret with serif caps; the monogram is no
+> longer part of the cursor. Where the text below describes the older
+> drawing, this note supersedes it.
+
 Three artifacts, one geometry, three values (`#08070A` ground, `#F2EDE3` bone,
 `#E8A33D` ember). "Aged metal" is bone at partial opacity over ground — a
 lighting variation, never a fourth colour. Ember appears only in the gem
 (and, in the playful variant, the keyhole and flash at the moment of
-unlocking). The "R" is `MARK_PATH` from `src/lib/mark.ts`, so the cursor, the
-seal monogram, the favicon and the Apple icon are the same artifact.
+unlocking).
 
 ## Add it to the portfolio (5 steps)
 

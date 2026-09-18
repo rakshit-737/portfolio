@@ -28,7 +28,7 @@ const eslintConfig = defineConfig([
     // reported ~2000 problems after any local sub-path run.
     ".subpath-root/**",
     // The cursor runtime is authored and generated in
-    // "Medieval Cursor Animation Design/cursors/" and copied here to be
+    // docs/design/cursors/ and copied here to be
     // served as a plain script — a browser global, not a module in the
     // app's graph. Linting the copy only ever reports style notes about
     // code the app never imports.
