@@ -2,7 +2,13 @@
   "name": "portfolio",
   "version": "0.1.0",
   "private": true,
+  "description": "Portfolio of Rakshit Rameshbabu, Software & Security Engineer: a scroll-driven, candlelit portfolio built on public-domain paintings, statically exported with Next.js.",
   "homepage": "https://rakshit-737.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rakshit-737/portfolio.git"
+  },
+  "author": "Rakshit Rameshbabu <rakshitoffl@gmail.com> (https://rakshit-737.vercel.app)",
   "license": "MIT",
   "engines": {
     "node": ">=22.18"
@@ -35,7 +41,7 @@
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
