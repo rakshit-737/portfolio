@@ -1,6 +1,10 @@
 /**
  * Single source of truth for every word on the site.
  * Edit copy here — components only render what this file exports.
+ *
+ * Not covered by the repository's MIT licence: the words in this file are
+ * © 2026 Rakshit Rameshbabu, all rights reserved, and not licensed for
+ * reuse (see LICENSE). The code around them is MIT.
  */
 
 import type { PlateId } from "@/lib/art";

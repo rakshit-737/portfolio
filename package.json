@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "homepage": "https://rakshit-737.vercel.app",
+  "license": "MIT",
   "engines": {
     "node": ">=22.18"
   },

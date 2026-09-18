@@ -298,3 +298,19 @@ Recorded rather than hidden:
   height-bound and vertical framing has no slack to use. A portrait
   `cropNarrow` was added for it, which helps but does not fully solve it; a
   tighter narrow crop is the real fix.
+
+## Licence
+
+The code is [MIT](LICENSE). The licence does not extend to what the code
+presents:
+
+- the written content (`src/content.ts` and every word it renders), the
+  résumé, the certificate scans in `public/certificates/`, the name
+  "Rakshit Rameshbabu", and the seal mark (`public/icon.png` and the images
+  made from it: `public/mark.png`, `public/apple-icon.png`,
+  `public/favicon.ico`) are © 2026 Rakshit Rameshbabu, all rights reserved,
+  and not licensed for reuse;
+- the eight paintings in `public/art/` are public domain, sourced from
+  Wikimedia Commons and credited on every plate and in `DESIGN.md`;
+- the fonts (Newsreader, Manrope, Chivo, Chivo Mono, self-hosted by
+  `next/font`) are under the SIL Open Font License.
