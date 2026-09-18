@@ -116,6 +116,13 @@ automatically. The canonical URL, Open Graph tags, `sitemap.xml`,
 default (`site.url` in `src/content.ts`); set `NEXT_PUBLIC_SITE_URL` only
 for a preview or a custom domain.
 
+Vercel rebuilds on push only, so the live record (the footer's "record
+generated" date, every card's head and CI chip) would freeze between
+pushes. [`refresh-vercel.yml`](.github/workflows/refresh-vercel.yml)
+rebuilds it every Monday through a Vercel deploy hook. It needs one
+repository secret, `VERCEL_DEPLOY_HOOK` (Vercel → Settings → Git → Deploy
+Hooks, for `main`); until that exists the workflow skips with a notice.
+
 ### GitHub Pages (fallback)
 
 [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)

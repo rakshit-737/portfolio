@@ -1,0 +1,35 @@
+name: Refresh Vercel record
+
+# The site's footer ("record generated: …") and every project card's live
+# head / CI chip are baked in at build time (src/lib/github.ts). Vercel
+# builds on push only, so between pushes the primary's record froze while
+# the GitHub Pages mirror refreshed weekly (deploy-pages.yml's schedule).
+# This triggers a fresh Vercel production build on the same weekly cadence
+# through a Vercel deploy hook.
+#
+# Needs one repository secret, VERCEL_DEPLOY_HOOK (Vercel → Project →
+# Settings → Git → Deploy Hooks, for `main`). The hook URL is itself the
+# credential, so it lives only in secrets. Until it is added, this run
+# exits cleanly with a notice rather than failing: `secrets` cannot be
+# read in a job-level `if`, so the check happens in the step.
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger a Vercel production build
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK" ]; then
+            echo "::notice::VERCEL_DEPLOY_HOOK is not set — skipping. Add it under Settings → Secrets and variables → Actions."
+            exit 0
+          fi
+          curl -fsS -X POST "$VERCEL_DEPLOY_HOOK" > /dev/null
+          echo "Vercel deploy hook accepted the request."
