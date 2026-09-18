@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 import sharp from "sharp";
-import { caseStudies, certifications, featuredProjects, site } from "../src/content";
+import { caseStudies, certifications, featuredProjects, links, site } from "../src/content";
 
 /**
  * P13 verification: per-page metadata, OG/Twitter cards, JSON-LD, sitemap/
@@ -231,6 +231,24 @@ test.describe("sitemap, robots, discoverability", () => {
     const body = await res.text();
     expect(body).toMatch(/Allow:\s*\//);
     expect(body).toContain(`Sitemap: ${site.url}/sitemap.xml`);
+  });
+
+  // RFC 9116. A security engineer's own site publishes where to report a
+  // vulnerability. The Expires check makes a lapsed policy fail CI on the
+  // next push instead of quietly being served: renew it yearly in
+  // public/.well-known/security.txt.
+  test("security.txt is plain text, names the contact, is canonical, and has not expired", async ({
+    request,
+  }) => {
+    const res = await request.get("/.well-known/security.txt");
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toMatch(/^text\/plain/);
+    const body = await res.text();
+    expect(body).toContain(`Contact: mailto:${links.email}`);
+    expect(body).toContain(`Canonical: ${site.url}/.well-known/security.txt`);
+    const expires = body.match(/^Expires: (.+)$/m)?.[1];
+    expect(expires, "security.txt carries an Expires field").toBeTruthy();
+    expect(Date.parse(expires!), `security.txt expired on ${expires}`).toBeGreaterThan(Date.now());
   });
 });
 
