@@ -18,8 +18,8 @@ metrics.
 [![Node ≥ 22.18](https://img.shields.io/badge/node-%E2%89%A5%2022.18-informational)](package.json)
 
 Lighthouse (mobile / desktop, the CI gate's median of three,
-[run 35447766777](https://github.com/rakshit-737/portfolio/actions/runs/35447766777),
-measured 2026-09-19): performance 81 / 99 · accessibility 100 / 100 ·
+[run 35449481124](https://github.com/rakshit-737/portfolio/actions/runs/35449481124),
+measured 2026-09-19): performance 83 / 99 · accessibility 100 / 100 ·
 best-practices 100 / 100 · SEO 100 / 100.
 
 ## What you're looking at
