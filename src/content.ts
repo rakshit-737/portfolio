@@ -714,15 +714,18 @@ export const caseStudies: Record<string, CaseStudy> = {
     ],
     outcome: [
       "Today the web app is live on GitHub Pages, and the API deploys via a one-click Render Blueprint — the free tier sleeps after 15 idle minutes, so a keep-alive via UptimeRobot or a GitHub Actions /healthz ping every 10 minutes is documented. Mobile EAS builds are pending. All 307 tests, including the 12-test auth integration suite against real PostgreSQL, run in CI on every push and PR.",
-      "The gaps are stated rather than hidden: images are URL-only with no object storage, quiet hours are not enforced by the notification dispatcher, there is no purge sweep after the 30-day deletion window, no mail provider is wired (password reset and email verification tokens exist in the schema), custom foods are undeletable, and there is no push retry. Phase 6 — deployment — is in progress. MIT licensed.",
+      "The gaps are stated rather than hidden: growth-log photos are links, not uploads, because there is no object storage; no mail provider is wired, so password reset, email verification and the account-deletion notices have tokens and rules but no delivery; the erasure sweep removes rows but has no stored objects to erase; and a reminder whose push fails is not retried. Phase 6 — deployment — is in progress. MIT licensed.",
     ],
     next: [
       "Finish Phase 6 (deployment), including EAS builds for mobile",
-      "Wire a mail provider for the password reset and email verification tokens already in the schema",
-      "Enforce quiet hours in the notification dispatcher",
-      "Add object storage for images (currently image URL only)",
-      "Add a purge sweep after the 30-day deletion window",
-      "Make custom foods deletable and add push notification retry",
+      // The PlantPal-Plus README's "Known gaps", read 2026-09-18. Quiet
+      // hours, the post-deletion purge sweep and custom-food deletion used
+      // to be listed here too; the code has since shipped all three
+      // (reminderEngine.ts, purgeService.ts, the nutrition foods DELETE
+      // route) and the README no longer lists them.
+      "Wire a mail provider for password reset, email verification and the account-deletion notices",
+      "Add object storage for growth-log photos (links only today)",
+      "Add retry for reminders whose push notification fails",
     ],
     // Condensed verbatim from outcome[0]: "the web app is live on GitHub
     // Pages, and the API deploys via a one-click Render Blueprint" and
