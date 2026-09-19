@@ -7,6 +7,7 @@ import {
   mobileContext,
   sampleLuminance,
 } from "./helpers";
+import { exhibits } from "../src/content";
 
 /**
  * P14 — accessibility hardening. axe already runs at zero violations on all
@@ -555,7 +556,7 @@ test("the warden exhibit and a certificate receipt are reachable with no pointer
   const exhibit = page.locator("#warden figure");
   await exhibit.scrollIntoViewIfNeeded();
   await expect(exhibit).toBeVisible();
-  await expect(exhibit.locator("pre")).toContainText("warden scan");
+  await expect(exhibit.locator("pre")).toContainText(exhibits.warden.rows[0]);
 
   const cert = page
     .getByRole("button", { name: /View the .* certificate scan/ })
@@ -680,7 +681,13 @@ test("the case-file index marks the section you are reading and is absent below 
   expect(box!.width).toBeGreaterThanOrEqual(24);
   expect(box!.height).toBeGreaterThanOrEqual(24);
   // Reading on moves it, and the anchor still deep-links the section.
-  await page.locator("#outcome").scrollIntoViewIfNeeded();
+  // Arrive the way the anchor does: the section's top at the top of the
+  // viewport. scrollIntoViewIfNeeded only nudged it into view near the
+  // bottom, which read as current only while the Warden evidence table
+  // above it was short; once that table grew (2026-09-18), a reader at
+  // that position was genuinely still on Evidence (CaseIndex reads a band
+  // 20-30% down the viewport).
+  await page.locator("#outcome").evaluate((el) => el.scrollIntoView({ block: "start" }));
   await expect
     .poll(async () => index.locator("a[aria-current]").getAttribute("href"))
     .toBe("#outcome");

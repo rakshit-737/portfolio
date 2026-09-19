@@ -59,8 +59,8 @@ if (!foundCiToken) {
 }
 const ciToken: (typeof hero.provenance.tokens)[number] = foundCiToken;
 
-// The warden exhibit's terminal lines are resolved against the real
-// evidence table here, not hand-copied, so they can never drift from it —
+// The warden exhibit's lines are resolved against the real evidence
+// table here, not hand-copied, so they can never drift from it —
 // a label in `exhibits.warden.rows` that stops matching a row fails the
 // build loudly instead of silently dropping a line.
 const wardenExhibitRows = exhibits.warden.rows.map((label) => {
@@ -666,20 +666,23 @@ export default async function Home() {
                   <Exhibit caption={exhibits.warden.caption}>
                     <pre className="font-mono text-[0.8125rem] leading-relaxed whitespace-pre-wrap tabular-nums sm:text-sm">
                       {wardenExhibitRows.map((row) => {
-                        // Every evidence value is "risk <n> — <verdict>"
-                        // verbatim (src/content.ts) — parsed, never
-                        // retyped, so the terminal can't drift from it.
+                        // Every row the exhibit selects has a value of
+                        // "risk <n> — <verdict>" verbatim (src/content.ts),
+                        // parsed, never retyped, so it can't drift. Rows
+                        // print as the benchmark report's own labels, with
+                        // no shell prompt: none of them is a command
+                        // anyone ran (the words live in content.ts only).
                         const match = row.value.match(/^risk (\d+) — (.+)$/);
                         return (
                           <span key={row.label} className="mb-4 block last:mb-0">
                             {/* Hanging indent: at 390px the longest
-                                command wraps, and a flush-left second line
-                                read as a fourth typed command. Pad the
-                                block and out-dent line one so wrapped
-                                lines align inside the command text; the →
-                                output lines keep their own pl-4. */}
+                                label wraps, and a flush-left second line
+                                read as a fourth row. Pad the block and
+                                out-dent line one so wrapped lines align
+                                inside the label; the → result lines keep
+                                their own pl-4. */}
                             <span className="block pl-8 -indent-8">
-                              $ warden scan {row.label}
+                              {row.label}
                             </span>
                             <span className="block pl-4">
                               {match ? (

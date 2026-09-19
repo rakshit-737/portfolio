@@ -43,7 +43,7 @@ build time and rendered into the provenance line on every project card
 carries its own evidence.
 
 The work itself is the second differentiator: security engineering (a PyPI
-supply-chain firewall, an AI-agent tool-boundary firewall, an OS-level malware
+supply-chain security platform, an AI-agent tool-boundary firewall, an OS-level malware
 framework) alongside a research result that most portfolios would hide — a
 **proven negative result**, published as a finding rather than buried.
 
@@ -51,7 +51,7 @@ framework) alongside a research result that most portfolios would hide — a
 
 - Read in a hiring or evaluation session, often mobile, often skimmed in under a
   minute before any deep read happens.
-- Sits next to a PDF résumé (`/resume.pdf`) and a GitHub profile; the site must
+- Sits next to a PDF résumé (`/rakshit-rameshbabu-resume.pdf`) and a GitHub profile; the site must
   work when the visitor jumps between all three.
 - Deployed two ways at once: Vercel at the domain root
   (`https://rakshit-737.vercel.app`, the primary and the canonical on both)
@@ -74,7 +74,7 @@ framework) alongside a research result that most portfolios would hide — a
 - No heavy dependencies — no UI kits, no animation frameworks. New dependencies
   need a stated justification.
 - CI is a hard gate and must stay green: `typecheck`, `lint`, `build`, a gzipped
-  JS budget (`scripts/check-budget.mjs`, ceiling 210 kB, baseline ≈ 192 kB),
+  JS budget (`scripts/check-budget.mjs`, ceiling 214 kB, baseline ≈ 194 kB),
   Playwright smoke tests, an axe scan at **zero violations**, and Lighthouse
   category minimums that ratchet up and are never lowered to pass.
 - Existing behaviors that are product, not decoration: ⌘K command palette,
@@ -96,7 +96,10 @@ framework) alongside a research result that most portfolios would hide — a
 
 Real, verified, and already written into `src/content.ts`:
 
-- **Warden** — 6 analyzers, 0–100 risk verdict, 40 tests in CI. Public repo.
+- **Warden** — 14 analyzers; 13 / 14 malicious samples detected on a 22-sample
+  synthetic benchmark (the repo's own regression baseline, not a real-world
+  detection rate), with 1 of 8 benign look-alikes warned and none blocked;
+  2,908 backend tests passed in CI. Public repo, MIT.
 - **Proactive Feasibility Scheduler** — 45,432 dispatch instants, zero
   counterexamples, paired TOST p = 2.6×10⁻¹⁶, real LANL CM-5 / SDSC SP2 trace
   replay, 14-policy benchmark with real per-policy numbers. Public repo.
@@ -108,11 +111,13 @@ Real, verified, and already written into `src/content.ts`:
 - Achievements: First Prize — Cyber Secure 360 Expo 2025 (SCOPE, VIT Chennai);
   Top 100 teams — FarAway Zuup Hackathon (~11,000 participants).
 - Links: GitHub `rakshit-737`, LinkedIn `rakshit-rameshbabu`,
-  `rakshitoffl@gmail.com`, `/resume.pdf`.
+  `rakshitoffl@gmail.com`, `/rakshit-rameshbabu-resume.pdf`.
 
 **Absences future work must not fill by invention:**
 
-- Cyber Secure 360 `certificateUrl` is still `null` — no certificate link exists.
+- The Cyber Secure 360 certificate scan exists now
+  (`public/certificates/cyber-secure-360-2025.png`); no other absent scan may be
+  filled by invention.
 - Only two achievements exist. More may come from the owner only.
 - SentinelCore and the Web Application Security Suite have **no public repos** —
   their cards carry no repo segment by design.

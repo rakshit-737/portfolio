@@ -142,8 +142,15 @@ const provenanceTokens: readonly ProvenanceToken[] = [
   {
     label: "builds end-to-end",
     href: "/projects/warden/#outcome",
+    // "deployed" dropped: Warden's Outcome section shows a system built
+    // and tested in CI, and the Warden repo documents no running, hosted
+    // instance. Its homepage (the repo's GitHub Pages site) is a static
+    // landing page and docs site whose deploy guide says the platform
+    // "needs a container host" (website/index.html on main, read
+    // 2026-09-19 through the GitHub API), and the README's full-stack
+    // start is a local `docker compose up --build`.
     proof:
-      "See Warden's case file, Outcome section, for the built, tested, and deployed system this claim traces to.",
+      "See Warden's case file, Outcome section, for the built and CI-tested system this claim traces to.",
   },
   {
     label: "tested in CI",
@@ -185,12 +192,17 @@ export const hero = {
  *   plantpal) — "end-to-end" traces to `hero.provenance` and
  *   `about.paragraphs[0]`.
  * - "9.07" is `education[0].score`.
- * - "6" is `featuredProjects[0].headlineNumbers[0]` (Warden's six
- *   analyzers), explained inline rather than left as a bare proper noun —
- *   see `featuredProjects[0].oneLiner`.
- * The old facts (45,432 dispatch instants, 40 tests in CI) are not
- * deleted from the site — they still render as headline numbers inside
- * the scheduler and warden acts further down the page.
+ * - "14" is `featuredProjects[0].headlineNumbers[0]` (Warden's fourteen
+ *   analyzers — the `ALL_ANALYZERS` registry in the Warden repo's
+ *   backend/app/analysis/analyzers/__init__.py, read 2026-09-18),
+ *   explained inline rather than left as a bare proper noun. Its label's
+ *   "supply-chain security platform" is `featuredProjects[0].name`, the
+ *   Warden README's own title.
+ * The two figures this strip used to carry now render as headline
+ * numbers in their own acts: the scheduler's dispatch-instant count, and
+ * Warden's test count, re-sourced from "40 tests in CI" to the 2,908
+ * backend tests that passed in its CI run on main on 2026-09-18 (see
+ * `featuredProjects[0]`).
  */
 export const heroStats: HeadlineNumber[] = [
   // "requirements → CI" and not "→ deploy": one of the three counted
@@ -199,9 +211,12 @@ export const heroStats: HeadlineNumber[] = [
   // must be true of all three it counts.
   { value: "3", label: "systems built end-to-end — requirements → CI" },
   { value: "9.07", label: "CGPA / 10 — VIT Chennai" },
+  // Warden's analyzer count and name, from warden-supply-chain-security
+  // (read 2026-09-18): the 14-entry `ALL_ANALYZERS` registry
+  // (backend/app/analysis/analyzers/__init__.py) and the README.md title.
   {
-    value: "6",
-    label: "security analyzers in Warden, my supply-chain firewall",
+    value: "14",
+    label: "analyzers in Warden, my supply-chain security platform",
   },
 ];
 
@@ -255,7 +270,11 @@ export const contact = {
 export const about = {
   paragraphs: [
     "B.Tech Computer Science (Cyber Security) student at VIT Chennai, CGPA 9.07. I build full-stack products and backend systems and take them end-to-end — from written requirements and architecture to CI-tested, reproducible deployments.",
-    "My work sits at the intersection of software engineering, security, and applied ML: a supply-chain firewall for PyPI packages, a published-grade evaluation study of ML job scheduling, and a cross-platform wellness app. I work AI-native — LLM coding tools are part of my daily loop for prototyping, debugging, test generation, and review.",
+    // Warden clause from the warden-supply-chain-security README.md title
+    // and its GitHub description ("Analyses PyPI packages, project
+    // manifests and container images without running them"), read
+    // 2026-09-18.
+    "My work sits at the intersection of software engineering, security, and applied ML: a supply-chain security platform that checks Python packages without running them, a published-grade evaluation study of ML job scheduling, and a cross-platform wellness app. I work AI-native — LLM coding tools are part of my daily loop for prototyping, debugging, test generation, and review.",
   ],
   interests: [
     "scalable backend systems",
@@ -267,42 +286,55 @@ export const about = {
 
 export const featuredProjects: FeaturedProject[] = [
   {
+    // Re-sourced 2026-09-18 from warden-supply-chain-security (cloned at
+    // c20767c; main at 942e3e9 changes no line quoted here): README.md,
+    // CHANGELOG.md, action.yml, docs/ARCHITECTURE.md, docs/BENCHMARK.md,
+    // docs/ML_MODEL.md, docs/cli.md, backend/benchmark/results/latest.json
+    // and the ALL_ANALYZERS registry (14 entries; one README line still says
+    // 13). Name: the README title. "Detected" is backend/benchmark/run.py's
+    // definition, a warn or a block. 2,908 is quoted from the log of CI run
+    // 35383546503 (job "Backend tests (Python 3.12)", commit 942e3e9,
+    // 2026-09-18): "2908 passed, 7 skipped, 1 xfailed". The README states
+    // no test count; a CI-logged pass count replaces the brief's grep
+    // fallback (1,471 `def test_` functions), because pytest parametrizes
+    // and the log is what CI actually ran. GitHub API: created 2026-07-04,
+    // v2.0.0 released 2026-09-17; the old -firewall URL redirects.
     id: "warden",
-    name: "Warden — Software Supply-Chain Firewall",
-    timeframe: "Jul 2026",
+    name: "Warden — Software Supply-Chain Security Platform",
+    timeframe: "Jul 2026–Present",
     oneLiner:
-      "Behavioral firewall for open-source dependencies; fuses rule-based and ML signals into a 0–100 risk verdict.",
+      "Gives a Python package an allow, warn or block verdict — from what its code does, where it came from, and what is known about it.",
     bullets: [
-      "Statically analyzes PyPI packages (no code execution), fusing **six independent analyzers** — metadata/provenance, AST behavior, install-time execution, typosquatting, obfuscation, IOC matching — into explainable, per-signal risk evidence.",
-      "Calibrated ML model (RandomForest + IsolationForest) fused with a tiered rule engine into a **0–100 score**; allow/warn/block policy enforced via a REST API, a CLI/CI gate, and a React dashboard.",
-      "Hardened against attacker-authored input (anti-zip-bomb, anti-path-traversal extraction); JWT auth with refresh rotation, argon2id hashing, RBAC, rate limiting, append-only audit trail; **40 automated tests in CI**.",
+      "Analyzes PyPI packages without ever executing package code: the published digest is verified, the archive is extracted under hostile-archive guards, and **14 analyzers** run in parallel — metadata, typosquatting, AST behavior, install scripts, other install vectors, obfuscation, known indicators (IOC), file inventory, secrets, dependency confusion, provenance, YARA and Semgrep (both optional tools), and vulnerability intelligence — with a correlation engine combining their findings into named attack chains.",
+      "Risk is several numbers, not one: behavioral and vulnerability risk are scored separately, and below a rule score of 35 the calibrated RandomForest may add at most 25 points, while an IsolationForest scores novelty as a separate dimension. Policy as code maps the result to allow/warn/block: the REST API serves the verdict, a CLI gate fails a build on it, and a React + TypeScript security console shows it. Project scans add dependency-hygiene checks, a dependency graph and CycloneDX or SPDX SBOMs; a GitHub Action runs a project scan in a workflow and uploads SARIF before failing on a chosen finding severity.",
+      "Measured on a 22-sample synthetic benchmark whose corpus, by the repo's own account, shares the analyzers' blind spots — a regression baseline, not a real-world detection rate: **13 / 14 malicious detected** (a warn or a block), all 4 evasive variants among them; 1 of the 8 benign look-alikes drew a warn, and none of the 8 was blocked. In the CI run on main at commit 942e3e9 (2026-09-18), 2,908 backend tests passed with 7 skipped, and every other job in that run passed, including ruff lint, bandit and pip-audit security audits, a PostgreSQL migration round-trip and Trivy-scanned container builds. GitHub Actions runs CI on every push to main and every pull request.",
     ],
     tech: [
-      "Python 3.12",
+      "Python 3.11+",
       "FastAPI",
       "SQLAlchemy 2",
       "scikit-learn",
       "PostgreSQL",
       "Redis",
-      "React 18",
+      "React 19",
       "TypeScript",
       "Docker",
     ],
     repoUrl: "https://github.com/rakshit-737/warden-supply-chain-security",
     headlineNumbers: [
-      { value: "6", label: "independent analyzers" },
-      { value: "0–100", label: "risk verdict" },
-      { value: "40", label: "tests in CI" },
+      { value: "14", label: "analyzers" },
+      { value: "13 / 14", label: "detected (synthetic)" },
+      { value: "2,908", label: "backend tests in CI" },
     ],
     evidence: [
-      { label: "2026-07" },
+      { label: "2026-07–present" },
       { label: "active" },
       { label: "python · fastapi · react" },
       {
         label: "repo",
         href: "https://github.com/rakshit-737/warden-supply-chain-security",
       },
-      { label: "40 tests · CI", tone: "pass" },
+      { label: "2,908 backend tests · CI", tone: "pass" },
     ],
   },
   {
@@ -452,76 +484,117 @@ export const caseSections = [
 ] as const;
 
 /**
- * Case-study copy. Every claim traces to the linked repo's README or to
- * the card bullets above — drafted from those sources, fact-checked
- * against them, nothing invented.
+ * Case-study copy. Every claim traces to the linked repo — its README,
+ * or its other docs, source files or CI record, named in a study's own
+ * source comment where it has one — or to the card bullets above;
+ * drafted from those sources, fact-checked against them, nothing
+ * invented.
  */
 export const caseStudies: Record<string, CaseStudy> = {
   warden: {
+    // Re-sourced from warden-supply-chain-security, cloned 2026-09-18 at
+    // c20767c; every line cited here is unchanged on main at 942e3e9 (see
+    // featuredProjects[0]). Files: README.md, action.yml, CHANGELOG.md
+    // (2.0.0 and Unreleased), docs/ARCHITECTURE.md (§2, §3a, §3.1–3.6, §5,
+    // §6, §7), docs/BENCHMARK.md, docs/ML_MODEL.md, docs/SANDBOX.md,
+    // docs/cli.md, backend/benchmark/results/latest.json,
+    // backend/benchmark/run.py and .github/workflows/ci.yml, plus the
+    // GitHub Actions record of CI run 35383546503 (see
+    // featuredProjects[0]). The per-package verdicts this used to cite
+    // (requests 25, flask 31, numpy 40, three synthetic 100s) and the "few
+    // hundred milliseconds" latency have no source in the repo today and
+    // are gone. Every benchmark row is the repo's own synthetic corpus and
+    // says so in its label; "(missed)" and "(false positive)" are
+    // docs/BENCHMARK.md's own verdict notes. "Detected" is run.py's
+    // definition: a warn or a block. `decisions` regroup ARCHITECTURE.md
+    // §6's six trade-offs as four, each with its stated cost. `next` is
+    // the README's "Not implemented yet" list; its npm clause is
+    // CHANGELOG.md's Unreleased section and ARCHITECTURE.md §5 — on main,
+    // not in the v2.0.0 release.
     id: "warden",
     problem: [
-      "`pip install` runs third-party code at the full privilege of whoever invoked it. Attackers exploit exactly that surface: malicious publishes with install-time exfiltration, typosquatting (reqeusts vs requests), and dependency confusion.",
-      "CVE-based scanners match known vulnerabilities, so a never-before-seen threat passes them by construction. Warden takes the other route — behavioral analysis instead of signatures — and judges what a package would actually do.",
+      "A single pip install runs third-party code with the developer's or the CI runner's privileges. Attackers exploit that with malicious publishes, typosquats, dependency confusion, and account takeovers of packages that were fine yesterday.",
+      "A vulnerability scanner cannot see any of this: there is no CVE for a package nobody has reported yet. Warden asks a different question — what does this package do, and who really published it? — and keeps vulnerability intelligence as a separate dimension, because malicious and vulnerable are different questions with different responses.",
     ],
     approach: [
-      "A FastAPI backend orchestrates the pipeline. A PyPI fetcher pulls the package under hostile-input guards — anti-zip-bomb, anti-path-traversal — and never executes package code. Six analyzers then run over the artifact: metadata/provenance, AST behavior, install-time execution, typosquatting, obfuscation, and known-IOC matching, each emitting explainable per-signal risk evidence.",
-      "A hybrid scorer fuses the rule signals with ML — RandomForest for non-linear risk probability, IsolationForest for unsupervised novelty — conservatively, into a single 0–100 score. A policy engine maps that score to allow/warn/block; results persist to PostgreSQL with Redis caching, and the verdict is enforced through a REST API, a CLI/CI gate, and a React dashboard.",
-      "The frontend is React 18 + TypeScript on Vite, with Tailwind and Recharts. End to end, a verdict returns in a few hundred milliseconds.",
+      "A FastAPI backend runs the package pipeline. For a name and version, Warden resolves the release on PyPI, downloads the artifact under a size cap, verifies the digest the registry published against the bytes received, and extracts it under hostile-archive guards; nothing analyzed is ever executed. Fourteen analyzers then run in parallel, each with its own timeout: metadata, typosquatting, AST behavior, install scripts, other install vectors (.pth start-up hooks, in-tree build backends, console scripts that shadow common commands such as pip, python or git), obfuscation, known indicators (IOC), file inventory, secrets, dependency confusion, provenance, YARA and Semgrep (optional tools that report themselves unavailable when not installed), and vulnerability intelligence from OSV, CISA KEV and FIRST EPSS.",
+      "Every analyzer emits the same Finding: a severity and a separate confidence, the file and line where known, CWE and MITRE ATT&CK mappings, and remediation. A correlation engine combines findings into named attack chains — credential theft followed by exfiltration, install-time droppers, obfuscated loaders — and a risk engine scores separate dimensions, behavioral and vulnerability risk among them, keeping the 0–100 risk score as a derived value. A policy-as-code engine maps the result to allow, warn or block.",
+      "Around the package pipeline sit project scans that parse manifests and lock files for dependency-hygiene and dependency-confusion checks, a dependency graph and CycloneDX 1.6 or SPDX 2.3 SBOMs; release-to-release behavioral diffs; offline analysis of container image archives; and a monitoring worker that watches packages for new releases. The REST API serves verdicts, a CLI gate fails a build on a chosen decision, and a React + TypeScript security console shows the results; a GitHub Action runs a project scan in a workflow, uploading SARIF before it fails on a chosen finding severity. Results persist to PostgreSQL, with Redis for caching and events.",
     ],
     diagram: [
-      { label: "pypi fetcher", sub: "safe extract · no exec" },
-      { label: "six analyzers", sub: "AST · typosquat · IOC" },
-      { label: "hybrid scorer", sub: "rules + ML, fused" },
+      { label: "acquisition", sub: "PyPI · digest check" },
+      { label: "safe extraction", sub: "guarded · no exec" },
+      { label: "14 analyzers", sub: "parallel · timeouts" },
+      { label: "correlation", sub: "named attack chains" },
+      { label: "risk engine", sub: "dimensions + guardrail" },
       { label: "policy engine", sub: "allow · warn · block", accent: true },
-      { label: "enforcement", sub: "API · CLI · dashboard" },
     ],
     diagramTitle:
-      "Warden pipeline: PyPI fetcher → six analyzers → hybrid scorer → policy engine → API/CLI/dashboard enforcement",
+      "Warden package pipeline: acquisition → safe extraction → 14 analyzers in parallel → attack-chain correlation → risk engine → policy engine (allow / warn / block)",
     decisions: [
       {
-        title: "Two-tier signal classification",
-        body: "Not every suspicious capability deserves equal weight. Primary indicators — install-time network or eval, an IOC match, a typosquat name, an obfuscated loader — each drive high or critical risk on their own. Supporting capabilities only accumulate toward a capped ceiling, a guard against false positives on complex-but-benign packages like NumPy.",
+        title: "Static analysis only, hostile input assumed",
+        body: "Nothing analyzed is ever executed: the classic payload runs at install time, and running it to see is what the attacker wants. Archives are hostile by definition — format detected from magic bytes, every member checked for path traversal, and limits on count, size, depth and time that also cover skipped members, because skipping a member still decompresses it. The stated cost: static analysis misses runtime-only behavior. A gVisor sandbox is designed in docs/SANDBOX.md but not built, and the setting that would switch it on is refused.",
       },
       {
-        title: "Zero code execution, hostile input assumed",
-        body: "Every package is treated as attacker-authored. Extraction is guarded against zip bombs and path traversal and bounded by size, time, and count caps; package code is never executed at any stage of analysis. The test suite includes adversarial-extraction security tests to hold that line.",
+        title: "Bounded ML influence, from a measured failure",
+        body: "The model — a calibrated RandomForest for probability, an IsolationForest for novelty — is not allowed to decide a verdict on its own. Fusion is max(rule, ml), so it can never lower a rule score, and measurement showed that alone is not enough: trained only on synthetic samples, the model separated the synthetic classes almost perfectly (hold-out PR-AUC ≈ 1.0) and still gave ordinary libraries such as requests, jinja2 and flask ~0.99 malicious probability. So below a rule score of 35 it may add at most 25 points, and a model-only opinion stays at or below the medium band, for review, instead of blocking a build. A small measured set of established PyPI projects is now mixed into training, their benign label recorded as an assumption. The stated cost: the model contributes less than its synthetic metrics suggest.",
       },
       {
-        title: "Conservative ML fusion with graceful degradation",
-        body: "The ML layer pairs a RandomForest (non-linear risk probability) with an IsolationForest (unsupervised novelty), and its output is fused conservatively with the rule engine rather than trusted outright. When the model is absent, scoring degrades gracefully to rules-only.",
+        title: "Several numbers, not one blurred score",
+        body: "Every finding carries a severity and a separate confidence, and policy rules fire only at or above a configured confidence, so capability-grade observations cannot block a build on their own; known-malware matches, critical attack chains and hash mismatches cannot be removed by any allowlist or exception. Behavioral and vulnerability risk are scored separately — two questions with different responses — and vulnerability risk is null, never 0, when intelligence is unavailable. The stated cost: more to reason about per finding, and two numbers to explain.",
       },
       {
-        title: "Synthetic training data, swappable by design",
-        body: "Real malicious package corpora are not redistributable, so the model is trained on synthetic data — the project's stated trade-off. The pipeline is designed so replacing that corpus is a one-file swap.",
+        title: "Fail closed, and say which layers ran",
+        body: "A partial scan must not read as clean. An analyzer that crashes or times out produces ANALYZER_ERROR, which raises risk rather than silently shrinking the evidence, and that result is not cached. Warden must also work without YARA, Semgrep or gitleaks installed, so a missing optional tool reports itself unavailable and the scan says so, instead of silently returning nothing found. The stated costs: large packages on slow links can surface as elevated risk, and coverage varies by deployment, so each scan reports which layers ran.",
       },
     ],
     evidence: [
-      { label: "requests", value: "risk 25 — low" },
-      { label: "flask", value: "risk 31 — low" },
-      { label: "numpy", value: "risk 40 — medium" },
       {
-        label: "typosquat + install-time exfil (synthetic)",
+        label: "Detection, synthetic benchmark (malicious, 14)",
+        value: "13 / 14 = 0.929",
+        href: "https://github.com/rakshit-737/warden-supply-chain-security/blob/942e3e9ce7860fa36ea6ff374bc9d5a46dfe2cde/docs/BENCHMARK.md",
+      },
+      { label: "Evasive variants, synthetic (4)", value: "4 / 4 = 1.0" },
+      {
+        label: "False positives, synthetic (benign, 8)",
+        value: "1 / 8 = 0.125 — a warn, not a block",
+      },
+      {
+        label: "install-time download and execute (synthetic)",
         value: "risk 100 — block",
       },
-      { label: "obfuscated base64 loader (synthetic)", value: "risk 100 — block" },
-      { label: "credential stealer (synthetic)", value: "risk 100 — block" },
+      { label: "typosquat of requests (synthetic)", value: "risk 47 — warn" },
+      {
+        label: "SSH private key read and sent over a socket (synthetic)",
+        value: "risk 33 — allow (missed)",
+      },
+      {
+        label: "compiler call in setup.py (synthetic, benign)",
+        value: "risk 40 — warn (false positive)",
+      },
+      {
+        label: "Backend tests, CI run on 942e3e9 (2026-09-18)",
+        value: "2,908 passed, 7 skipped, 1 xfailed",
+        href: "https://github.com/rakshit-737/warden-supply-chain-security/actions/runs/35383546503",
+      },
     ],
     outcome: [
-      "What stands measured today: the scorer separates what it has been pointed at. requests and flask score low; numpy — the kind of complex-but-benign package the two-tier design exists to protect — lands at 40, medium, not blocked; all three synthetic malicious samples score 100 and are blocked. Verdicts come back in a few hundred milliseconds.",
-      "The engineering around the verdict is in place: 40 tests run fully offline in GitHub Actions (SQLite, in-process caching), adversarial-extraction tests included, and Docker Compose brings up the full stack. Production posture is already built — JWT auth with refresh rotation, argon2id, RBAC, rate limiting, structured logging with request IDs, an append-only audit trail, Alembic migrations, read-only non-root containers. The honest gap: the blocked samples are synthetic, and the model trains on synthetic data — real malicious-package corpora are not redistributable; the pipeline is built for a one-file corpus swap when labeled real data becomes available.",
+      "The detection numbers come from a synthetic benchmark, and the repo labels it as one. Twenty-two hand-written, inert packages — 14 malicious, 4 of them written to evade simple pattern matching, and 8 harmless look-alikes — go through the real pipeline offline under the default policy, each carrying an established package's registry facts. A malicious sample counts as detected when it draws a warn or a block: 13 of 14 malicious samples are detected, all 4 evasive ones among them, and 1 of 8 harmless look-alikes is flagged with a warning, and none of the 8 is blocked. The recorded run had YARA available; the same totals were measured with YARA and Semgrep both unavailable, which is how CI runs it. The miss is an SSH private key read and sent over a socket from a runtime module, allowed at risk 33: correlation will not turn that into an attack chain without corroboration, because legitimate SSH, deployment and upload tools do exactly this. The false positive is a compiler call in setup.py, surfaced for review rather than blocked or ignored. The repo's benchmark notes say the corpus was written by the same people who wrote the analyzers, so it shares their blind spots, and the README calls these numbers a regression baseline, not a real-world detection rate. Building the benchmark exposed and fixed five detection gaps and an ML over-escalation.",
+      "The engineering around the verdict: in the CI run on main at commit 942e3e9 (2026-09-18), 2,908 backend tests passed with 7 skipped, and every other job passed too — ruff lint, bandit and pip-audit security audits, a PostgreSQL migration round-trip with an app start-up smoke test, the frontend's lint, type-check, tests, build and npm audit, and container builds that fail on fixable critical or high Trivy findings. CI runs on every push to main and every pull request, and the benchmark itself is a CI regression gate. Docker Compose is the documented way to bring up the full stack; CI builds and scans the images but does not start that stack. Warden's own posture, as configured: refresh-token rotation, five-role RBAC, a hash-chained audit log with a verification endpoint, secrets redacted before anything is logged, stored or returned, and containers set to run as non-root on digest-pinned base images with a read-only root filesystem. Among the honest limitations the README lists: Warden reduces risk but does not eliminate it, and is no substitute for reviewing what you depend on; static analysis is evadable by sufficiently novel obfuscation; the ML model's metrics are synthetic hold-out numbers; provenance checks stop short of cryptographic signature verification; vulnerability intelligence is only as current as its sources; and the bundled indicator and popularity lists are point-in-time snapshots.",
     ],
     next: [
-      "npm ecosystem analyzers",
-      "Dynamic sandbox detonation (gVisor/Firecracker)",
-      "Transitive dependency-tree scanning",
-      "PEP 503 registry proxy for inline blocking",
-      "Analyst-override retraining loops",
+      "The opt-in dynamic sandbox — designed in docs/SANDBOX.md, not built; the setting that would switch it on is refused",
+      "Transitive dependencies for project scans beyond what lock files record",
+      "Package analysis for npm and other ecosystems — npm manifests already feed SBOMs on main, not yet in a release; verdicts stay PyPI-only",
+      "A Marketplace release of the GitHub Action (it works from the repository today)",
     ],
-    // Condensed verbatim from outcome[0]: "requests and flask score low;
-    // numpy ... lands at 40, medium, not blocked; all three synthetic
-    // malicious samples score 100 and are blocked."
+    // Condensed from outcome[0]: "a synthetic benchmark" ... "13 of 14
+    // malicious samples are detected" ... "1 of 8 harmless look-alikes is
+    // flagged with a warning, and none of the 8 is blocked" ... "not a real-world
+    // detection rate".
     teaser:
-      "requests scores low, numpy lands at 40 — all three synthetic samples score 100 and are blocked.",
+      "a synthetic benchmark, not a real-world detection rate: 13 of 14 malicious samples detected, 1 of 8 harmless look-alikes flagged, none of the 8 blocked.",
   },
   scheduler: {
     id: "scheduler",
@@ -717,11 +790,13 @@ export const benchmarkChart: {
 
 /**
  * Exhibit copy — the framed "museum plate" artifacts rendered inside each
- * act's `.scrim` content layer (`Exhibit.tsx`), presenting the actual
- * product rather than only describing it. Nothing here is a new claim:
- * warden's `rows` are labels resolved against `caseStudies.warden.evidence`
- * at render time (`src/app/page.tsx`), so the terminal can never drift from
- * that table, and the scheduler's caption is composed directly from
+ * act's `.scrim` content layer (`Exhibit.tsx`), setting a project's own
+ * record beside its description. Nothing here is a new claim: warden's
+ * `rows` are labels resolved against `caseStudies.warden.evidence` at
+ * render time (`src/app/page.tsx`), so the exhibit can never drift from
+ * that table — its rows are benchmark results, printed as the report's
+ * rows and never as a command someone typed — and the scheduler's caption
+ * is composed directly from
  * `benchmarkChart` above. The plantpal shots are placeholders — see the
  * dormant-render note at the call site and `public/exhibits/README.md`.
  */
@@ -762,9 +837,22 @@ export const exhibits: {
   plantpal: PlantpalExhibit;
 } = {
   warden: {
+    // Three rows of `caseStudies.warden.evidence`, from the repo's
+    // synthetic benchmark report (docs/BENCHMARK.md,
+    // backend/benchmark/results/latest.json, read 2026-09-18): one block,
+    // one warn, and the one miss, shown rather than left out. The rows are
+    // summarised from that report, not typed output: none came from
+    // `warden scan`, which asks a running Warden server about a real
+    // release (docs/cli.md), and the benchmark's own runner prints sample
+    // ids in its own line format (backend/benchmark/run.py). They must
+    // never render behind a `$ warden scan` prompt (src/app/page.tsx).
     caption:
-      "WARDEN CLI GATE — VERDICTS FROM THE EVIDENCE TABLE · SYNTHETIC ATTACK SAMPLES",
-    rows: ["requests", "numpy", "typosquat + install-time exfil (synthetic)"],
+      "FROM WARDEN'S BENCHMARK REPORT — 3 OF 22 SYNTHETIC SAMPLES, THE MISS INCLUDED",
+    rows: [
+      "install-time download and execute (synthetic)",
+      "typosquat of requests (synthetic)",
+      "SSH private key read and sent over a socket (synthetic)",
+    ],
   },
   scheduler: {
     // The chart's own former title/unit/source lines, concatenated — see
@@ -1186,9 +1274,13 @@ export const acts: Record<
     label: "act 03 — warden",
     statement: "Judges what a package would actually do.",
     plate: "forge",
-    // From `featuredProjects[0].oneLiner`: "Behavioral firewall for
-    // open-source dependencies."
-    kicker: "A firewall for open-source packages",
+    // Condensed from `about.paragraphs[1]`: "a supply-chain security
+    // platform that checks Python packages". It replaces "A firewall for
+    // open-source packages": that line's source, the old oneLiner, is gone
+    // from this file, and Warden analyzes PyPI packages only (README.md,
+    // "Not implemented yet": "npm and other ecosystems"; CHANGELOG.md:
+    // "Package analysis stays PyPI-only"; read 2026-09-18).
+    kicker: "Security checks for Python packages",
   },
   scheduler: {
     label: "act 04 — the scheduler",
