@@ -10,13 +10,11 @@
 > silent, because `initSoundscape` already voices every press (one sound
 > per press).
 >
-> **Redrawn 2026-09-10 for 40px.** At cursor size the rose-window tracery,
-> the chased volutes and the struck "R" rendered at one to three screen
-> pixels and averaged to grey. The key's bow is now four pierced openings
-> around a larger gem, the padlock face is two rivets and a keyhole twice
-> the size, and the I-beam is a caret with serif caps; the monogram is no
-> longer part of the cursor. Where the text below describes the older
-> drawing, this note supersedes it.
+> **Artwork history.** A simplified redraw for 40px (four pierced openings
+> in the bow, a plain padlock face, a serif-capped caret) shipped on
+> 2026-09-18 and was reverted on 2026-09-19 at the owner's request: the
+> original ornate drawing described below is the shipped one again. The
+> redraw is commit 17d9793 if it is ever wanted back.
 
 Three artifacts, one geometry, three values (`#08070A` ground, `#F2EDE3` bone,
 `#E8A33D` ember). "Aged metal" is bone at partial opacity over ground — a
