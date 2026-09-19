@@ -1,303 +1,132 @@
 # Rakshit Rameshbabu — Portfolio
 
-Personal portfolio for **Rakshit Rameshbabu — Software & Security Engineer**.
-Built with Next.js (App Router) + TypeScript + Tailwind CSS, fully statically
-exported — no server runtime. One index page plus three case-study pages at
-`/projects/[id]` (`warden`, `scheduler`, `plantpal`).
-Deployed in Vercel: https://rakshit-737.vercel.app/
-## Local development
+The portfolio of Rakshit Rameshbabu, Software & Security Engineer (B.Tech
+Cyber Security, VIT Chennai): a scroll-driven, candlelit record built on
+public-domain paintings, where a moving light reveals both the art and the
+metrics.
+
+<p align="center">
+  <a href="https://rakshit-737.vercel.app"><img src="docs/readme/hero-1440.webp" width="72%" alt="The portfolio's first act: the name set over Joseph Wright of Derby's The Blacksmith's Shop, lit by the lamp, with three measured numbers below"></a>
+  <a href="https://rakshit-737.vercel.app"><img src="docs/readme/hero-390.webp" width="22%" alt="The same first act on a phone"></a>
+</p>
+
+**Live:** https://rakshit-737.vercel.app · **mirror:** https://rakshit-737.github.io/portfolio/
+
+[![CI quality gate](https://github.com/rakshit-737/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/rakshit-737/portfolio/actions/workflows/ci.yml)
+[![Deploy to GitHub Pages](https://github.com/rakshit-737/portfolio/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/rakshit-737/portfolio/actions/workflows/deploy-pages.yml)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-informational)](LICENSE)
+[![Node ≥ 22.18](https://img.shields.io/badge/node-%E2%89%A5%2022.18-informational)](package.json)
+
+Lighthouse (mobile / desktop, the CI gate's median of three,
+[run 35447766777](https://github.com/rakshit-737/portfolio/actions/runs/35447766777),
+measured 2026-09-19): performance 81 / 99 · accessibility 100 / 100 ·
+best-practices 100 / 100 · SEO 100 / 100.
+
+## What you're looking at
+
+- **Eight acts, eight paintings.** Each section is set in a public-domain painting, cropped and committed with a checksum lockfile.
+- **One lamp.** A single light follows scroll and pointer and reveals the painting; a measured number turns ember only when the light actually reaches it.
+- **The night archive.** A synthesized candlelit soundscape, on by default after your first interaction, with one visible switch. There is no audio file in the repo.
+- **The key and the lock.** On a fine pointer the cursor is a medieval key, and anything clickable shows the padlock it opens.
+- **⌘K.** A command palette jumps to any section, opens any repo, or copies the email.
+
+Every claim on the page carries its proof: a date, a status, the repo, and live CI data fetched at build time.
+
+## Inside
+
+- The lamp: [`src/components/Lamp.tsx`](src/components/Lamp.tsx), one rAF loop writing CSS custom properties; everything visual is CSS.
+- The sound engine: [`src/lib/sound.ts`](src/lib/sound.ts), a Karplus–Strong string, drone and room tone, all Web Audio.
+- The cursor: static SVG cursors in [`src/app/globals.css`](src/app/globals.css), the animated layer in [`public/cursors/`](public/cursors/), and the source and build in [`docs/design/cursors/`](docs/design/cursors/).
+- The palette: [`src/components/CommandPalette.tsx`](src/components/CommandPalette.tsx).
+- Build-time provenance: [`src/lib/github.ts`](src/lib/github.ts) fetches stars, head commit and CI status for every cited repo; any failure degrades to static text.
+- For machines: an [`llms.txt`](src/app/llms.txt/route.ts) route, JSON-LD (`Person`, `WebSite`, `SoftwareSourceCode` per case study), sitemap, robots, and OG cards rendered at build time ([`src/app/og.png/`](src/app/og.png/)).
+- Print: a stylesheet that drops the paintings, forces every act visible, and prints link targets.
+- Security: response headers from [`scripts/csp.mjs`](scripts/csp.mjs) and [`/.well-known/security.txt`](public/.well-known/security.txt).
+
+## Proof
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) blocks every push and pull request on all of these:
+
+- `check:art`: every committed plate matches its sha256 lockfile, so the build never contacts Wikimedia.
+- `typecheck`, `lint`, `build`: zero errors.
+- `budget`: a gzipped-JS ceiling per page plus a media ceiling for the paintings ([`scripts/check-budget.mjs`](scripts/check-budget.mjs)).
+- `check:links`: every internal href, src and srcset in `out/` resolves under either deploy's base path; GitHub links get a non-blocking reachability check.
+- `check:content`: the stranger test. An insider term (`dispatch instants`, `SDSC SP2`, `TOST`) may not appear on the index outside the act that explains it.
+- `check:vercel`: `vercel.json`'s headers match `scripts/csp.mjs` exactly.
+- `npm test`: Playwright smoke tests plus an axe scan at zero violations. The suite covers metadata and OG cards, JSON-LD, sitemap and robots, `security.txt` (the test fails once it expires, so it is renewed yearly), the recruiter's thirty-second path, the lamp surviving a full scroll, the sound gate, the cursor, and reduced-motion and no-JS fallbacks.
+- The same smoke, lamp and sound suites run again under the production headers, and fail on any Content-Security-Policy violation.
+- A second job builds the GitHub Pages sub-path shape and runs the link crawl and smoke suite against it.
+- [`scripts/check-lighthouse.mjs`](scripts/check-lighthouse.mjs): category minimums on mobile and desktop (median of three runs) and a CLS cap. Thresholds only ever move up.
+
+## Run it
 
 ```bash
 npm install
 npm run dev        # http://localhost:3000
+npm run build      # static export to ./out
+npm test           # Playwright + axe against ./out (build first)
 ```
-
-## Build (static export)
-
-```bash
-npm run build      # outputs the static site to ./out
-```
-
-The build must complete with zero type errors. Preview the export with any
-static file server, e.g. `npm run start` (a pinned local `serve`) or
-`npx serve out`.
-
-## Commands
 
 | Command | Does |
 | --- | --- |
 | `npm run dev` | Local dev server at `http://localhost:3000` |
 | `npm run build` | Static export to `./out` (zero type errors required) |
 | `npm run start` | Serve the built `./out` with the pinned local `serve` |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | Playwright smoke + axe scan against `./out` (build first) |
-| `npm run budget` | Gzipped-JS and landing-page media weight ceilings (`scripts/check-budget.mjs`) |
-| `npm run art` | Fetches and crops the eight plates from Wikimedia Commons into `public/art/`, and writes `src/lib/art.lock.json` |
-| `npm run check:art` | Verifies every committed plate file's sha256 against the lockfile — this is the CI gate |
-
-`public/art/` (the plate stills) and `src/lib/art.lock.json`
-are **committed to the repo**. `npm run art` is never run in CI — it hits
-the Wikimedia Commons API and is slow and network-dependent. It's a manual,
-occasional step: run it locally, review the output, and commit the result
-when a plate's crop or framing changes. CI only ever runs `npm run
-check:art`, which checks the committed files against the lockfile and never
-touches the network.
-
-## Quality gates
-
-CI (`.github/workflows/ci.yml`) enforces, on every push and PR:
-
-- `npm run check:art` — every committed plate file matches its lockfile
-  entry; the build never contacts Wikimedia
-- `npm run typecheck` and `npm run lint` — zero errors
-- `npm run budget` — gzipped-JS ceiling per exported page plus a media-weight
-  ceiling for the landing page's paintings (`scripts/check-budget.mjs`)
-- `npm run check:links` — crawls every emitted `out/*.html` file and resolves
-  every internal href/src/srcset to a real export file, correctly under
-  either deploy's basePath shape (derived from the build's own `_next` URLs,
-  not assumed); external GitHub links get a non-blocking HEAD check
-  (`scripts/check-links.mjs`)
-- `npm run check:content` — the stranger test, encoded: fails if an insider
-  term (`dispatch instants`, `SDSC SP2`, `TOST`) renders on the index
-  outside the `#scheduler`/`#research` acts that actually explain it
-  (`scripts/check-content-lint.mjs`)
-- `npm test` — Playwright smoke tests against `./out` (page renders, ⌘K
-  palette opens and jumps, anchors navigate, résumé resolves, case-study
-  routes 200, internal links resolve, plate credits render, the lamp turns
-  on and moves with scroll) plus an axe accessibility scan that must report
-  zero violations
-- `tests/seo.spec.ts` — per-page title/description/canonical, OG/Twitter
-  cards (real 1200×630 PNGs, absolute URLs), JSON-LD (`Person` + `WebSite`
-  on `/`, `SoftwareSourceCode` per case study), sitemap/robots correctness
-  under `site.url`, the GitHub Pages 404/deep-link export shape, and both
-  résumé paths
-- `tests/hirepath.spec.ts` — the thirty-second recruiter path: land on `/`,
-  the hero states who this is in one click's reach of the Warden case file,
-  the résumé resolves as a real PDF, and a `mailto:` contact link exists —
-  gated on interaction count, not wall-clock (CI timing is noisy; DOM-ready
-  timing is still logged, non-blocking)
-- `scripts/check-lighthouse.mjs` — Lighthouse category minimums (mobile +
-  desktop) and a CLS cap; thresholds are a ratchet, raised as numbers
-  improve, never lowered to pass.
-
-A second, additive CI job builds the export a second time with
-`NEXT_PUBLIC_BASE_PATH`/`NEXT_PUBLIC_SITE_URL` set exactly the way
-`deploy-pages.yml` computes them for this repo (the GitHub Pages sub-path
-shape), then runs `npm run check:links` and the Playwright smoke suite
-against that build specifically — the root-shape job above tests the Vercel
-deploy shape and stays the primary gate.
+| `npm run lint` / `npm run typecheck` | ESLint / `tsc --noEmit` |
+| `npm test` | Playwright smoke + axe scan against `./out` |
+| `npm run budget` | Gzipped-JS and media weight ceilings |
+| `npm run check:links` / `check:content` / `check:vercel` | Link crawl / stranger test / headers drift |
+| `npm run check:headers -- <url>` | Assert a live deploy's security headers |
+| `npm run art` | Fetch and crop the eight plates from Wikimedia Commons, and write the lockfile (manual, never in CI) |
+| `npm run check:art` | Verify every committed plate against the lockfile (the CI gate) |
+| `node scripts/capture-readme.mjs` | Re-capture this README's images and the social preview from `./out` |
 
 ## Editing content
 
-All copy lives in [`src/content.ts`](src/content.ts) — bio, projects, act
-statements, achievements, certifications, skills, education, links, and the
-closing line. Components only render what that file exports, so text edits never
-touch markup.
-
-Two conventions worth knowing before editing it:
-
-- **`acts`** holds one display line per act, plus which painting the act is set
-  in. Every statement is a quotation or faithful condensation of copy that
-  already exists elsewhere in the file — that is deliberate, so no claim on the
-  site's largest type is unsourced.
-- **`certifications`** carries the credential itself (issuer, date, registration
-  number, and an optional scan under `public/certificates/`), while
-  `achievements` carries the one-line result. An entry whose `image` file is
-  absent renders its text alone rather than breaking the build.
+All copy lives in [`src/content.ts`](src/content.ts): bio, projects, act statements, achievements, certifications, skills, education, links and the closing line. Components only render what it exports, so a text edit never touches markup. Every claim traces to a linked repo or the owner's own input, with a source comment beside it. `acts` holds one display line per act, each condensed from copy elsewhere in the file. `certifications` carries the credential itself, and an entry whose scan is absent renders its text alone.
 
 ## Deployment
 
-### Vercel (primary)
+**Vercel (primary).** Zero-config static export. The canonical URL, OG tags, sitemap, robots and JSON-LD all emit `https://rakshit-737.vercel.app` (`site.url` in `src/content.ts`). Vercel builds on push only, so [`refresh-vercel.yml`](.github/workflows/refresh-vercel.yml) rebuilds it every Monday through a deploy hook. It needs the repository secret `VERCEL_DEPLOY_HOOK` (Vercel → Settings → Git → Deploy Hooks); until that exists the run skips with a notice.
 
-Zero-config: import the repo in Vercel. The static export is detected
-automatically. The canonical URL, Open Graph tags, `sitemap.xml`,
-`robots.txt` and JSON-LD all emit `https://rakshit-737.vercel.app` by
-default (`site.url` in `src/content.ts`); set `NEXT_PUBLIC_SITE_URL` only
-for a preview or a custom domain.
+**Response headers.** [`vercel.json`](vercel.json) sends a Content-Security-Policy, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, a `Permissions-Policy` that denies camera, microphone, geolocation, payment and USB, and `X-Frame-Options: DENY`. Vercel already sends HSTS. The policy is written once, in [`scripts/csp.mjs`](scripts/csp.mjs), with the reason for every allowance:
+- Next's static export hydrates through inline scripts, and there is no server to mint nonces, so `script-src` allows `'unsafe-inline'`. That is fenced by `object-src 'none'`, `base-uri 'self'` and `frame-ancestors 'none'`.
+- Plate placeholders, React `style` attributes, the lamp's custom properties and the data-URI cursors need `style-src 'unsafe-inline'` and `img-src data:`.
+- Nothing fetches at runtime (`connect-src 'self'`), and every sound is synthesized (`media-src 'none'`).
 
-Vercel rebuilds on push only, so the live record (the footer's "record
-generated" date, every card's head and CI chip) would freeze between
-pushes. [`refresh-vercel.yml`](.github/workflows/refresh-vercel.yml)
-rebuilds it every Monday through a Vercel deploy hook. It needs one
-repository secret, `VERCEL_DEPLOY_HOOK` (Vercel → Settings → Git → Deploy
-Hooks, for `main`); until that exists the workflow skips with a notice.
+After a deploy, run `npm run check:headers -- https://rakshit-737.vercel.app`, or the *Check live headers* workflow.
 
-**Response headers.** [`vercel.json`](vercel.json) sends a
-Content-Security-Policy, `X-Content-Type-Options: nosniff`,
-`Referrer-Policy: strict-origin-when-cross-origin`, a `Permissions-Policy`
-that denies camera, microphone, geolocation, payment, USB and FLoC, and
-`X-Frame-Options: DENY` (Vercel already sends HSTS). The policy is written
-down once, in [`scripts/csp.mjs`](scripts/csp.mjs), with the reason for
-every allowance: Next's static export hydrates through inline scripts and
-there is no server to mint nonces (`script-src 'unsafe-inline'`, fenced by
-`object-src 'none'`, `base-uri 'self'` and `frame-ancestors 'none'`); the
-plate placeholders, React's `style` attributes, the lamp's custom
-properties and the data-URI cursors need `style-src 'unsafe-inline'` and
-`img-src data:`; fonts are self-hosted; nothing fetches at runtime
-(`connect-src 'self'`); every sound is synthesized (`media-src 'none'`).
-`npm run check:vercel` fails CI if `vercel.json` drifts from it, a CI step
-re-runs the smoke, lamp and sound suites under the real headers and fails
-on any violation event, and after a deploy
-`npm run check:headers -- https://rakshit-737.vercel.app` checks the live
-response. The GitHub Pages mirror cannot send custom headers.
+**GitHub Pages (mirror).** [`deploy-pages.yml`](.github/workflows/deploy-pages.yml) deploys once CI passes on `main`, and again weekly. It serves the files from `/portfolio` but pins `NEXT_PUBLIC_SITE_URL` to the primary, so search engines see one site. GitHub Pages cannot send custom headers.
 
-### GitHub Pages (fallback)
-
-[`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)
-builds the export and deploys it with the official Pages actions on every push
-to `main`. Enable it once in the repo settings: **Settings → Pages → Source →
-GitHub Actions**. The workflow computes `NEXT_PUBLIC_BASE_PATH` from the
-repo name, so project pages (`user.github.io/repo`) work without edits, and
-pins `NEXT_PUBLIC_SITE_URL` to the Vercel primary: the mirror serves its
-files from `/portfolio` but names the primary as its canonical, so search
-engines see one site, not two.
-
-## Environment variables (build-time, all optional)
-
-| Variable | Purpose | Default |
+| Variable (build-time, optional) | Purpose | Default |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | The site's one address — canonical, OG tags, sitemap, robots, JSON-LD — on every deploy | `https://rakshit-737.vercel.app` |
+| `NEXT_PUBLIC_SITE_URL` | The site's one address: canonical, OG, sitemap, robots, JSON-LD | `https://rakshit-737.vercel.app` |
 | `NEXT_PUBLIC_BASE_PATH` | Sub-path prefix when not served from the domain root | empty |
 
-## Design notes
+## Repo map
 
-Concept: **“Lamplight”** — a scroll-driven, candlelit portfolio built on
-eight public-domain paintings, where a moving light source reveals both the
-art and the metrics. Nothing is asserted outright; only what the light
-reaches is proven. `DESIGN.md` holds the full system, including a table of
-all eight paintings with their Commons sources; tokens live in
-`src/app/globals.css` `@theme`.
+- `src/`: the app (`app/` routes, `components/`, `lib/`) and `content.ts`, the single source of words.
+- `public/`: the plates (`art/`), certificate scans, the résumé, the cursor scripts, icons and `.well-known/`.
+- `scripts/`: the art pipeline, every CI check, the header tooling and the README capture.
+- `tests/`: the Playwright suites; the three `playwright*.config.ts` files at the root run them in the root, sub-path and production-headers shapes.
+- `docs/`:
+  - `design/cursors/`: cursor artwork source and build.
+  - `screens/`: before/after captures, WebP.
+  - `superpowers/`: dated plans and rulings.
+  - `readme/`: this file's images.
+  - Briefs, the résumé diff and the design notes.
+- `AGENTS.md`: the working rules every change follows.
+- `DESIGN.md`: the authority on the visual system.
+- `PRODUCT.md`: who the site is for and what it may claim.
+- `.impeccable/design.json`: the design-tool state those documents came from.
 
-- Palette: `#08070A` ground, `#F2EDE3` bone signal, `#E8A33D` ember, and
-  nothing else. **There is no grey and no second accent.** Ember is the
-  rarest mark on the site — it lights a measured number under the lamp's
-  mask and nothing else; it never touches prose or a control. Fractional
-  alpha is reserved for rules and the lamp's own gradients.
-- Emphasis is light, not inversion. The previous design's page-wide
-  `.negative` flip is gone; a control like `Bracket` or a nav link swaps its
-  own two colours on hover, but nothing swaps a whole region's ground and
-  mark anymore. A number "ignites" — bone signal becomes ember — only once
-  the lamp's pool actually reaches it: `Lamp.tsx` compares each metric's
-  real screen position against the lamp's, every rAF tick, and toggles the
-  ember state directly, rather than masking the metric the way the
-  painting itself is masked.
-- Eight full-bleed acts (`Act.tsx`), each set in a painting fetched from
-  Wikimedia Commons, cropped, and committed to `public/art/` with a sha256
-  lockfile so CI never touches the network. They sit in normal document
-  flow — not pinned, not scroll-jacked — with one exception: the ledger
-  act's background painting is `position: sticky` so it stays visible behind
-  its own long-scrolling list of archive rows.
-- The lamp (`Lamp.tsx`) is the one moving part: a single rAF loop reads
-  scroll position and pointer position and writes CSS custom properties onto
-  each visible act; everything visual is CSS reading them, not React state.
-  It is the only light: the pool falls off softly (opaque to 30% of its
-  radius, gone by 100%) and carries a faint ember core, so it reads as a
-  held candle rather than a spotlight. A second rendering of it — a
-  page-wide cursor torch that dimmed everything outside its own pool — was
-  removed on 2026-09-05 at the owner's request for a single, premium lamp.
-  **The default, JavaScript-free state is fully lit** —
-  the reveal mask only exists once the client turns the lamp on, so a no-JS or
-  reduced-motion visitor gets a painted page, never a black one.
-- The night archive is the sound of the room the paintings hang in: an
-  authored medieval tune — D Dorian on a physically modelled plucked
-  string, over a drone fifth, with room tone and sparse hearth crackle
-  beneath (all synthesized, composed in `src/lib/sound.ts`) at 22%, on
-  by default behind an honest first-interaction gate, muted by one
-  visible control ("Soundscape: on/off", rail and menu). The interface speaks
-  in small physical sounds — wood for the panels, brass for the switch,
-  wax for the seal, and a minor harp chime for every other button —
-  never on hover or scroll, and never as the only confirmation. On a fine
-  pointer the cursor is a medieval key, and anything clickable shows
-  the padlock it opens (original drawings, pure CSS, inline SVG, no
-  ember — they are graphics); coarse pointers, text, form fields and
-  forced-colors keep their native cursors.
-- The lamp has a **frame-budget breaker** that sheds the effect on a device
-  that genuinely cannot hold it — judged over a rolling window, and
-  **recoverable**: it suspends rather than destroys, and restores itself once
-  frames are healthy again. An earlier version tripped after ten consecutive
-  sub-31fps frames and tore the listeners down permanently, which meant the
-  light died on the first real scroll and never returned. A regression test now
-  scrolls the page through every act and asserts the lamp is still alive.
-- Controls (`Bracket.tsx`) are **wax-seal cartouches**: a doubled hairline frame
-  with a small seal mark at the leading edge and letterspaced Newsreader caps.
-  Ember appears only on hover and focus, never at rest — it has the least
-  contrast headroom on this palette, so it is an accent and not a text colour.
-  Focus is styled distinctly from hover so keyboard state is never ambiguous.
-- Every act is a still painting — no zoom, no push-in, no scroll-scrubbed
-  video. An earlier build carried a short scroll-scrubbed clip on four of
-  the eight acts and a slight scroll-driven push-in on all eight; the owner
-  saw the shipped effect live and asked for the zoom to go, so it was
-  removed entirely (2026-08-20) — the lamp's light is the only thing that
-  still moves.
-- Type: Newsreader carries one display line per act (and the seal
-  monogram's "R"); Manrope carries the small uppercase labels; Chivo Mono
-  carries everything else, including every measured number at every size;
-  Chivo (sans) is used only for reading passages. All loaded with
-  `next/font`.
-- The nav carries the seal monogram (also the favicon and Apple icon —
-  one geometry in `src/lib/mark.ts`) and a live clock in the owner's own
-  time zone beside the name.
-- Provenance: every act and every record still carries a mono provenance
-  line (date · status · stack · repo · tests/CI), augmented at build time
-  with live GitHub data via `src/lib/github.ts` — the footer fetches this
-  repo itself, so the record carries its own verification. Every act's line
-  now also credits its painting (artist, title, year, Commons link) — art is
-  sourced the same way code is.
-- Motion: one reveal per act, playing once on first scroll arrival and never
-  replayed on scroll-back — the act's copy fades into place and its
-  statement lands word by word inside that same beat — plus the lamp's
-  continuous drive and the benchmark bars growing once on approach. No per-section entrance
-  animations beyond the one-per-act reveal, and no motion on the paintings
-  themselves; everything has a `prefers-reduced-motion` fallback.
-- Case files open with a static, non-interactive painted header — no
-  scroll-scrubbing, but still lit by a static, centred lamp mask (there's
-  no `[data-act]` ancestor for the scroll-driven one to scrub) — and
-  otherwise keep the previous grammar: a sticky left title rail
-  against the record on the right (problem → approach + pipeline diagram →
-  decisions → evidence → outcome). The evidence table's rows are plain bold
-  tabular numbers, not inverted or ignited — case files have no `[data-act]`
-  for the lamp to scrub, so ignition is a landing-page-only device.
-- Print: tokens flip to black-on-white, every painting is
-  dropped, act copy is forced visible regardless of scroll state, and link
-  targets are printed after their text.
+The working method is written down, not remembered. [`docs/design-notes.md`](docs/design-notes.md) is the narrative of how the design got here.
 
-### Deviations from the brief
+## Credits
 
-- The scheduler study stays in **Featured work**; the separate **Research**
-  act carries the constructive-takeaway pull quote and the benchmark chart,
-  so the two don't duplicate each other.
-- The ⌘K command palette from the previous design is unchanged and remains
-  the fastest way to jump a section, open a repository, or copy the contact
-  email.
-
-## Discoverability
-
-- `llms.txt` — machine-readable summary generated from `content.ts` at build
-  time.
-- JSON-LD: `Person` + `WebSite` on the index, `SoftwareSourceCode` per case
-  study.
-- Per-page metadata and OG cards styled as evidence strips (`/og.png` and
-  `/projects/[id]/og.png`), rendered at build time with real brand fonts
-  fetched from Google Fonts (graceful fallback when offline).
-
-## Still to fill in
-
-- More achievements and certifications (hackathons, CTFs, rankings) — the
-  ledger lists what exists today; add real ones to `content.ts` only, and drop
-  any accompanying scan into `public/certificates/`.
-- Optional headshot — not currently used by the design; if wanted, add to
-  `public/` and extend the About section.
-
-## Known open items
-
-Recorded rather than hidden:
-
-- **The *Alchemist* plate (the About act) reads weak on phones.** Every crop in
-  the set is landscape while a phone viewport is tall, so `object-fit: cover` is
-  height-bound and vertical framing has no slack to use. A portrait
-  `cropNarrow` was added for it, which helps but does not fully solve it; a
-  tighter narrow crop is the real fix.
+- **Paintings:** eight public-domain works from Wikimedia Commons. Each is credited on its plate, and the full table is in [`DESIGN.md`](DESIGN.md) and [`src/lib/art.ts`](src/lib/art.ts).
+- **Fonts:** Newsreader, Manrope, Chivo and Chivo Mono, self-hosted with `next/font`, under the SIL Open Font License.
+- **Interaction references:** the CollectUI set credited commit by commit, collected in [`docs/collectui-improvisation-prompt.md`](docs/collectui-improvisation-prompt.md).
 
 ## Licence
 
@@ -312,5 +141,10 @@ presents:
   and not licensed for reuse;
 - the eight paintings in `public/art/` are public domain, sourced from
   Wikimedia Commons and credited on every plate and in `DESIGN.md`;
-- the fonts (Newsreader, Manrope, Chivo, Chivo Mono, self-hosted by
-  `next/font`) are under the SIL Open Font License.
+- the fonts are under the SIL Open Font License.
+
+## Known open items
+
+- **The *Alchemist* plate (the About act) reads weak on phones.** Every crop is landscape and a phone is tall, so `object-fit: cover` has no vertical slack. A portrait crop helps but does not solve it; a tighter narrow crop is the real fix.
+- **The PlantPal+ exhibit is waiting for its captures.** It stays absent rather than showing a placeholder (`public/exhibits/README.md`).
+- **More achievements and certifications** can only come from the owner. Add them to `content.ts`, with any scan in `public/certificates/`.

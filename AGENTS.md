@@ -62,7 +62,7 @@ the authority on the visual system; this is the short version.
   and asked for it gone, keeping only the lamp's light as a moving part.
   All eight acts ship stills only.
 - Fonts: Newsreader carries the eight act statements (`Statement.tsx`,
-  `.statement`) and the seal monogram's "R" (`src/lib/mark.ts`); Manrope
+  `.statement`); Manrope
   600 carries every small uppercase tracked line (`.label` — eyebrows,
   provenance, nav links, chips, the clock); Chivo Mono carries everything
   else, **including every measured number at every size**; Chivo (sans)
@@ -99,14 +99,17 @@ the authority on the visual system; this is the short version.
   itself `data-voice` so nothing ever plays two sounds for one press.
   Hover and scroll stay silent, and a sound is never the only
   confirmation. The
-  cursor is the key and the lock (globals.css, pure CSS, 40px): a
-  medieval key as the default, the padlock it opens over anything
-  clickable — both ORIGINAL drawings (the owner's downloaded cursor pack
-  was license-barred from redistribution; rulings doc, 2026-09-05) —
-  shown only under `(pointer: fine) and (hover: hover)`, bone-on-ground
-  (no ember — graphics), text keeps its I-beam, `auto`/`pointer`
-  fallbacks declared, and the whole thing yields under forced-colors.
-  Browsers cannot animate a CSS cursor; no script may drive one.
+  cursor is the key and the lock (40px): a medieval key as the default,
+  the padlock it opens over anything clickable, and an I-beam key over
+  reading text — ORIGINAL drawings (the owner's downloaded cursor pack
+  was license-barred from redistribution; rulings doc, 2026-09-05), bone
+  metal with a small ember gem (the one ember graphic besides the lamp's
+  core; not yet ruled on by the owner). The static SVG cursors in
+  globals.css are the baseline, shown only under `(pointer: fine) and
+  (hover: hover)` with `auto`/`pointer`/`text` fallbacks, yielding under
+  forced-colors; `Cursor.tsx` lays an animated rendering over them on a
+  fine pointer without reduced motion. Source and build:
+  `docs/design/cursors/` (`build.mjs` regenerates both).
 - **Document order is paint order** in the three-layer plate stack
   (`.plate-dark` → `.plate-lit` → `.plate::after`, all `position: absolute`
   with no `z-index`). Reordering these layers makes the lamp invisible —
