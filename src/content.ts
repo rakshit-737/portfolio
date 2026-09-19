@@ -351,7 +351,7 @@ export const featuredProjects: FeaturedProject[] = [
       "An evaluation study of ML-based GPU-cluster job scheduling — and a proven negative result.",
     bullets: [
       "End-to-end research pipeline: discrete-event cluster simulator, XGBoost wait-time regressor, **14-policy benchmark** (FCFS, SJF, EASY/conservative backfill, SRPT, HRRN, ML) with Holm-adjusted significance testing.",
-      "Core finding: the learned scheduler is structurally degenerate — its queue ordering collapses to a sort by requested job size. Verified across **45,432 real dispatch instants with zero counterexamples**; equivalence established with paired TOST (p = 2.6×10⁻¹⁶) rather than difference tests.",
+      "Core finding: the learned scheduler is structurally degenerate — at the dispatch instant its score cannot tell two queued jobs apart by anything except requested size. **Zero counterexamples in 45,432 dispatch instants** (41,786 real, 3,646 synthetic, on the reference platform); equivalence established with paired TOST (p = 2.6×10⁻¹⁶ on the synthetic benchmark) rather than difference tests.",
       "Validated on real supercomputer traces (LANL CM-5, SDSC SP2) via second-exact event replay: the simulated ML gain does not replicate. Fully reproducible (seeded pipeline, Docker, CI); LaTeX manuscript in progress.",
     ],
     headlineNumbers: [
@@ -600,16 +600,16 @@ export const caseStudies: Record<string, CaseStudy> = {
     id: "scheduler",
     problem: [
       'The research question is narrow and testable: can machine learning improve GPU-cluster job scheduling via learned wait-time prediction? The intuition behind an ML "Proactive" scheduler is that a model predicting each queued job\'s wait from live cluster state should order the queue better than classical heuristics.',
-      "This study answers that question end to end — and the answer is a proven negative result. The learned scheduler is structurally degenerate: its queue ordering collapses to a sort by requested job size.",
+      "This study answers that question end to end — and the answer is a proven negative result. The learned scheduler is structurally degenerate: at the dispatch instant, its score cannot distinguish two queued jobs by anything except requested size.",
     ],
     approach: [
-      "The pipeline begins with a discrete-event cluster simulator (01_simulation/) and an XGBoost regressor that predicts per-job wait time from 12 cluster-state features (can_fit_now, gpu_fit_ratio, node_availability, queue_pressure, and others). On a 20% holdout with 5-fold cross-validation the regressor reaches R² ≈ 0.84 and MAE ≈ 4.69 — the regressor fits its training distribution well.",
-      "Fourteen policies run against the simulator — FCFS, SJF (oracle, estimated, modal), SRPT, EASY and conservative backfill, HRRN, and the ML Proactive scheduler — with Holm-adjusted significance testing. Validation then moves off synthetic workloads onto real supercomputer traces from the Parallel Workloads Archive: LANL CM-5 and SDSC SP2, replayed second-exact, 12 policies across 20 paired 7-day windows at load ≈ 0.70, using the real user runtime estimates recorded in the traces.",
+      "The pipeline begins with a discrete-event cluster simulator (01_simulation/) and an XGBoost regressor that predicts per-job wait time from 12 cluster-state features (can_fit_now, gpu_fit_ratio, node_availability, queue_pressure, and others). Under run-wise 5-fold cross-validation (GroupKFold on the simulation run) the regressor reaches R² 0.811 ± 0.021 and MAE 4.90 ± 0.45 — corrected down in v3.6 from a random-row split that put rows of the same run on both sides; under a within-run chronological split R² is 0.725. The degeneracy result does not depend on this number.",
+      "Fourteen policies run against the simulator — FCFS, SJF (oracle, estimated), SRPT, EASY and conservative backfill, HRRN, and the ML Proactive scheduler — with Holm-adjusted significance testing. Validation then moves off synthetic workloads onto real supercomputer traces from the Parallel Workloads Archive: LANL CM-5 and SDSC SP2, replayed second-exact, 12 policies across 20 paired 7-day windows at load ≈ 0.70, using the real user runtime estimates recorded in the traces.",
       "The degeneracy audit (04_scheduler/ranking_degeneracy.py) asks one question of the full pipeline: can the learned score ever rank two identically-sized queued jobs differently? Everything is reproducible — bash run_all_experiments.sh, Python 3.11+, seeded runs, Docker, CI.",
     ],
     diagram: [
       { label: "simulator", sub: "discrete-event cluster" },
-      { label: "xgboost regressor", sub: "wait-time, R² ≈ 0.84" },
+      { label: "xgboost regressor", sub: "wait-time, R² 0.811" },
       { label: "14-policy bench", sub: "Holm-adjusted stats" },
       { label: "trace replay", sub: "LANL CM-5 · SDSC SP2" },
       { label: "degeneracy audit", sub: "45,432 instants" },
@@ -624,11 +624,11 @@ export const caseStudies: Record<string, CaseStudy> = {
       },
       {
         title: "Prove the degeneracy structurally",
-        body: "At any single dispatch instant, cluster-state features take the same value for every queued job — 7 of the 12 features vary across the queue in 0.0% of instants. That makes the learned score a function of requested size alone, and the audit confirms it empirically: zero counterexamples in 45,432 real dispatch instants where two identically-sized queued jobs scored differently.",
+        body: "At any single dispatch instant, cluster-state features take the same value for every queued job — 7 of the 12 features vary across the queue in 0.0% of instants. That makes the learned score a function of requested size alone, and the audit confirms it empirically: zero counterexamples in 45,432 dispatch instants (41,786 real + 3,646 synthetic) where two identically-sized queued jobs scored differently — 45,268 instants and zero again on a Linux runner; the count is platform-dependent, the result is not.",
       },
       {
         title: "Replay real traces second-exact",
-        body: "The synthetic benchmark looked favorable: 7.9% ± 9.4% mean wait reduction vs FIFO over 40 paired runs (paired t, p = 2.0×10⁻⁶). But GPU utilization was unchanged (~64%), tail latency worsened (~58 → 123 ts), and Gini fairness degraded (0.53 → 0.79) — and on real traces the headline gain proved machine-dependent: −20.4% vs FCFS on SDSC (p = 0.042) but −4.5%, p = 0.48, on LANL.",
+        body: "The synthetic benchmark looked favorable: 7.9% ± 9.4% mean wait reduction vs FIFO over 40 paired runs (paired t, p = 2.0×10⁻⁶). But utilisation and completions were identical in all 40 runs — a reordering effect, not a throughput gain — and per-job fairness moved the wrong way (Gini 0.526 → 0.794, max wait 57.85 → 122.65 ts, per the repo's honest-claims record) — and on real traces the headline gain proved machine-dependent: −20.4% vs FCFS on SDSC (p = 0.042) but −4.5%, p = 0.48, on LANL.",
       },
       {
         title: "Name the honest baseline",
@@ -636,9 +636,9 @@ export const caseStudies: Record<string, CaseStudy> = {
       },
     ],
     evidence: [
-      { label: "Dispatch instants audited", value: "45,432 — zero counterexamples" },
+      { label: "Dispatch instants audited (reference platform)", value: "45,432 — zero counterexamples (41,786 real, 3,646 synthetic)" },
       { label: "Equivalence to size sort (paired TOST)", value: "p = 2.6×10⁻¹⁶" },
-      { label: "Regressor, 20% holdout / 5-fold CV", value: "R² ≈ 0.84 · MAE ≈ 4.69" },
+      { label: "Regressor, run-wise 5-fold CV", value: "R² 0.811 ± 0.021 · MAE 4.90 ± 0.45" },
       {
         label: "Synthetic gain vs FIFO (40 paired runs)",
         value: "7.9% ± 9.4% (p = 2.0×10⁻⁶)",
@@ -647,8 +647,8 @@ export const caseStudies: Record<string, CaseStudy> = {
       { label: "Zero-shot transfer, both real traces", value: "R² ≈ 0" },
     ],
     outcome: [
-      "What stands proven as of v3.4: the learned score is a function of requested job size alone. Across 45,432 real dispatch instants, two identically-sized queued jobs never scored differently, and paired TOST (p = 2.6×10⁻¹⁶) establishes that a size sort is equivalent to the XGBoost pipeline. The simulated gain does not replicate on real hardware traces — the ML scheduler beats FCFS on SDSC (−20.4%, p = 0.042) but not on LANL (−4.5%, p = 0.48), plain SJF beats it by 20.2% (Holm p = 0.009) on SDSC and 15.3% on LANL, and transfer is weak: zero-shot R² ≈ 0 on both traces, 0.49 (SDSC) and 0.10 (LANL) after retraining.",
-      "The constructive output is three findings. A wait-time feature set can only produce a meaningful ranking if it contains a per-job attribute that is not a function of size given cluster state; the honest baseline for an ML scheduler is the ML-free control its feature set implies, not FIFO; and equivalence tests are required — the difference test (Holm-adjusted p = 0.17) would have hidden the tie. The replay also surfaced side results: EASY backfill costs +74% mean wait under real estimate error versus perfect estimates (LANL, p = 0.025), and real estimate distributions (SDSC median 6.91× over-estimate with 0.1% under; LANL 1.51× with 36.3% under-estimates) do not match the f-model's 3.0× over-only assumption.",
+      "What stands proven, since the v3.4 degeneracy audit: at the dispatch instant, the learned score is a function of requested job size alone. Across 45,432 dispatch instants on the reference platform (41,786 replayed from real traces, 3,646 synthetic; 45,268 and zero again on a Linux runner), two identically-sized queued jobs never scored differently, and paired TOST (p = 2.6×10⁻¹⁶) establishes that a size sort is equivalent to the XGBoost pipeline. The simulated gain does not replicate on real hardware traces — the ML scheduler beats FCFS on SDSC (−20.4%, p = 0.042) but not on LANL (−4.5%, p = 0.48), plain SJF on the users' own estimates beats it by 20.2% on SDSC (Holm p = 0.009) and by 15.3% on LANL, where the gap is not significant (Holm-adjusted t p = 0.54, Wilcoxon p = 0.43), and transfer is weak: zero-shot R² ≈ 0 on both traces, 0.49 (SDSC) and 0.10 (LANL) after retraining.",
+      "The constructive output is three findings. A wait-time feature set can only produce a meaningful ranking if it contains a per-job attribute that is not a function of size given cluster state; the honest baseline for an ML scheduler is the ML-free control its feature set implies, not FIFO; and equivalence tests are required — the difference test (Holm-adjusted p = 0.17) would have hidden the tie. The replay also surfaced side results: EASY backfill costs +74% mean wait under real estimate error versus perfect estimates on LANL (+6.2% on SDSC) — significant under the Wilcoxon rank test (Holm p = 2.1×10⁻⁵) but not the t-test (raw p = 0.025, 0.23 after Holm), and real estimate distributions (SDSC median 6.91× over-estimate with 0.1% under; LANL 1.51× with 36.3% under-estimates) do not match the f-model's 3.0× over-only assumption.",
     ],
     next: [
       "Finish the LaTeX manuscript, in progress at phases_22_30/phase_28_manuscript/manuscript.tex.",
@@ -742,7 +742,7 @@ export const caseStudies: Record<string, CaseStudy> = {
  */
 export const researchSpotlight = {
   context:
-    "From the Proactive Feasibility Scheduler study — a proven negative result, verified across 45,432 real dispatch instants. LaTeX manuscript in progress.",
+    "From the Proactive Feasibility Scheduler study — a proven negative result, verified across 45,432 dispatch instants on the reference platform (41,786 real, 3,646 synthetic). LaTeX manuscript in progress.",
   quote:
     "a wait-time feature set can only produce a meaningful ranking if it contains a per-job attribute that is not a function of size given cluster state — and the honest baseline for an ML scheduler is the ML-free control its feature set implies, not FIFO.",
   repoUrl: "https://github.com/rakshit-737/proactive-feasibility-scheduler",
@@ -769,7 +769,7 @@ export const benchmarkChart: {
   policies: BenchmarkPolicy[];
 } = {
   title: "Mean wait by policy — SDSC SP2 trace, second-exact replay",
-  unit: "simulated time units, lower is better",
+  unit: "simulated minutes, lower is better",
   source: "05_results/trace_schedulers",
   note: "Proactive (XGBoost) ties its own ML-free control, Smallest-first — the degeneracy, visualized.",
   policies: [
@@ -1314,10 +1314,14 @@ export const acts: Record<
     label: "act 04 — the scheduler",
     statement: "The answer is a proven negative result.",
     plate: "orrery",
-    // From `caseStudies.scheduler.problem[0]`'s research question ("can
-    // machine learning improve GPU-cluster job scheduling") and the
-    // study's own "proven negative result" framing (oneLiner, problem[1]).
-    kicker: "Can ML schedule GPU clusters better? A proven no.",
+    // Condensed from `caseStudies.scheduler.problem[1]` ("its score cannot
+    // distinguish two queued jobs by anything except requested size"),
+    // itself the scheduler README's own wording (L265). Replaces "Can ML
+    // schedule GPU clusters better? A proven no.", which generalised past
+    // the result: the repo's reports/honest_claims.md §C lists "ML
+    // scheduling does not work" under "Never say these" — the finding is
+    // about one feature family ranked at the dispatch instant.
+    kicker: "Can the ML scheduler tell same-size jobs apart? No.",
   },
   plantpal: {
     label: "act 05 — plantpal+",

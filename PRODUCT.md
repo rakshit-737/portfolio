@@ -100,8 +100,8 @@ Real, verified, and already written into `src/content.ts`:
   synthetic benchmark (the repo's own regression baseline, not a real-world
   detection rate), with 1 of 8 benign look-alikes warned and none blocked;
   2,908 backend tests passed in CI. Public repo, MIT.
-- **Proactive Feasibility Scheduler** — 45,432 dispatch instants, zero
-  counterexamples, paired TOST p = 2.6×10⁻¹⁶, real LANL CM-5 / SDSC SP2 trace
+- **Proactive Feasibility Scheduler** — 45,432 dispatch instants on the
+  reference platform (41,786 real + 3,646 synthetic), zero counterexamples, paired TOST p = 2.6×10⁻¹⁶, real LANL CM-5 / SDSC SP2 trace
   replay, 14-policy benchmark with real per-policy numbers. Public repo.
   Manuscript in progress.
 - **PlantPal+** — 228 functional requirements, 36 spec documents, 307 tests,
