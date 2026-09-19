@@ -127,3 +127,20 @@ Baseline: the six quiet mobile runs above (median 79, TBT 135–225 ms, LCP ≈ 
 ## Commit order
 
 D1 (cursor), then 1.2, 1.1, 1.3, 1.6, 1.7, 1.4, 1.5. I stop for your review. Then Phase 2, then Phase 3, then Phase 4. Every commit runs the full gate in the brief. The Playwright suite runs with `--workers=2` locally, because the default worker count fails timing-sensitive specs on this machine. Every spec that fails in parallel is rerun serially before I report it.
+
+## Phase 4 results (measured 2026-09-19)
+
+Nine local mobile Lighthouse runs per state (`node scripts/check-lighthouse.mjs`,
+three passes of three), on a quiet machine:
+
+| State | Mobile runs | Median | TBT | LCP |
+| --- | --- | --- | --- | --- |
+| Baseline (after Phases 1–3) | 82 82 81 · 82 81 82 · 83 81 81 | 82 | 78–177 ms | 4.74 s |
+| **4.1 Chivo not preloaded — kept** | 83 83 83 · 83 83 83 · 83 83 81 | 83 | 42–58 ms | 4.74 s |
+| Ceiling: sound + palette chunks deleted outright (16 + 9 kB gz) | 83 83 83 | 83 | 31–39 ms | 4.67–4.74 s |
+| Ceiling: every script deleted | 88 88 88 | 88 | 0 ms | 3.92 s |
+
+- **4.1 kept:** TBT fell by about 80 ms, past the brief's −50 ms bar, and LCP held.
+- **4.2 and 4.3 not implemented.** Deleting both chunks entirely, which is more than any lazy load can achieve, moves neither keep criterion: the median gain is 0 of the required 3, and TBT falls by about 18 ms against the required 50. By the brief's rule they would be reverted, so they were measured as a ceiling rather than built.
+- **The LCP is the hero plate** (`blacksmith-narrow-960.avif`, fetchpriority high). What remains is the React and Next runtime's bytes competing with it in Lighthouse's simulation, not the site's own features.
+- **4.4 not applied.** The ratchet's precondition, that 4.1 to 4.3 all hold, is not met, so `MIN.mobile.performance` stays 75. CI's recent medians (81 and 83) each came with a cold first run as low as 59, so an 80 floor would also sit close to that noise.
