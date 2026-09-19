@@ -26,10 +26,16 @@ const chivoMono = Chivo_Mono({
   fallback: ["Chivo Mono Metric Fallback", "ui-monospace", "monospace"],
 });
 
+// Not preloaded (2026-09-19): Chivo sets only `.prose-field` reading
+// passages, below the fold on the index, so a preload spent a critical-path
+// request on text nobody sees first. Measured over nine local mobile
+// Lighthouse runs each: TBT median ~134 ms -> ~53 ms, performance median
+// 82 -> 83, LCP unchanged (4.74 s); case-file CLS stays 0.
 const chivo = Chivo({
   variable: "--font-chivo",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 // The label voice: every small uppercase tracked line (`.label` —
