@@ -746,8 +746,13 @@ export const caseStudies: Record<string, CaseStudy> = {
 export const researchSpotlight = {
   context:
     "From the Proactive Feasibility Scheduler study — a proven negative result, verified across 45,432 dispatch instants on the reference platform (41,786 real, 3,646 synthetic). LaTeX manuscript in progress.",
+  // Verbatim fragments of the scheduler README's constructive takeaways
+  // (L269), joined with ellipses; "[cluster]" is the one insertion, so an
+  // index reader knows which state is meant. The "necessary but not
+  // sufficient" limit travels with the condition, as the README attaches
+  // it, so the quote cannot read as a recipe.
   quote:
-    "a wait-time feature set can only produce a meaningful ranking if it contains a per-job attribute that is not a function of size given cluster state — and the honest baseline for an ML scheduler is the ML-free control its feature set implies, not FIFO.",
+    "a wait-time feature set can only produce a meaningful ranking if it contains a per-job attribute that is not a function of size given the [cluster] state … Phase D shows that condition is necessary but not sufficient … report the ML-free control the feature set implies, not FIFO.",
   repoUrl: "https://github.com/rakshit-737/proactive-feasibility-scheduler",
 } as const;
 
