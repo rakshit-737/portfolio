@@ -877,6 +877,34 @@ export const exhibits: {
 
 export const moreProjects: MoreProject[] = [
   {
+    // Transcribed from the repo at head f6b46ca (fetched 2026-09-18):
+    // README.md, CHANGELOG.md, package.json, public/manifest.json, LICENSE,
+    // store/listing.md, SECURITY.md §5 and tests/e2e/run.mjs; dates from
+    // the GitHub API (created 2026-09-11, last push 2026-09-17, release
+    // v0.5.0 on 2026-09-17). The chip is the README's own "96 end-to-end
+    // tests in real Chrome"; the CI run on f6b46ca logged "96 passed, 0
+    // failed". The README's timings are left out: they vary by machine,
+    // and its Chrome for Testing 131 table predates the Vite 8 upgrade.
+    // No network claim: the one runtime check (tests/e2e/run.mjs, a fetch
+    // to example.com from options.html) passes on any rejection, and the
+    // test build has no host access there, so CORS alone makes it fail —
+    // it cannot show the CSP did the blocking. Status follows DocForge's
+    // "active" (last push 2026-09-17) rather than a version that changes
+    // with every release.
+    name: "Fillwright — Local Resume Autofill",
+    timeframe: "Sep 2026",
+    description:
+      "Chrome extension that reads a resume on-device, builds an editable profile, and fills job application forms after showing exactly what it will write. It never submits an application or guesses work authorization, visa status, demographics or salary. Covered by **96 end-to-end tests in real Chrome**. MIT licensed.",
+    tech: ["TypeScript", "React", "pdf.js"],
+    repoUrl: "https://github.com/rakshit-737/fillwright",
+    evidence: [
+      { label: "2026-09" },
+      { label: "active" },
+      { label: "typescript · react" },
+      { label: "repo", href: "https://github.com/rakshit-737/fillwright" },
+    ],
+  },
+  {
     name: "Taintwall — AI Agent Tool-Boundary Firewall",
     timeframe: "Jul 2026",
     description:
