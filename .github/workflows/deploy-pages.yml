@@ -71,7 +71,7 @@ jobs:
           if [[ "$REPO" == *.github.io ]]; then
             echo "NEXT_PUBLIC_BASE_PATH=" >> "$GITHUB_ENV"
           else
-            echo "NEXT_PUBLIC_BASE_PATH=/$REPO" >> "$GITHUB_ENV"
+            echo "NEXT_PUBLIC_BASE_PATH=" >> "$GITHUB_ENV"  # custom domain rakshit-737.is-a.dev serves at root
           fi
           echo "NEXT_PUBLIC_SITE_URL=$PRIMARY_URL" >> "$GITHUB_ENV"
 
