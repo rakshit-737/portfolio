@@ -62,11 +62,11 @@ void main(){
       if (h > uMotes) continue;
       vec2 at = (c + vec2(hash(c+3.1), hash(c+7.7))) * 90.0
         + vec2(sin(uDrift*0.6 + h*40.0), cos(uDrift*0.45 + h*31.0)) * 26.0;
-      float r = 0.9 + h * 1.4;
+      float r = 0.5 + h * 0.8;
       m += smoothstep(r + 1.2, r * 0.3, length(px - at)) * (0.5 + 0.5 * sin(uDrift * 1.7 + h * 90.0));
     }
   }
-  float v = clamp(0.5 + shade + m * 0.22, 0.0, 1.0);
+  float v = clamp(0.5 + shade + m * 0.1, 0.0, 1.0);
   o = vec4(vec3(v) * pool, pool);
 }`;
 
@@ -228,7 +228,7 @@ export function mountAtmosphere(): AtmosphereHandle | null {
     gl.uniform2f(U.lamp, lampX, lampY);
     gl.uniform1f(U.r, best.r);
     gl.uniform1f(U.strength, (deep ? 0.34 : 0.2) * fade);
-    gl.uniform1f(U.motes, (deep ? 0.55 : 0.28) * fade);
+    gl.uniform1f(U.motes, (deep ? 0.3 : 0.12) * fade);
     gl.uniform1f(U.drift, drift);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.bindVertexArray(null);
