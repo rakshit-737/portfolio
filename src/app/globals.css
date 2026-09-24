@@ -1222,7 +1222,7 @@ html[data-intro]:not([data-intro-phase="done"]) .ignition {
     transparent 45%,
     #000 100%
   );
-  transition: --ig-open 900ms cubic-bezier(0.2, 0.7, 0.1, 1);
+  transition: --ig-open 1400ms cubic-bezier(0.2, 0.7, 0.1, 1);
 }
 /* The pinhole widens a step as each real piece lands — progress told by
    how much of the painting the light has found, never by a number. */
@@ -1237,11 +1237,11 @@ html[data-intro-phase="lit"] .ig-veil {
 }
 html[data-intro-phase="open"] .ig-veil {
   --ig-open: 190vmax;
-  transition-duration: 1250ms;
+  transition-duration: 2200ms;
   transition-timing-function: cubic-bezier(0.55, 0, 0.2, 1);
 }
 html[data-intro="brief"][data-intro-phase="open"] .ig-veil {
-  transition-duration: 520ms;
+  transition-duration: 700ms;
 }
 html[data-intro-fast][data-intro-phase="open"] .ig-veil {
   transition-duration: 420ms;
@@ -1266,7 +1266,7 @@ html[data-intro-fast][data-intro-phase="open"] .ig-veil {
   );
   transform: scale(0.18);
   opacity: 0;
-  animation: ig-ember-in 700ms cubic-bezier(0.2, 0.7, 0.1, 1) 120ms forwards;
+  animation: ig-ember-in 1400ms cubic-bezier(0.2, 0.7, 0.1, 1) 200ms forwards;
   transition:
     left 600ms cubic-bezier(0.16, 1, 0.3, 1),
     top 600ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -1334,22 +1334,22 @@ html:is([data-intro-phase="kindle"], [data-intro-phase="label"], [data-intro-pha
   stroke-width: 0.6;
   opacity: 0.75;
   transition:
-    transform 1100ms cubic-bezier(0.65, 0, 0.2, 1),
-    opacity 1100ms ease,
+    transform 1900ms cubic-bezier(0.65, 0, 0.2, 1),
+    opacity 1900ms ease,
     left 600ms cubic-bezier(0.16, 1, 0.3, 1),
     top 600ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .ig-ring {
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
-  animation: ig-draw 1400ms cubic-bezier(0.4, 0, 0.2, 1) 200ms forwards;
+  animation: ig-draw 2600ms cubic-bezier(0.4, 0, 0.2, 1) 400ms forwards;
 }
 .ig-gimbal {
-  animation-delay: 420ms;
+  animation-delay: 900ms;
   opacity: 0.6;
 }
 .ig-inner {
-  animation-delay: 560ms;
+  animation-delay: 1300ms;
   opacity: 0.45;
 }
 @keyframes ig-draw {
@@ -1365,7 +1365,7 @@ html:is([data-intro-phase="lit"], [data-intro-phase="open"]) .ig-ring {
 .ig-ticks {
   stroke: var(--color-rule);
   transform-origin: 0 0;
-  animation: ig-turn 3.2s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+  animation: ig-turn 5.5s cubic-bezier(0.3, 0, 0.2, 1) forwards;
 }
 @keyframes ig-turn {
   from {
@@ -1423,9 +1423,11 @@ html[data-intro="brief"] .ig-corner {
 .ig-caption {
   position: absolute;
   left: var(--x);
-  top: calc(var(--y) + var(--dial) / 2 + 1.25rem);
-  width: min(30rem, 86vw);
-  transform: translateX(-50%);
+  /* Above the dial: the lamp's rest point sits low in most paintings,
+     and a caption below it ran off the bottom of the frame. */
+  top: calc(var(--y) - var(--dial) / 2 - 1.5rem);
+  width: min(44rem, 92vw);
+  transform: translate(-50%, -100%);
   text-align: center;
   transition:
     left 600ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -1436,8 +1438,8 @@ html[data-intro="brief"] .ig-corner {
   opacity: 0;
   transform: translateY(0.35rem);
   transition:
-    opacity 500ms ease,
-    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 900ms ease,
+    transform 1100ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .ig-caption > * + * {
   margin-top: 0.6rem;
@@ -1447,6 +1449,32 @@ html[data-intro="brief"] .ig-corner {
 }
 .ig-credit::after {
   content: attr(data-credit);
+}
+/* The title card: the name in the display voice, arriving between the
+   index mark and the credit — then handing off to the real h1 as the
+   veil opens. */
+.ig-name::after {
+  content: attr(data-name);
+}
+.ig-name {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-size: clamp(1.9rem, 4.2vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--color-signal);
+  white-space: nowrap;
+}
+.ig-caption > .ig-name {
+  margin-top: 0.9rem;
+  transition-delay: 350ms;
+}
+html:is([data-intro-phase="label"], [data-intro-phase="lit"]) .ig-name {
+  opacity: 1;
+  transform: none;
+}
+html[data-intro="brief"] .ig-name {
+  display: none;
 }
 .ig-credit,
 .ig-coord {
@@ -1462,13 +1490,14 @@ html:is([data-intro-phase="label"], [data-intro-phase="lit"]) .ig-credit {
 }
 html[data-intro-phase="open"] :is(.ig-caption, .ig-cross, .ig-corner) {
   opacity: 0;
-  transition-duration: 250ms;
+  transition-duration: 700ms;
 }
 /* On a phone the caption sits low, clear of the name that will rise. */
 @media (max-width: 48rem) {
   .ig-caption {
     top: auto;
     bottom: 5.5rem;
+    transform: translateX(-50%);
     left: 50%;
   }
 }

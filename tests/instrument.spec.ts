@@ -20,8 +20,13 @@ test("the ignition lights the archive, then gets out of the way", async ({ page 
   await expect(page.locator(".ignition")).toBeVisible();
   // Real progress: the measured coordinates are printed once hydrated.
   await expect(page.locator(".ig-coord")).toContainText(/x \d\.\d{3} · y \d\.\d{3}/);
-  // It ends on its own, well inside the 4s failsafe.
-  await expect(html).toHaveAttribute("data-intro-phase", "done", { timeout: 4_500 });
+  // The name arrives as a title card (generated content, not a second h1).
+  await expect(page.locator(".ig-name")).toHaveAttribute("data-name", "Rakshit Rameshbabu");
+  // It takes its time on a first visit, and ends on its own before the
+  // boot script's 7.5s failsafe.
+  await page.waitForTimeout(2_500);
+  await expect(html).not.toHaveAttribute("data-intro-phase", "done");
+  await expect(html).toHaveAttribute("data-intro-phase", "done", { timeout: 6_000 });
   await expect(page.locator(".ignition")).toBeHidden();
   await expect(html).not.toHaveAttribute("data-intro-hold", /.*/);
   await expect(page.locator("#hero-title")).toBeVisible();
@@ -36,7 +41,7 @@ test("the ignition never takes input — a key press skips to the open", async (
     timeout: 800,
   });
   await expect(page.locator("html")).toHaveAttribute("data-intro-phase", "done", {
-    timeout: 1_500,
+    timeout: 2_000,
   });
 });
 

@@ -109,7 +109,7 @@ export function fxSnapshot(): string {
  * later visit or a first page that is not the index, none within a
  * session, under reduced motion / forced colours / reduced effects, and
  * under automation (navigator.webdriver) — `?ignite` (or `?ignite=brief`)
- * forces it for a test or a demo. The 4s timer is the failsafe: even if
+ * forces it for a test or a demo. The 7.5s timer is the failsafe: even if
  * the app bundle never runs, the veil and the hero's hold are gone by then.
  */
 export const BOOT_SCRIPT = `(function(){try{
@@ -135,5 +135,5 @@ else if(!g('sessionStorage','lamplight:lit'))mode=index&&!g('localStorage','lamp
 }
 p('sessionStorage','lamplight:lit');p('localStorage','lamplight:visited');
 if(mode){d.setAttribute('data-intro',mode);d.setAttribute('data-intro-phase','ember');d.setAttribute('data-intro-hold','');
-w.setTimeout(function(){d.removeAttribute('data-intro-hold');d.setAttribute('data-intro-phase','done')},4000);}
+w.setTimeout(function(){d.removeAttribute('data-intro-hold');d.setAttribute('data-intro-phase','done')},7500);}
 }catch(e){}})();`;
