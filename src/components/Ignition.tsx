@@ -39,7 +39,11 @@ export default function Ignition({
   target,
   credit,
   lamp,
+  name,
 }: {
+  /** The record's name — shown as the archive's title card, as generated
+   *  content, so the hero's h1 stays the only copy in the text. */
+  name: string;
   /** Where the light is: the hero act's lamp, or a case file's plate. */
   target: "hero" | "case";
   /** The plate's credit line — the provenance notation under the index. */
@@ -57,9 +61,23 @@ export default function Ignition({
     if (!el || !mode || root.getAttribute("data-intro-phase") === "done") return;
     const full = mode === "full";
     let current = 0;
+    // Each beat has a floor on a first visit (owner, 2026-09-24: "too
+    // fast"): a real event can only advance the sequence once its beat
+    // has had time to read. Readiness still gates it — a slow network
+    // waits for the real piece, a fast one waits for the beat.
+    const t0 = performance.now();
+    const FLOOR: Partial<Record<Phase, number>> = full
+      ? { kindle: 500, label: 1500, lit: 2700 }
+      : {};
+    const pending: number[] = [];
     const phase = (p: Phase) => {
       const i = PHASES.indexOf(p);
       if (i <= current) return;
+      const wait = (FLOOR[p] ?? 0) - (performance.now() - t0);
+      if (wait > 0 && p !== "open" && p !== "done") {
+        pending.push(window.setTimeout(() => phase(p), wait));
+        return;
+      }
       current = i;
       root.setAttribute("data-intro-phase", p);
     };
@@ -91,8 +109,8 @@ export default function Ignition({
     phase("kindle");
 
     const start = performance.now();
-    const minBeat = full ? 1300 : 0;
-    const cap = full ? 2600 : 700;
+    const minBeat = full ? 4000 : 0;
+    const cap = full ? 5000 : 900;
     let fontsIn = false;
     let plateIn = false;
     let opened = false;
@@ -114,7 +132,7 @@ export default function Ignition({
       if (fast) root.setAttribute("data-intro-fast", "");
       root.removeAttribute("data-intro-hold");
       phase("open");
-      const dur = fast ? 420 : full ? 1250 : 520;
+      const dur = fast ? 500 : full ? 2200 : 700;
       timers.push(
         window.setTimeout(() => {
           phase("done");
@@ -149,6 +167,7 @@ export default function Ignition({
     for (const e of events) window.addEventListener(e, skip, { passive: true, once: true });
     return () => {
       for (const t of timers) window.clearTimeout(t);
+      for (const t of pending) window.clearTimeout(t);
       for (const e of events) window.removeEventListener(e, skip);
     };
   }, [target, lamp.x, lamp.y]);
@@ -202,6 +221,7 @@ export default function Ignition({
       <span className="ig-corner ig-br" />
       <div className="ig-caption">
         <p className="ig-index label">{experience.indexMark}</p>
+        <p className="ig-name" data-name={name} />
         {/* The credit as generated content: it already renders, as real
             text, on the act's own provenance line — this is its echo. */}
         <p className="ig-credit label normal-case" data-credit={credit} />

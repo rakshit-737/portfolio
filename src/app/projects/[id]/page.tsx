@@ -195,6 +195,7 @@ export default async function CaseStudyPage({
       />
 
       <Ignition
+        name={project.name.split(" — ")[0]}
         target="case"
         credit={creditOf(plates[acts[project.id].plate])}
         lamp={{ x: 0.5, y: 0.5 }}

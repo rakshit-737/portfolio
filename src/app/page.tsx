@@ -384,6 +384,7 @@ export default async function Home() {
         ))}
 
       <Ignition
+        name={hero.name}
         target="hero"
         credit={creditOf(plates[acts.hero.plate])}
         lamp={plates[acts.hero.plate].lamp}
