@@ -80,6 +80,10 @@ jobs:
       - run: npm run build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The contact form's delivery key (src/components/ContactForm.tsx).
+          # Public by design — Web3Forms keys ship in client code — but kept
+          # in a repository secret so a fork doesn't send mail to the owner.
+          NEXT_PUBLIC_WEB3FORMS_KEY: ${{ secrets.WEB3FORMS_KEY }}
 
       - uses: actions/upload-pages-artifact@v5
         with:
