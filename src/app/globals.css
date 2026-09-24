@@ -829,6 +829,18 @@ button:focus-visible > .sound-switch {
   position: absolute;
   inset: -8vh -6vw;
   z-index: -1;
+  /* Feathered edges: the box's top, bottom and left borders used to be
+     hard lines wherever the painting behind them was lit — visible as a
+     dark rectangle at some zoom levels. The protected band sits well
+     inside the 8vh/6vw bleed, so feathering the bleed costs no contrast. */
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0, #000 6vh, #000 calc(100% - 3vh), transparent 100%),
+    linear-gradient(to right, transparent 0, #000 6vw);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, transparent 0, #000 6vh, #000 calc(100% - 3vh), transparent 100%),
+    linear-gradient(to right, transparent 0, #000 6vw);
+  mask-composite: intersect;
   background: linear-gradient(
     to right,
     var(--color-ground) 0%,
@@ -2218,6 +2230,46 @@ html[data-fx="off"] .specimen {
 }
 .contact-send:disabled {
   cursor: progress;
+}
+
+
+/* Short desktop screens (a 1280x720 laptop at 100% zoom, or any window
+   under ~860px tall): the hero's column was taller than the viewport, so
+   the name jammed under the nav. Scale the display line by height as well
+   as width and tighten the column's vertical rhythm — same order, same
+   content, just fitted to the frame. */
+@media (min-width: 48.0625rem) and (max-height: 860px) {
+  #hero .statement {
+    font-size: min(clamp(2.2rem, 6.5vw, 5.5rem), 10.5vh);
+  }
+  #hero .scrim {
+    padding-bottom: 4.5rem;
+  }
+  #hero .scrim > .mt-10 {
+    margin-top: 1.5rem;
+  }
+  #hero .scrim > .mt-8 {
+    margin-top: 1.25rem;
+  }
+  #hero .scrim > .mt-6 {
+    margin-top: 1rem;
+  }
+  #hero .scrim > p:first-child + h1 {
+    margin-top: 0.75rem;
+  }
+  /* The stat rail goes side by side instead of stacked. */
+  #hero .scrim > dl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 2.5rem;
+  }
+  #hero .scrim > dl > div {
+    margin-top: 0 !important;
+    max-width: 16rem;
+  }
+  .act-index {
+    top: 4.25rem;
+  }
 }
 
 /* ── Print: the field on paper ───────────────────────────────────────── */
