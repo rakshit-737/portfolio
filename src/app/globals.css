@@ -834,11 +834,11 @@ button:focus-visible > .sound-switch {
      dark rectangle at some zoom levels. The protected band sits well
      inside the 8vh/6vw bleed, so feathering the bleed costs no contrast. */
   -webkit-mask-image:
-    linear-gradient(to bottom, transparent 0, #000 6vh, #000 calc(100% - 3vh), transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6vh),
     linear-gradient(to right, transparent 0, #000 6vw);
   -webkit-mask-composite: source-in;
   mask-image:
-    linear-gradient(to bottom, transparent 0, #000 6vh, #000 calc(100% - 3vh), transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6vh),
     linear-gradient(to right, transparent 0, #000 6vw);
   mask-composite: intersect;
   background: linear-gradient(
@@ -2257,15 +2257,14 @@ html[data-fx="off"] .specimen {
   #hero .scrim > p:first-child + h1 {
     margin-top: 0.75rem;
   }
-  /* The stat rail goes side by side instead of stacked. */
+  /* The stat rail stays stacked: set in a row, its last value moved
+     into the scrim's fading band and missed AA on ember (CI, 4.41:1).
+     Tighter steps instead. */
   #hero .scrim > dl {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 2.5rem;
+    row-gap: 0;
   }
-  #hero .scrim > dl > div {
-    margin-top: 0 !important;
-    max-width: 16rem;
+  #hero .scrim > dl > div + div {
+    margin-top: 0.6rem !important;
   }
   .act-index {
     top: 4.25rem;
