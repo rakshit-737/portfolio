@@ -66,7 +66,19 @@ export type SoundStatus = "unavailable" | "off" | "pending" | "on" | "paused";
  *  one delegated listener in initSoundscape, skipping any button marked
  *  `data-voice` because it already speaks for itself). Hover and scroll
  *  stay silent. */
-export type UiSound = "tap" | "click" | "seal" | "chime";
+export type UiSound =
+  | "tap"
+  | "click"
+  | "seal"
+  | "chime"
+  // The instrument layer (2026-09-24): a ratchet for the instrument and
+  // Deep mode, a breath for the lamp snuffed, a strike for it relit, and
+  // a low swell for arriving at an act — the swell in Deep mode only, so
+  // scroll stays silent in the ordinary page.
+  | "gear"
+  | "breath"
+  | "strike"
+  | "swell";
 
 /**
  * The preference, read through an injected getter so the default is
@@ -128,6 +140,19 @@ let ambientSources: { stop(): void; disconnect(): void }[] = [];
 let crackleTimer: number | null = null;
 let musicTimer: number | null = null;
 let melodyOut: GainNode | null = null;
+let deepGain: GainNode | null = null;
+let deepOn = false;
+
+/** Deep mode's sub-drone — a ramp, never a click; inert until the
+ *  hearth itself is running. */
+export function setSoundDeep(on: boolean): void {
+  deepOn = on;
+  if (!ctx || !deepGain) return;
+  const t = ctx.currentTime;
+  deepGain.gain.cancelScheduledValues(t);
+  deepGain.gain.setValueAtTime(deepGain.gain.value, t);
+  deepGain.gain.linearRampToValueAtTime(on ? 0.07 : 0, t + 2);
+}
 let songStart = 0;
 let scheduledUntil = 0;
 
@@ -425,6 +450,16 @@ function startAmbientGraph() {
     return osc;
   });
 
+  // Deep mode's chamber: a D2 sine a fifth-and-octave under the bourdon,
+  // silent until Deep mode is on (setSoundDeep ramps it).
+  deepGain = ctx.createGain();
+  deepGain.gain.value = deepOn ? 0.07 : 0;
+  deepGain.connect(master);
+  const deepOsc = ctx.createOscillator();
+  deepOsc.frequency.value = midiHz(38);
+  deepOsc.connect(deepGain);
+  deepOsc.start();
+
   // The lute's own channel into the master.
   melodyOut = ctx.createGain();
   melodyOut.gain.value = 1;
@@ -435,6 +470,7 @@ function startAmbientGraph() {
   ambientSources = [
     { stop: () => room.stop(), disconnect: () => room.disconnect() },
     { stop: () => lfo.stop(), disconnect: () => lfoDepth.disconnect() },
+    { stop: () => deepOsc.stop(), disconnect: () => deepOsc.disconnect() },
     ...droneOscs.map((osc) => ({
       stop: () => osc.stop(),
       disconnect: () => osc.disconnect(),
@@ -443,6 +479,8 @@ function startAmbientGraph() {
       stop: () => {},
       disconnect: () => {
         droneGain.disconnect();
+        deepGain?.disconnect();
+        deepGain = null;
         melodyOut?.disconnect();
         melodyOut = null;
       },
@@ -649,7 +687,7 @@ function uiOut(ac: AudioContext): GainNode {
   const g = ac.createGain();
   g.gain.value = 0.18;
   g.connect(ac.destination);
-  window.setTimeout(() => g.disconnect(), 1100);
+  window.setTimeout(() => g.disconnect(), 1400);
   return g;
 }
 
@@ -759,11 +797,105 @@ function chime(ac: AudioContext) {
   halo.stop(t + 0.8);
 }
 
+/** Gear: a brass ratchet — five quick detents, a mechanism turning. */
+function gear(ac: AudioContext) {
+  const out = uiOut(ac);
+  const t = ac.currentTime;
+  for (let i = 0; i < 5; i++) {
+    const at = t + i * 0.045;
+    const src = ac.createBufferSource();
+    src.buffer = whiteNoiseBuffer(ac);
+    const band = ac.createBiquadFilter();
+    band.type = "bandpass";
+    band.frequency.value = 3200 - i * 260;
+    band.Q.value = 6;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.5, at);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.025);
+    src.connect(band).connect(g).connect(out);
+    src.start(at, Math.random() * 0.9, 0.03);
+  }
+}
+
+/** Breath: air across a flame — filtered noise, falling. */
+function breath(ac: AudioContext) {
+  const out = uiOut(ac);
+  const t = ac.currentTime;
+  const src = ac.createBufferSource();
+  src.buffer = whiteNoiseBuffer(ac);
+  const low = ac.createBiquadFilter();
+  low.type = "lowpass";
+  low.frequency.setValueAtTime(1800, t);
+  low.frequency.exponentialRampToValueAtTime(300, t + 0.5);
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.35, t + 0.08);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+  src.connect(low).connect(g).connect(out);
+  src.start(t, 0, 0.6);
+}
+
+/** Strike: a match — a bright scratch, then the flame's soft bloom. */
+function strike(ac: AudioContext) {
+  const out = uiOut(ac);
+  const t = ac.currentTime;
+  const src = ac.createBufferSource();
+  src.buffer = whiteNoiseBuffer(ac);
+  const high = ac.createBiquadFilter();
+  high.type = "highpass";
+  high.frequency.value = 2500;
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0.3, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+  src.connect(high).connect(g).connect(out);
+  src.start(t, Math.random() * 0.8, 0.1);
+  const bloom = ac.createBufferSource();
+  bloom.buffer = whiteNoiseBuffer(ac);
+  const low = ac.createBiquadFilter();
+  low.type = "lowpass";
+  low.frequency.value = 500;
+  const bg = ac.createGain();
+  bg.gain.setValueAtTime(0.0001, t + 0.06);
+  bg.gain.exponentialRampToValueAtTime(0.3, t + 0.2);
+  bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+  bloom.connect(low).connect(bg).connect(out);
+  bloom.start(t + 0.06, 0, 0.7);
+}
+
+/** Swell: the room answering an arrival — D2 and A2 under a slow
+ *  lowpass opening and closing, well under the tune. */
+function swell(ac: AudioContext) {
+  const out = uiOut(ac);
+  const t = ac.currentTime;
+  const low = ac.createBiquadFilter();
+  low.type = "lowpass";
+  low.frequency.setValueAtTime(120, t);
+  low.frequency.linearRampToValueAtTime(420, t + 0.45);
+  low.frequency.linearRampToValueAtTime(120, t + 1.0);
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.35, t + 0.4);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 1.05);
+  low.connect(g).connect(out);
+  for (const m of [38, 45]) {
+    const o = ac.createOscillator();
+    o.type = "triangle";
+    o.frequency.value = midiHz(m);
+    o.connect(low);
+    o.start(t);
+    o.stop(t + 1.1);
+  }
+}
+
 const UI_SYNTHS: Record<UiSound, (ac: AudioContext) => void> = {
   tap,
   click,
   seal,
   chime,
+  gear,
+  breath,
+  strike,
+  swell,
 };
 
 /**

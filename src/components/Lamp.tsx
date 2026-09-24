@@ -8,6 +8,12 @@ import {
   POINTER_LERP,
   createFrameBudgetGuard,
 } from "@/lib/motion";
+import {
+  emitLampFrame,
+  registerLampWaker,
+  stepKindle,
+  type LampAct,
+} from "@/lib/lampBus";
 
 /**
  * The one moving part on the site.
@@ -235,6 +241,14 @@ export default function Lamp() {
       // pixel radius. Computed once per tick, not per act — window size
       // doesn't change mid-frame.
       const vmax = Math.max(window.innerWidth, vh) / 100;
+      // Deep mode's candle: the pool breathes a few percent on two
+      // incommensurate sines — opt-in only, since it keeps the loop alive.
+      const deep = root.hasAttribute("data-deep");
+      const flicker = deep
+        ? 1 + 0.018 * Math.sin(now / 173) + 0.012 * Math.sin(now / 67 + 1.3)
+        : 1;
+      const [kindle, kindling] = stepKindle(now);
+      const frameActs: LampAct[] = [];
       for (const act of visible) {
         const r = act.getBoundingClientRect();
         // 0 when the act's top hits the viewport bottom, 1 when its
@@ -279,8 +293,9 @@ export default function Lamp() {
         // see LAMP_R_BASE_VMAX/LAMP_R_SPREAD_VMAX, src/lib/motion.ts), so
         // the ignite pool below and the plate's own lit pool can no longer
         // silently desync into two hand-duplicated copies of the formula.
-        const lampR = (LAMP_R_BASE_VMAX + Math.min(p, 1 - p) * LAMP_R_SPREAD_VMAX) * vmax;
-        act.style.setProperty("--lamp-r", `${lampR.toFixed(2)}px`);
+        const lampR =
+          (LAMP_R_BASE_VMAX + Math.min(p, 1 - p) * LAMP_R_SPREAD_VMAX) * vmax * flicker;
+        act.style.setProperty("--lamp-r", `${(lampR * kindle).toFixed(2)}px`);
 
         const igniteEls = igniteByAct.get(act);
         if (igniteEls && igniteEls.length > 0) {
@@ -291,7 +306,7 @@ export default function Lamp() {
           // either reads as bone or as ember, not fractionally in between,
           // so it ignites at this single radius rather than reproducing
           // the whole falloff.
-          const litRadius = lampR * LAMP_LIT_FRACTION;
+          const litRadius = lampR * kindle * LAMP_LIT_FRACTION;
           const litRadiusSq = litRadius * litRadius;
           for (const el of igniteEls) {
             const er = el.getBoundingClientRect();
@@ -302,7 +317,18 @@ export default function Lamp() {
             el.classList.toggle("is-lit", dx * dx + dy * dy <= litRadiusSq);
           }
         }
+        frameActs.push({ el: act, x, y, r: lampR * kindle, p, rect: r });
       }
+
+      // The frame bus (src/lib/lampBus.ts): the instrument, atmosphere and
+      // telemetry render on THIS tick — still one loop on the page.
+      const busy = emitLampFrame({
+        now,
+        acts: frameActs,
+        pointer: { x: smooth.x, y: smooth.y, active: pointer.active },
+        vw: window.innerWidth,
+        vh,
+      });
 
       // Idle-stop: no scroll/pointer activity for IDLE_MS, and the
       // pointer-lerp chase (if it applies at all on this device) has
@@ -316,7 +342,7 @@ export default function Lamp() {
         !pointer.active ||
         (Math.abs(pointer.x - smooth.x) < CHASE_EPS &&
           Math.abs(pointer.y - smooth.y) < CHASE_EPS);
-      if (idle && chaseSettled) {
+      if (idle && chaseSettled && !busy && !deep && !kindling) {
         stopped = true;
         return;
       }
@@ -337,6 +363,7 @@ export default function Lamp() {
     };
 
     root.setAttribute("data-lamp", "on");
+    registerLampWaker(() => wake(performance.now()));
     collect();
     lastActivity = performance.now();
     window.addEventListener("pointermove", onPointer, { passive: true });
@@ -345,6 +372,7 @@ export default function Lamp() {
     frame = requestAnimationFrame(tick);
 
     return () => {
+      registerLampWaker(null);
       teardown();
       root.removeAttribute("data-lamp");
     };

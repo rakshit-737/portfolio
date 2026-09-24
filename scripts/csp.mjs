@@ -27,22 +27,26 @@
 //   origin and the icons were blocked — tests/csp.spec.ts caught it. It
 //   names only the site's own primary origin.
 // - font-src 'self': every face is self-hosted by next/font.
-// - connect-src 'self': nothing fetches at runtime — the GitHub provenance
+// - connect-src: nothing else fetches at runtime — the GitHub provenance
 //   (src/lib/github.ts) is fetched at build time and baked in.
 // - media-src 'none': every sound is synthesized with Web Audio; there is
 //   no audio or video file anywhere (AGENTS.md, the night archive).
-// - worker-src 'none', frame-src 'none': no workers, no iframes.
+// - worker-src 'none': no workers. frame-src: the captcha's iframe only.
+// - The contact form (2026-09-24): hCaptcha (script, its iframe, its
+//   stylesheet and its API calls) and Web3Forms (the one POST that
+//   delivers the message). The captcha script is fetched only once a
+//   visitor starts writing in the form; nothing else talks to either.
 // - No HSTS here: Vercel already sends Strict-Transport-Security.
 export const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://*.hcaptcha.com",
+  "style-src 'self' 'unsafe-inline' https://*.hcaptcha.com",
   "img-src 'self' data: https://rakshit-737.vercel.app",
   "font-src 'self'",
-  "connect-src 'self'",
+  "connect-src 'self' https://api.web3forms.com https://*.hcaptcha.com",
   "media-src 'none'",
   "object-src 'none'",
-  "frame-src 'none'",
+  "frame-src https://*.hcaptcha.com",
   "worker-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

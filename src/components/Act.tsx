@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+import { plates, type PlateId } from "@/lib/art";
+
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
 /**
  * A full-viewport act. The lamp finds it by `data-act` and writes `--p`
@@ -15,7 +18,11 @@ export default function Act({
   children,
   className = "",
   overflow = "hidden",
+  plate,
 }: {
+  /** The act's painting — printed as a catalogue index at the top right:
+   *  plate number, title and year, and the lamp's rest point (art.ts). */
+  plate?: PlateId;
   id: string;
   label: string;
   lamp: { x: number; y: number };
@@ -48,6 +55,17 @@ export default function Act({
       className={`relative isolate min-h-[100svh] ${overflow === "hidden" ? "overflow-hidden" : "overflow-x-clip overflow-y-visible"} ${className}`}
     >
       {children}
+      {plate && (
+        <div aria-hidden="true" className="act-index print-drop">
+          <span className="label">
+            pl. {ROMAN[Object.keys(plates).indexOf(plate)]} · {plates[plate].year}
+          </span>
+          <br />
+          <span className="font-mono font-normal tracking-normal normal-case">
+            lamp {lamp.x.toFixed(2)} / {lamp.y.toFixed(2)}
+          </span>
+        </div>
+      )}
       <p className="label absolute bottom-6 left-5 z-10 opacity-100 sm:left-8 lg:left-12">
         {label}
       </p>

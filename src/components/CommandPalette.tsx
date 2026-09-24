@@ -18,6 +18,8 @@ import {
 import {
   acts,
   caseSections,
+  experience,
+  heroStats,
   caseStudies,
   featuredProjects,
   links,
@@ -26,6 +28,16 @@ import {
   soundscape,
 } from "@/content";
 import { withBase } from "@/lib/base";
+import {
+  fxSnapshot,
+  isDeep,
+  isOpenLight,
+  isReducedByUser,
+  setDeep,
+  setOpenLight,
+  setReducedEffects,
+  subscribeFx,
+} from "@/lib/fx";
 import {
   getSoundStatus,
   isSoundEnabled,
@@ -42,7 +54,17 @@ const RECENTS_MAX = 4;
 
 interface Command {
   id: string;
-  group: "recent" | "sections" | "case-files" | "repositories" | "actions";
+  group:
+    | "recent"
+    | "instrument"
+    | "sections"
+    | "metrics"
+    | "case-files"
+    | "archive"
+    | "repositories"
+    | "actions";
+  /** A secret: never listed, only matched when typed exactly. */
+  secret?: string;
   label: string;
   hint?: string;
   /** Metadata read straight off `content.ts` — act number, stack — shown
@@ -155,6 +177,9 @@ export default function CommandPalette() {
     getSoundStatus,
     () => "off" as const,
   );
+  // The instrument layer's switches (src/lib/fx.ts) — a snapshot string so
+  // the command labels follow the state they toggle.
+  const fxState = useSyncExternalStore(subscribeFx, fxSnapshot, () => "off||");
 
   // `silent` is the palette's own data-voice: a command with a dedicated
   // sound (the soundscape action's brass click) closes without the wood
@@ -242,7 +267,163 @@ export default function CommandPalette() {
         }));
       });
 
+    // Scroll a record into view and hold its reading lit for a moment.
+    const seek = (find: () => HTMLElement | null) => () => {
+      const el = find();
+      if (!el) return;
+      el.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "center",
+      });
+      el.classList.add("is-sought");
+      window.setTimeout(() => el.classList.remove("is-sought"), 2600);
+    };
+    const findIgnite = (actId: string, value: string) => () =>
+      Array.from(document.querySelectorAll<HTMLElement>(`#${actId} .ignite`)).find(
+        (e) => e.textContent?.replace(/\s+/g, " ").trim() === value,
+      ) ?? null;
+    const metrics = [
+      ...heroStats.map((n) => ({ act: "hero", owner: "Record", n })),
+      ...featuredProjects.flatMap((p) =>
+        (p.headlineNumbers ?? []).map((n) => ({
+          act: p.id,
+          owner: p.name.split("—")[0].trim(),
+          n,
+        })),
+      ),
+    ];
+    const tier = fxState.split("|")[0];
+    const instrument: Command[] = [
+      ...(tier !== "off"
+        ? [
+            {
+              id: "deep",
+              group: "instrument" as const,
+              label: isDeep() ? experience.palette.deepOff : experience.palette.deepOn,
+              hint: "shift D",
+              keywords: "immersive overlays telemetry grid depth",
+              run: () => {
+                setDeep(!isDeep());
+                playUi("gear");
+              },
+            },
+          ]
+        : []),
+      {
+        id: "reduce",
+        group: "instrument" as const,
+        label: isReducedByUser() ? experience.palette.reduceOff : experience.palette.reduceOn,
+        keywords: "effects motion webgl performance calm accessibility",
+        run: () => {
+          setReducedEffects(!isReducedByUser());
+          playUi("click");
+        },
+      },
+      {
+        id: "light",
+        group: "instrument" as const,
+        label: isOpenLight() ? experience.palette.lampLight : experience.palette.openLight,
+        keywords: "lighting lamp bright reading contrast",
+        run: () => {
+          setOpenLight(!isOpenLight());
+          playUi("click");
+        },
+      },
+      ...(tier !== "off"
+        ? [
+            {
+              id: "relight",
+              group: "instrument" as const,
+              label: experience.palette.relight,
+              keywords: "intro ignition replay loader",
+              run: navigate(`${withBase("/")}?ignite`),
+            },
+          ]
+        : []),
+      ...(typeof document !== "undefined" &&
+      document.documentElement.hasAttribute("data-archive-complete")
+        ? [
+            {
+              id: "complete",
+              group: "instrument" as const,
+              label: experience.palette.complete,
+              run: () => window.dispatchEvent(new Event("lamplight:explode")),
+            },
+          ]
+        : []),
+    ];
+    const secrets: Command[] = [
+      {
+        id: "secret-extinguish",
+        group: "instrument" as const,
+        label: experience.palette.snuffed,
+        secret: "extinguish",
+        run: () => window.dispatchEvent(new CustomEvent("lamplight:snuff", { detail: true })),
+      },
+      {
+        id: "secret-relight",
+        group: "instrument" as const,
+        label: experience.palette.lampLight,
+        secret: "relight",
+        run: () => window.dispatchEvent(new CustomEvent("lamplight:snuff", { detail: false })),
+      },
+      {
+        id: "secret-calibrate",
+        group: "instrument" as const,
+        label: experience.instrument.exploded,
+        secret: "calibrate",
+        run: () => window.dispatchEvent(new Event("lamplight:explode")),
+      },
+    ];
+    const onIndex = typeof document !== "undefined" && !!document.getElementById("hero");
+
     return [
+      ...instrument,
+      ...secrets,
+      ...(onIndex
+        ? metrics.map(({ act, owner, n }) => ({
+            id: `metric-${act}-${n.value}`,
+            group: "metrics" as const,
+            label: `${n.value} — ${n.label}`,
+            hint: owner,
+            keywords: `${experience.palette.metric} measurement number ${owner}`,
+            run: seek(findIgnite(act, n.value)),
+          }))
+        : []),
+      ...(onIndex
+        ? [
+            ...moreProjects.map((p) => ({
+              id: `archive-${p.name}`,
+              group: "archive" as const,
+              label: p.name.split("—")[0].trim(),
+              hint: p.timeframe,
+              keywords: `${experience.palette.archive} project ${p.tech.join(" ")}`,
+              run: seek(() =>
+                Array.from(document.querySelectorAll<HTMLElement>("#ledger h4")).find(
+                  (h) => h.textContent === p.name,
+                ) ?? null,
+              ),
+            })),
+            {
+              id: "archive-skills",
+              group: "archive" as const,
+              label: experience.palette.skills,
+              hint: experience.palette.ledger,
+              keywords: "skills stack languages constellation",
+              run: seek(() => document.getElementById("ledger-skills-heading")),
+            },
+            {
+              id: "archive-certifications",
+              group: "archive" as const,
+              label: experience.palette.certifications,
+              hint: experience.palette.ledger,
+              keywords: "certificates credentials azure",
+              run: seek(() => document.getElementById("ledger-certifications-heading")),
+            },
+          ]
+        : []),
       ...sections.map((s) => ({
         id: `section-${s.id}`,
         group: "sections" as const,
@@ -350,20 +531,24 @@ export default function CommandPalette() {
           ]
         : []),
     ];
-  }, [soundStatus]);
+  }, [soundStatus, fxState]);
 
   const filtered = useMemo(() => {
     const q = query.trim();
+    // Secrets are never listed; typed exactly, they are all that shows.
+    const secret = commands.filter((c) => c.secret && c.secret === q.toLowerCase());
+    if (secret.length) return secret;
+    const commandsPublic = commands.filter((c) => !c.secret);
     if (!q) {
       // Empty query: recent commands first (as their own group), then all.
-      const byId = new Map(commands.map((c) => [c.id, c]));
+      const byId = new Map(commandsPublic.map((c) => [c.id, c]));
       const recentCmds = recents
         .map((id) => byId.get(id))
         .filter((c): c is Command => c !== undefined)
         .map((c) => ({ ...c, group: "recent" as const, id: `recent-${c.id}` }));
-      return [...recentCmds, ...commands];
+      return [...recentCmds, ...commandsPublic];
     }
-    return commands
+    return commandsPublic
       .map((c) => ({
         c,
         score: fuzzyScore(q, `${c.label} ${c.group} ${c.keywords ?? ""}`),
@@ -606,14 +791,17 @@ export default function CommandPalette() {
               and not focusable, so axe's listbox-children walk skips it
               and aria-selected stays the announced state. */}
           <span ref={markerRef} aria-hidden="true" className="row-marker" />
-          {groups.map((g) => (
+          {/* Keyed by position: a ranked query can interleave groups
+              (archive, sections, archive…), and a name-only key then
+              collided and left stale rows in the list. */}
+          {groups.map((g, gi) => (
             <div
-              key={g.name}
+              key={`${g.name}-${gi}`}
               role="group"
-              aria-labelledby={`palette-group-${g.name}`}
+              aria-labelledby={`palette-group-${g.name}-${gi}`}
             >
               <p
-                id={`palette-group-${g.name}`}
+                id={`palette-group-${g.name}-${gi}`}
                 className="label border-b border-rule-soft px-4 pt-4 pb-2"
               >
                 {g.name}

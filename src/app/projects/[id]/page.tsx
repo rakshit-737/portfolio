@@ -5,6 +5,7 @@ import { BracketLink } from "@/components/Bracket";
 import CommandPalette from "@/components/CommandPalette";
 import DiagramFlow from "@/components/DiagramFlow";
 import Metric from "@/components/Metric";
+import Ignition from "@/components/Ignition";
 import Plate from "@/components/Plate";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
@@ -14,6 +15,7 @@ import { acts, caseSections, caseStudies, featuredProjects, links, site } from "
 import CaseIndex from "@/components/CaseIndex";
 import { withBase } from "@/lib/base";
 import { withCredit } from "@/lib/credit";
+import { creditOf, plates } from "@/lib/art";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
 
 export const dynamicParams = false;
@@ -192,6 +194,12 @@ export default async function CaseStudyPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      <Ignition
+        target="case"
+        credit={creditOf(plates[acts[project.id].plate])}
+        lamp={{ x: 0.5, y: 0.5 }}
+      />
+
       <header
         data-chrome
         className="sticky top-0 z-50 border-b border-rule bg-ground"
@@ -236,7 +244,11 @@ export default async function CaseStudyPage({
       <CommandPalette />
 
       <main id="top">
-        <div className="relative isolate h-[60svh] overflow-hidden">
+        {/* `data-case-plate` names this header plate `case-plate` for the
+            cross-document View Transition (globals.css): arriving from an
+            act's "Read the case file", that act's painting morphs into
+            this one — the specimen becoming the object of inspection. */}
+        <div data-case-plate="" className="relative isolate h-[60svh] overflow-hidden">
           {/* No scroll mechanics here — this banner has no `[data-act]`
               ancestor, so Lamp.tsx's rAF loop never finds it and nothing
               ever scrubs its `--p`/`--lamp-x`/`--lamp-y`. It still masks:
