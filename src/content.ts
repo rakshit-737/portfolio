@@ -1351,3 +1351,72 @@ export const acts: Record<
   ledger: { label: "act 07 — the ledger", statement: "Everything public lives on GitHub.", plate: "dovedale" },
   contact: { label: "act 08 — the close", statement: "Open to internships and full-time roles in software and security engineering.", plate: "latour" },
 };
+
+/**
+ * The instrument layer's words (docs/superpowers/specs/
+ * 2026-09-24-the-instrument-design.md). Interface language only — no
+ * claim about the owner lives here; every figure these surfaces show is
+ * read live (the lamp's own coordinates) or from records above.
+ */
+export const experience = {
+  /** The ignition's index mark — the owner's initials over the record. */
+  indexMark: "RR / Archive",
+  /** Shown beside the ember while the archive is being lit. */
+  calibrating: "calibrating the lamp",
+  instrument: {
+    /** The corner instrument is a real button: it opens the palette. */
+    label: "Open the control center",
+    exploded: "the instrument, opened",
+  },
+  reticle: {
+    inspect: "inspect",
+    measure: "measured",
+    view: "view",
+    depart: "leaves site",
+  },
+  specimen: "spec.",
+  telemetry: "lamp",
+  constellation: {
+    heading: "Skills — hover a skill to see where it was used",
+    listedIn: "listed in",
+    unlisted: "not yet in a listed project",
+  },
+  palette: {
+    deepOn: "Enter Deep mode",
+    deepOff: "Leave Deep mode",
+    reduceOn: "Reduce effects",
+    reduceOff: "Restore effects",
+    openLight: "Lighting: open light (no lamp)",
+    lampLight: "Lighting: the lamp",
+    relight: "Re-light the archive",
+    metric: "Jump to metric",
+    archive: "Archive",
+    ledger: "Ledger",
+    certifications: "View certifications",
+    skills: "View skills",
+    complete: "Archive complete — every act visited",
+    snuffed: "The lamp is out. Move to find your way; release L or run relight.",
+  },
+} as const;
+
+/**
+ * The contact form (owner request, 2026-09-24: "a contact me in the end
+ * directly with captcha"). Delivered by Web3Forms to the owner's inbox,
+ * spam-checked by hCaptcha through Web3Forms' own free integration. The
+ * access key is `NEXT_PUBLIC_WEB3FORMS_KEY` at build time; without one
+ * the form still works, composing the same message in the visitor's own
+ * mail app instead, and says so.
+ */
+export const contactForm = {
+  heading: "Write to me here",
+  name: "Name",
+  email: "Your email",
+  message: "Message",
+  send: "Send message",
+  sending: "Sending…",
+  sent: "Sent. Thank you — I read every message.",
+  failed: "That did not go through. Email me directly instead:",
+  captcha: "Complete the check above before sending.",
+  mailFallback: "Opens your mail app with this message addressed to me.",
+  subject: "Portfolio contact",
+} as const;

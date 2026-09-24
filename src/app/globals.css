@@ -1138,6 +1138,1088 @@ button:focus-visible > .sound-switch {
   background: color-mix(in srgb, var(--color-ground) 85%, transparent);
 }
 
+/* ─────────────────────────────────────────────────────────────────────
+   THE INSTRUMENT — Lamplight, pushed into space (2026-09-24).
+   docs/superpowers/specs/2026-09-24-the-instrument-design.md
+
+   Every rule below is a consequence of the one lamp. The tier on <html>
+   (`data-fx`: full | lite | off, written by the head boot script in
+   src/lib/fx.ts before first paint) gates all of it; `off` — reduced
+   motion, forced colours, or the visitor's own "Reduce effects" — is the
+   page exactly as it was before this block existed.
+   ───────────────────────────────────────────────────────────────────── */
+
+@property --ig-open {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* Lighting: open light. The lamp set aside — the painted, fully lit page
+   the no-JS visitor always gets, chosen from the palette. */
+html[data-light="open"] .plate-lit {
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+html[data-light="open"] .plate-dark {
+  display: none !important;
+}
+html[data-light="open"] .ignite {
+  color: var(--color-ember) !important;
+}
+html[data-light="open"] .atmosphere {
+  display: none;
+}
+
+/* ── The ignition ────────────────────────────────────────────────────── */
+
+.ignition {
+  display: none;
+  --x: var(--ig-x, var(--ig-x0, 50vw));
+  --y: var(--ig-y, var(--ig-y0, 50vh));
+  --dial: min(34vmin, 17rem);
+}
+@media (max-width: 48rem) {
+  .ignition {
+    --x: var(--ig-x, var(--ig-x0n, 50vw));
+    --y: var(--ig-y, var(--ig-y0n, 40vh));
+    --dial: 46vmin;
+  }
+}
+html[data-intro]:not([data-intro-phase="done"]) .ignition {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+}
+.ig-veil {
+  position: absolute;
+  inset: 0;
+  background: var(--color-ground);
+  --ig-open: 0px;
+  -webkit-mask-image: radial-gradient(
+    circle var(--ig-open) at var(--x) var(--y),
+    transparent 0,
+    transparent 45%,
+    #000 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--ig-open) at var(--x) var(--y),
+    transparent 0,
+    transparent 45%,
+    #000 100%
+  );
+  transition: --ig-open 900ms cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+/* The pinhole widens a step as each real piece lands — progress told by
+   how much of the painting the light has found, never by a number. */
+html[data-intro-phase="kindle"] .ig-veil {
+  --ig-open: 3vmax;
+}
+html[data-intro-phase="label"] .ig-veil {
+  --ig-open: 7vmax;
+}
+html[data-intro-phase="lit"] .ig-veil {
+  --ig-open: 13vmax;
+}
+html[data-intro-phase="open"] .ig-veil {
+  --ig-open: 190vmax;
+  transition-duration: 1250ms;
+  transition-timing-function: cubic-bezier(0.55, 0, 0.2, 1);
+}
+html[data-intro="brief"][data-intro-phase="open"] .ig-veil {
+  transition-duration: 520ms;
+}
+html[data-intro-fast][data-intro-phase="open"] .ig-veil {
+  transition-duration: 420ms;
+}
+
+/* The ember: a point of warm light that becomes the lamp's core. Ember
+   here is the lamp's own core — the one graphic it may touch. */
+.ig-ember {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: -0.8rem 0 0 -0.8rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--color-signal) 0,
+    var(--color-ember) 16%,
+    color-mix(in srgb, var(--color-ember) 35%, transparent) 42%,
+    transparent 70%
+  );
+  transform: scale(0.18);
+  opacity: 0;
+  animation: ig-ember-in 700ms cubic-bezier(0.2, 0.7, 0.1, 1) 120ms forwards;
+  transition:
+    left 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    top 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 600ms ease;
+}
+@keyframes ig-ember-in {
+  to {
+    opacity: 1;
+    transform: scale(0.55);
+  }
+}
+html[data-intro-phase="lit"] .ig-ember {
+  animation: none;
+  opacity: 1;
+  transform: scale(1);
+}
+html[data-intro-phase="open"] .ig-ember {
+  animation: none;
+  opacity: 0;
+  transform: scale(4);
+}
+
+/* Measurement lines through the ember — they extend on hydration. */
+.ig-cross {
+  position: absolute;
+  background: var(--color-rule);
+  opacity: 0;
+  transition:
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 400ms ease;
+}
+.ig-cross-h {
+  left: 0;
+  right: 0;
+  top: var(--y);
+  height: 1px;
+  transform-origin: var(--x) 50%;
+  transform: scaleX(0);
+}
+.ig-cross-v {
+  top: 0;
+  bottom: 0;
+  left: var(--x);
+  width: 1px;
+  transform-origin: 50% var(--y);
+  transform: scaleY(0);
+}
+html:is([data-intro-phase="kindle"], [data-intro-phase="label"], [data-intro-phase="lit"]) .ig-cross {
+  opacity: 1;
+  transform: none;
+}
+
+/* The calibration dial: a ring that draws itself, a gimbal, a scale. */
+.ig-dial {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--dial);
+  height: var(--dial);
+  margin: calc(var(--dial) / -2) 0 0 calc(var(--dial) / -2);
+  overflow: visible;
+  fill: none;
+  stroke: var(--color-signal);
+  stroke-width: 0.6;
+  opacity: 0.75;
+  transition:
+    transform 1100ms cubic-bezier(0.65, 0, 0.2, 1),
+    opacity 1100ms ease,
+    left 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    top 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ig-ring {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: ig-draw 1400ms cubic-bezier(0.4, 0, 0.2, 1) 200ms forwards;
+}
+.ig-gimbal {
+  animation-delay: 420ms;
+  opacity: 0.6;
+}
+.ig-inner {
+  animation-delay: 560ms;
+  opacity: 0.45;
+}
+@keyframes ig-draw {
+  to {
+    stroke-dashoffset: 18;
+  }
+}
+html:is([data-intro-phase="lit"], [data-intro-phase="open"]) .ig-ring {
+  animation: none;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 500ms ease;
+}
+.ig-ticks {
+  stroke: var(--color-rule);
+  transform-origin: 0 0;
+  animation: ig-turn 3.2s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+}
+@keyframes ig-turn {
+  from {
+    transform: rotate(-24deg);
+  }
+  to {
+    transform: rotate(0);
+  }
+}
+html[data-intro-phase="open"] .ig-dial {
+  transform: translate(var(--fly-x, 0), var(--fly-y, 0)) scale(var(--fly-s, 0.2));
+  opacity: 0;
+}
+html[data-intro="brief"] .ig-dial,
+html[data-intro="brief"] .ig-caption,
+html[data-intro="brief"] .ig-corner {
+  display: none;
+}
+
+/* Registration marks at the frame's corners — a plate being squared up. */
+.ig-corner {
+  position: absolute;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 0 solid var(--color-rule);
+  opacity: 0;
+  animation: ig-fade 600ms ease 300ms forwards;
+}
+.ig-tl {
+  top: 1.25rem;
+  left: 1.25rem;
+  border-width: 1px 0 0 1px;
+}
+.ig-tr {
+  top: 1.25rem;
+  right: 1.25rem;
+  border-width: 1px 1px 0 0;
+}
+.ig-bl {
+  bottom: 1.25rem;
+  left: 1.25rem;
+  border-width: 0 0 1px 1px;
+}
+.ig-br {
+  bottom: 1.25rem;
+  right: 1.25rem;
+  border-width: 0 1px 1px 0;
+}
+@keyframes ig-fade {
+  to {
+    opacity: 1;
+  }
+}
+
+.ig-caption {
+  position: absolute;
+  left: var(--x);
+  top: calc(var(--y) + var(--dial) / 2 + 1.25rem);
+  width: min(30rem, 86vw);
+  transform: translateX(-50%);
+  text-align: center;
+  transition:
+    left 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    top 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 300ms ease;
+}
+.ig-caption > * {
+  opacity: 0;
+  transform: translateY(0.35rem);
+  transition:
+    opacity 500ms ease,
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ig-caption > * + * {
+  margin-top: 0.6rem;
+}
+.ig-index {
+  letter-spacing: 0.32em;
+}
+.ig-credit::after {
+  content: attr(data-credit);
+}
+.ig-credit,
+.ig-coord {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+html:is([data-intro-phase="kindle"], [data-intro-phase="label"], [data-intro-phase="lit"]) .ig-coord,
+html:is([data-intro-phase="label"], [data-intro-phase="lit"]) .ig-index,
+html:is([data-intro-phase="label"], [data-intro-phase="lit"]) .ig-credit {
+  opacity: 1;
+  transform: none;
+}
+html[data-intro-phase="open"] :is(.ig-caption, .ig-cross, .ig-corner) {
+  opacity: 0;
+  transition-duration: 250ms;
+}
+/* On a phone the caption sits low, clear of the name that will rise. */
+@media (max-width: 48rem) {
+  .ig-caption {
+    top: auto;
+    bottom: 5.5rem;
+    left: 50%;
+  }
+}
+
+/* The hero holds its one authored beat until the veil opens, so the name
+   lands in the light rather than behind the dark. `data-lamp` is part of
+   the selector: without the app bundle there is no reveal to hold, and
+   the boot script's own timer drops `data-intro-hold` at 4s regardless. */
+html[data-lamp="on"][data-intro-hold] #hero .scrim > *,
+html[data-lamp="on"][data-intro-hold] #hero .statement .word {
+  opacity: 0;
+  transform: translateY(0.6rem);
+  transition: none;
+}
+html[data-intro-hold] [data-reveal] .statement .word {
+  animation-play-state: paused;
+}
+/* Chrome arrives last — it sits farthest from the light. */
+html[data-intro]:not([data-intro-phase="done"]):not([data-intro-phase="open"]) header[data-chrome] {
+  opacity: 0;
+}
+html[data-intro] header[data-chrome] {
+  transition: opacity 700ms ease 350ms;
+}
+
+/* ── The instrument (the corner) ─────────────────────────────────────── */
+
+.instrument {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 45;
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid var(--color-rule);
+  background: color-mix(in srgb, var(--color-ground) 72%, transparent);
+  transition:
+    border-color 200ms ease,
+    opacity 500ms ease;
+}
+.instrument:hover,
+.instrument:focus-visible {
+  border-color: var(--color-signal);
+}
+html[data-intro]:not([data-intro-phase="done"]) .instrument {
+  opacity: 0;
+}
+.inst-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.inst-svg {
+  position: absolute;
+  inset: 12%;
+  width: 76%;
+  height: 76%;
+  overflow: visible;
+  transition: opacity 600ms ease;
+}
+.inst-line {
+  fill: none;
+  stroke: var(--color-signal);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.72;
+}
+.inst-scale line {
+  opacity: 0.5;
+}
+.inst-lens {
+  fill: var(--color-ground);
+  stroke: var(--color-signal);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.inst-core {
+  fill: var(--color-ember);
+}
+.inst-gimbal-a,
+.inst-gimbal-b,
+.inst-inner {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.instrument:hover .inst-gimbal-a {
+  transform: rotate(-18deg);
+}
+.instrument:hover .inst-gimbal-b {
+  transform: rotate(14deg);
+}
+/* The scale turns with the page — a CSS scroll timeline, so the
+   instrument reads the scroll without a loop of its own. */
+@supports (animation-timeline: scroll()) {
+  html:not([data-fx="off"]) .inst-scale {
+    transform-box: view-box;
+    transform-origin: center;
+    animation: inst-turn linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes inst-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* The WebGL body is larger than its housing: the rings stand proud. */
+.inst-gl {
+  position: absolute;
+  left: -60%;
+  top: -60%;
+  width: 220%;
+  height: 220%;
+  opacity: 0;
+  animation: ig-fade 900ms ease forwards;
+}
+.instrument[data-gl] .inst-svg {
+  opacity: 0;
+}
+.instrument[data-exploded] .inst-gimbal-a {
+  transform: translateY(-9px) rotate(-10deg);
+}
+.instrument[data-exploded] .inst-gimbal-b {
+  transform: translateX(9px);
+}
+.instrument[data-exploded] .inst-inner {
+  transform: scale(1.35);
+}
+.inst-engraving {
+  position: absolute;
+  right: calc(100% + 0.75rem);
+  bottom: 0;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-rule);
+  background: var(--color-ground);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms ease;
+}
+.instrument[data-exploded] .inst-engraving:not(:empty) {
+  opacity: 1;
+}
+/* Every act visited: the instrument carries a mark — a small bone seal. */
+html[data-archive-complete] .instrument::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 4px;
+  height: 4px;
+  background: var(--color-signal);
+}
+@media (max-width: 48rem) {
+  .instrument {
+    width: 3rem;
+    height: 3rem;
+    right: max(0.75rem, env(safe-area-inset-right));
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* ── Telemetry and Deep mode's overlays ──────────────────────────────── */
+
+.telemetry {
+  display: none;
+}
+@media (min-width: 64rem) {
+  html[data-deep] .telemetry {
+    display: block;
+    position: fixed;
+    right: 5.25rem;
+    bottom: 1rem;
+    z-index: 45;
+    padding: 0.5rem 0.625rem;
+    border: 1px solid var(--color-rule);
+    background: var(--color-ground);
+    font-family: var(--font-mono);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    text-transform: none;
+  }
+}
+.deep-grid {
+  display: none;
+}
+/* A registration grid and a left-edge ruler whose marker is the page's
+   own scroll position (a scroll timeline, no loop). Rules only — bone at
+   a hairline's alpha, never text. */
+html[data-deep]:not([data-fx="off"]) .deep-grid {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  pointer-events: none;
+  background:
+    linear-gradient(to right, rgb(242 237 227 / 0.05) 1px, transparent 1px) 0 0 / 8rem 8rem,
+    linear-gradient(to bottom, rgb(242 237 227 / 0.05) 1px, transparent 1px) 0 0 / 8rem 8rem,
+    repeating-linear-gradient(to bottom, var(--color-rule) 0 1px, transparent 1px 1.5rem) 0 0 / 6px 100% no-repeat,
+    repeating-linear-gradient(to bottom, var(--color-rule) 0 1px, transparent 1px 7.5rem) 0 0 / 12px 100% no-repeat;
+}
+html[data-deep]:not([data-fx="off"]) .deep-grid::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 1px;
+  background: var(--color-signal);
+}
+@supports (animation-timeline: scroll()) {
+  html[data-deep]:not([data-fx="off"]) .deep-grid::after {
+    animation: ruler-mark linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes ruler-mark {
+  to {
+    top: calc(100% - 1px);
+  }
+}
+
+/* Grain: one generated noise tile (Experience.tsx — ground and bone
+   pixels only, as a data: URL), laid over the whole page at an alpha a
+   reader never consciously sees. */
+.grain {
+  display: none;
+}
+/* Full tier, after the wake only, and never a blend mode: a fixed
+   full-viewport blend forces a whole-frame composite every frame, which
+   starved slower machines (the copy reveals stalled mid-fade). A plain
+   alpha layer composites for free. */
+html[data-fx="full"][data-awake] .grain {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 46;
+  pointer-events: none;
+  background-image: var(--grain, none);
+  background-size: 96px 96px;
+  opacity: 0.022;
+}
+html[data-deep] .grain {
+  opacity: 0.05;
+}
+
+/* The atmosphere canvas (src/lib/atmosphereGL.ts) — inside the current
+   act's .plate, after the lit layer, before ::after. */
+.atmosphere {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+html[data-lamp="on"][data-awake]:not([data-fx="off"]) .atmosphere {
+  opacity: 1;
+}
+
+/* ── The reticle (cursor context) ────────────────────────────────────── */
+
+.reticle {
+  display: none;
+}
+@media (pointer: fine) and (hover: hover) {
+  html:not([data-fx="off"]) .reticle {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 90;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    transition: transform 70ms linear;
+  }
+}
+.reticle > span {
+  position: absolute;
+  opacity: 0;
+  transition:
+    opacity 160ms ease,
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    height 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ret-a,
+.ret-b {
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  border: 1px solid var(--color-signal);
+}
+.ret-label {
+  left: 1.5rem;
+  top: -2.1rem;
+  padding: 0.2rem 0.4rem;
+  white-space: nowrap;
+  background: var(--color-ground);
+  border: 1px solid var(--color-rule);
+}
+.reticle:not([data-state=""]) .ret-label {
+  opacity: 1;
+}
+/* measure: two brackets closing on the reading */
+.reticle[data-state="measure"] .ret-a,
+.reticle[data-state="measure"] .ret-b {
+  opacity: 1;
+  width: 5px;
+  height: 22px;
+  top: -11px;
+}
+.reticle[data-state="measure"] .ret-a {
+  left: -15px;
+  border-right: 0;
+}
+.reticle[data-state="measure"] .ret-b {
+  left: 10px;
+  border-left: 0;
+}
+/* inspect: a lens and its handle */
+.reticle[data-state="inspect"] .ret-a {
+  opacity: 1;
+  width: 26px;
+  height: 26px;
+  left: -13px;
+  top: -13px;
+  border-radius: 50%;
+}
+.reticle[data-state="inspect"] .ret-b {
+  opacity: 1;
+  width: 9px;
+  height: 0;
+  border-width: 1px 0 0;
+  left: 9px;
+  top: 12px;
+  transform: rotate(45deg);
+  transform-origin: 0 0;
+}
+/* view: an aperture — four corners */
+.reticle[data-state="view"] .ret-a,
+.reticle[data-state="view"] .ret-b {
+  opacity: 1;
+  width: 30px;
+  height: 30px;
+  left: -15px;
+  top: -15px;
+  border: 0;
+}
+.reticle[data-state="view"] .ret-a {
+  background:
+    linear-gradient(var(--color-signal), var(--color-signal)) 0 0 / 7px 1px no-repeat,
+    linear-gradient(var(--color-signal), var(--color-signal)) 0 0 / 1px 7px no-repeat,
+    linear-gradient(var(--color-signal), var(--color-signal)) 100% 100% / 7px 1px no-repeat,
+    linear-gradient(var(--color-signal), var(--color-signal)) 100% 100% / 1px 7px no-repeat;
+}
+.reticle[data-state="view"] .ret-b {
+  background:
+    linear-gradient(var(--color-signal), var(--color-signal)) 100% 0 / 7px 1px no-repeat,
+    linear-gradient(var(--color-signal), var(--color-signal)) 100% 0 / 1px 7px no-repeat,
+    linear-gradient(var(--color-signal), var(--color-signal)) 0 100% / 7px 1px no-repeat,
+    linear-gradient(var(--color-signal), var(--color-signal)) 0 100% / 1px 7px no-repeat;
+}
+.reticle[data-state="view"] .ret-label {
+  opacity: 0;
+}
+/* depart: a tag and a vector leaving the frame */
+.reticle[data-state="depart"] .ret-a {
+  opacity: 1;
+  width: 14px;
+  height: 0;
+  border-width: 1px 0 0;
+  left: 8px;
+  top: -8px;
+  transform: rotate(-45deg);
+  transform-origin: 0 0;
+}
+
+/* ── Specimens (moment two) ──────────────────────────────────────────── */
+
+.specimen {
+  position: relative;
+  margin-top: 2.5rem;
+  padding: 1.5rem 1.25rem 1.25rem;
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.specimen[data-hot] {
+  transition: transform 140ms linear;
+}
+/* The frame catches the light where the pointer is — a hairline whose
+   brightness follows the hand. A rule, so fractional alpha is allowed. */
+.specimen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  background: radial-gradient(
+      circle 14rem at var(--mx, 50%) var(--my, 50%),
+      rgb(242 237 227 / 0.6),
+      rgb(242 237 227 / 0.08) 70%
+    )
+    border-box;
+  -webkit-mask:
+    linear-gradient(#000 0 0) padding-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) padding-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+.specimen[data-hot]::before {
+  opacity: 1;
+}
+.spec-mark {
+  position: absolute;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 0 solid var(--color-signal);
+  pointer-events: none;
+  transition:
+    transform 1000ms cubic-bezier(0.16, 1, 0.3, 1) 150ms,
+    opacity 600ms ease 150ms;
+}
+.spec-tl {
+  top: 0;
+  left: 0;
+  border-width: 1px 0 0 1px;
+  --fx: -3rem;
+  --fy: -2rem;
+}
+.spec-tr {
+  top: 0;
+  right: 0;
+  border-width: 1px 1px 0 0;
+  --fx: 3rem;
+  --fy: -2rem;
+}
+.spec-bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 1px 1px;
+  --fx: -3rem;
+  --fy: 2rem;
+}
+.spec-br {
+  bottom: 0;
+  right: 0;
+  border-width: 0 1px 1px 0;
+  --fx: 3rem;
+  --fy: 2rem;
+}
+/* On first arrival the registration marks fly in from outside the frame
+   and square the specimen up — the act's one beat, never replayed. */
+html[data-lamp="on"]:not([data-fx="off"]) [data-act]:not([data-seen]) .spec-mark {
+  transform: translate(var(--fx), var(--fy));
+  opacity: 0;
+}
+.spec-cat {
+  position: absolute;
+  top: -0.45rem;
+  left: 1rem;
+  padding: 0 0.5rem;
+  background: var(--color-ground);
+  line-height: 1;
+}
+.spec-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-signal) 20%, var(--color-signal) 80%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+html[data-lamp="on"]:not([data-fx="off"]) [data-act][data-seen] .spec-scan {
+  animation: spec-scan 1300ms cubic-bezier(0.45, 0, 0.2, 1) 450ms 1 both;
+}
+@keyframes spec-scan {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.55;
+  }
+  88% {
+    opacity: 0.55;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+.spec-stack {
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.specimen[data-hot] .spec-stack {
+  transform: translateZ(22px) translateY(-2px);
+}
+.specimen dl {
+  transform: translateZ(0);
+}
+.specimen[data-hot] dl {
+  transform: translateZ(10px);
+}
+
+/* ── Acts: a catalogue index, and one transition each ────────────────── */
+
+.act-index {
+  position: absolute;
+  top: 5rem;
+  right: 1.25rem;
+  z-index: 10;
+  text-align: right;
+  line-height: 1.6;
+}
+@media (min-width: 64rem) {
+  .act-index {
+    right: 4.5rem;
+  }
+}
+@media (max-width: 48rem) {
+  .act-index {
+    display: none;
+  }
+}
+
+/* The ledger: a page being ruled. Section heads draw their rule left to
+   right as the act arrives; each row's rule draws as it enters (a view
+   timeline — graphics only, never the text itself). */
+#ledger section > h3 {
+  background-image: linear-gradient(var(--color-signal), var(--color-signal));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 1px;
+}
+html[data-lamp="on"]:not([data-fx="off"]) #ledger:not([data-seen]) section > h3 {
+  background-size: 0% 1px;
+}
+html[data-lamp="on"]:not([data-fx="off"]) #ledger[data-seen] section > h3 {
+  transition: background-size 1600ms cubic-bezier(0.65, 0, 0.2, 1) 300ms;
+}
+@supports (animation-timeline: view()) {
+  html[data-lamp="on"]:not([data-fx="off"]) #ledger li.border-b {
+    position: relative;
+  }
+  html[data-lamp="on"]:not([data-fx="off"]) #ledger li.border-b::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--color-signal);
+    transform-origin: left center;
+    opacity: 0.55;
+    animation: rule-draw linear both;
+    animation-timeline: view();
+    animation-range: entry 10% cover 45%;
+    pointer-events: none;
+  }
+}
+@keyframes rule-draw {
+  from {
+    transform: scaleX(0);
+  }
+  60% {
+    opacity: 0.55;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+/* The contact act: the final chamber. As the reader descends into the
+   close, the room's edges draw in around the lamp — the light narrowing,
+   not a new one. Under the scrim; text never sees it. */
+html[data-lamp="on"]:not([data-fx="off"]) #contact::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 75% 80% at var(--lamp-x, 60%) var(--lamp-y, 50%),
+    transparent calc(62% - var(--p, 0) * 22%),
+    color-mix(in srgb, var(--color-ground) 55%, transparent) 100%
+  );
+}
+
+/* ── Case files: the specimen becomes the object of inspection ───────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+[data-case-plate] {
+  view-transition-name: case-plate;
+}
+::view-transition-group(case-plate) {
+  animation-duration: 760ms;
+  animation-timing-function: cubic-bezier(0.65, 0, 0.2, 1);
+}
+::view-transition-old(case-plate),
+::view-transition-new(case-plate) {
+  animation-duration: 760ms;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Fallbacks ───────────────────────────────────────────────────────── */
+
+@media (forced-colors: active) {
+  .reticle,
+  .grain,
+  .deep-grid,
+  .atmosphere,
+  .ignition {
+    display: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ignition,
+  .reticle,
+  .atmosphere,
+  .inst-gl,
+  .spec-scan {
+    display: none !important;
+  }
+  .specimen {
+    transform: none !important;
+  }
+  .spec-mark {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+html[data-fx="off"] :is(.inst-gl, .atmosphere, .reticle, .spec-scan) {
+  display: none !important;
+}
+html[data-fx="off"] .specimen {
+  transform: none !important;
+}
+
+
+/* ── The constellation (ledger skills) ───────────────────────────────── */
+.constellation {
+  position: relative;
+}
+.cst-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+}
+.cst-edge {
+  stroke: var(--color-rule-soft);
+  stroke-width: 1;
+  transition: stroke 200ms ease;
+}
+.cst-edge[data-lit] {
+  stroke: var(--color-signal);
+}
+.cst-chord {
+  stroke: var(--color-rule);
+  stroke-width: 1;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: cst-chord 520ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes cst-chord {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.cst-hub {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--color-signal);
+}
+.cst-chip {
+  position: relative;
+  background: var(--color-ground);
+  transform: translate(calc(var(--cx, 0) * var(--d, 0.5) * -6px), calc(var(--cy, 0) * var(--d, 0.5) * -4px));
+  transition:
+    transform 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease;
+}
+.cst-chip[data-lit] {
+  background: var(--color-signal);
+  color: var(--color-ground);
+  border-color: var(--color-signal);
+}
+.cst-readout {
+  min-height: 1.5em;
+  margin-top: 1.25rem;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cst-chip {
+    transform: none !important;
+  }
+}
+
+
+/* A palette "jump to metric" holds the reading lit while the eye finds
+   it — a measurement, so ember is its to wear. */
+[data-lamp="on"] .ignite.is-sought {
+  color: var(--color-ember);
+}
+
+
+/* The contact form: hairline fields, the record's own grammar. A field
+   is a rule under a line of mono type; focus brightens the rule to bone
+   (the rule is a graphic, so its alpha may change — the text never). */
+.contact-field {
+  border: 0;
+  border-bottom: 1px solid var(--color-rule);
+  padding: 0.5rem 0 0.625rem;
+  color: var(--color-signal);
+  border-radius: 0;
+  transition: border-color 180ms ease;
+}
+.contact-field:hover {
+  border-bottom-color: var(--color-signal);
+}
+.contact-field:focus {
+  outline: none;
+  border-bottom-color: var(--color-signal);
+  box-shadow: 0 1px 0 0 var(--color-signal);
+}
+.contact-field:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 4px;
+}
+.contact-send:disabled {
+  cursor: progress;
+}
+
 /* ── Print: the field on paper ───────────────────────────────────────── */
 
 @media print {

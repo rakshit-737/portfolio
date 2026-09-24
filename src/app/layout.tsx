@@ -4,6 +4,8 @@ import { site } from "@/content";
 import Cursor from "@/components/Cursor";
 import Lamp from "@/components/Lamp";
 import Soundscape from "@/components/Soundscape";
+import Experience from "@/components/Experience";
+import { BOOT_SCRIPT } from "@/lib/fx";
 import "./globals.css";
 
 // The fallback shown before Chivo Mono arrives is hand-metric-matched in
@@ -142,14 +144,27 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      // The head boot script (src/lib/fx.ts) writes the effects tier,
+      // Deep mode, lighting and ignition attributes before hydration.
+      suppressHydrationWarning
       className={`${chivoMono.variable} ${chivo.variable} ${manrope.variable} ${newsreader.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: BOOT_SCRIPT.replace("BASE", process.env.NEXT_PUBLIC_BASE_PATH ?? ""),
+          }}
+        />
+      </head>
       <body className="min-h-full bg-ground text-signal">
         <div hidden dangerouslySetInnerHTML={{ __html: `<!--${CONTRACT}-->` }} />
         <Lamp />
         <Soundscape />
         <Cursor variant="playful" />
         {children}
+        {/* After the page, so the skip link stays the first tab stop and
+            the instrument the last. */}
+        <Experience />
       </body>
     </html>
   );

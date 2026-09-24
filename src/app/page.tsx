@@ -8,9 +8,12 @@ import BenchmarkChart from "@/components/BenchmarkChart";
 import { BracketLink } from "@/components/Bracket";
 import CertificateLightbox from "@/components/CertificateLightbox";
 import CommandPalette from "@/components/CommandPalette";
+import ContactForm from "@/components/ContactForm";
 import CopyEmailButton from "@/components/CopyEmailButton";
 import Exhibit from "@/components/Exhibit";
+import Constellation, { type SkillGroup } from "@/components/Constellation";
 import Ignite from "@/components/Ignite";
+import Ignition from "@/components/Ignition";
 import Metric from "@/components/Metric";
 import Nav from "@/components/Nav";
 import Plate, { narrowSrcset, narrowTiers, srcset } from "@/components/Plate";
@@ -32,6 +35,7 @@ import {
   contact,
   education,
   exhibits,
+  experience,
   featuredProjects,
   hero,
   heroStats,
@@ -41,9 +45,10 @@ import {
   site,
   skills,
 } from "@/content";
-import { plates } from "@/lib/art";
+import { creditOf, plates } from "@/lib/art";
 import { withBase } from "@/lib/base";
 import { withCredit } from "@/lib/credit";
+import { skillUsage } from "@/lib/skills";
 import { fetchRepoLive, liveSegments } from "@/lib/github";
 
 const SHELL = "mx-auto w-full max-w-[100rem] px-5 sm:px-8 lg:px-12";
@@ -320,6 +325,12 @@ export default async function Home() {
     fetchPriority: "high",
   });
 
+  // Which listed project names each skill — exact names only (src/lib/skills.ts).
+  const skillGroups: SkillGroup[] = skillUsage(skills, [
+    ...featuredProjects.map((p) => ({ name: p.name.split(" — ")[0], tech: p.tech })),
+    ...moreProjects.map((p) => ({ name: p.name.split(" — ")[0], tech: p.tech })),
+  ]);
+
   const buildRail: RailItem[] = [
     { value: generatedOn, label: "record generated" },
     ...(siteLive?.sha
@@ -372,6 +383,11 @@ export default async function Home() {
           <link key={p.id} rel="prefetch" href={withBase(`/projects/${p.id}/`)} />
         ))}
 
+      <Ignition
+        target="hero"
+        credit={creditOf(plates[acts.hero.plate])}
+        lamp={plates[acts.hero.plate].lamp}
+      />
       <Nav />
       <CommandPalette />
       <ProofTooltips />
@@ -381,6 +397,7 @@ export default async function Home() {
           id="hero"
           label={acts.hero.label}
           lamp={plates[acts.hero.plate].lamp}
+          plate={acts.hero.plate}
           className="flex items-end"
         >
           <Plate id={acts.hero.plate} priority />
@@ -520,6 +537,7 @@ export default async function Home() {
           id="about"
           label={acts.about.label}
           lamp={plates[acts.about.plate].lamp}
+          plate={acts.about.plate}
           className="flex items-center"
         >
           <Plate id={acts.about.plate} />
@@ -572,6 +590,7 @@ export default async function Home() {
               id={project.id}
               label={act.label}
               lamp={plates[act.plate].lamp}
+          plate={act.plate}
               className="flex items-center"
             >
               <Plate id={act.plate} />
@@ -637,20 +656,49 @@ export default async function Home() {
                     keyboard user. Below `sm` the stats stack as a
                     deliberate column: left to wrap, a three-stat row
                     broke 2+1 at 390px by accident of label width. */}
-                {project.headlineNumbers && (
-                  <dl className="mt-10 flex flex-col gap-x-12 gap-y-6 border-y border-rule py-6 sm:flex-row sm:flex-wrap">
-                    {project.headlineNumbers.map((n) => (
-                      <div key={n.label} className="flex flex-col-reverse">
-                        <dt className="label mt-2">{n.label}</dt>
-                        <Ignite
-                          as="dd"
-                          value={n.value}
-                          className="font-mono text-3xl leading-none font-semibold tracking-tight tabular-nums sm:text-4xl"
-                        />
-                      </div>
+                {/* The specimen (moment two, 2026-09-24): the project's
+                    measured numbers and its stack, framed as an object of
+                    inspection — registration marks that square up on the
+                    act's first arrival, a single scan, and a frame that
+                    tilts toward and catches the pointer (Experience.tsx).
+                    The catalogue line is aria-hidden decoration built from
+                    the act's own label and plate; the stack is
+                    `project.tech`, verbatim. */}
+                <div data-specimen="" className="specimen">
+                  <span aria-hidden="true" className="spec-mark spec-tl" />
+                  <span aria-hidden="true" className="spec-mark spec-tr" />
+                  <span aria-hidden="true" className="spec-mark spec-bl" />
+                  <span aria-hidden="true" className="spec-mark spec-br" />
+                  <span aria-hidden="true" className="spec-scan" />
+                  <p aria-hidden="true" className="spec-cat label">
+                    {experience.specimen} {act.label.split("—")[0].replace("act", "").trim()} ·{" "}
+                    {plates[act.plate].title}, {plates[act.plate].year}
+                  </p>
+                  {project.headlineNumbers && (
+                    <dl className="flex flex-col gap-x-12 gap-y-6 border-b border-rule pb-6 sm:flex-row sm:flex-wrap">
+                      {project.headlineNumbers.map((n) => (
+                        <div key={n.label} className="flex flex-col-reverse">
+                          <dt className="label mt-2">{n.label}</dt>
+                          <Ignite
+                            as="dd"
+                            value={n.value}
+                            className="font-mono text-3xl leading-none font-semibold tracking-tight tabular-nums sm:text-4xl"
+                          />
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                  <ul
+                    aria-label={`${project.name.split(" — ")[0]} technologies`}
+                    className="spec-stack mt-5 flex flex-wrap gap-2"
+                  >
+                    {project.tech.map((t) => (
+                      <li key={t} className="label border border-rule px-2 py-1 normal-case">
+                        {t}
+                      </li>
                     ))}
-                  </dl>
-                )}
+                  </ul>
+                </div>
 
                 {/* P12 §3: glosses the p-value headline number directly
                     above (`headlineNumbers[2]` on the scheduler card) in
@@ -794,6 +842,7 @@ export default async function Home() {
           id="research"
           label={acts.research.label}
           lamp={plates[acts.research.plate].lamp}
+          plate={acts.research.plate}
           className="flex items-center"
         >
           <Plate id={acts.research.plate} />
@@ -844,6 +893,7 @@ export default async function Home() {
           id="ledger"
           label={acts.ledger.label}
           lamp={plates[acts.ledger.plate].lamp}
+          plate={acts.ledger.plate}
           className="!min-h-0"
           overflow="visible"
         >
@@ -874,25 +924,7 @@ export default async function Home() {
                   >
                     Skills
                   </h3>
-                  <dl className="mt-4 grid gap-x-10 gap-y-6 sm:grid-cols-2">
-                    {skills.map(({ group, items }) => (
-                      <div key={group}>
-                        <dt className="label">{group}</dt>
-                        <dd className="mt-2">
-                          <ul className="flex flex-wrap gap-2">
-                            {items.map((item) => (
-                              <li
-                                key={item}
-                                className="label border border-rule px-2.5 py-1.5 normal-case"
-                              >
-                                {item}
-                              </li>
-                            ))}
-                          </ul>
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
+                  <Constellation groups={skillGroups} />
                 </section>
 
                 {/* 2. Achievements — Cyber Secure 360's First Prize already
@@ -1129,6 +1161,7 @@ export default async function Home() {
           id="contact"
           label={acts.contact.label}
           lamp={plates[acts.contact.plate].lamp}
+          plate={acts.contact.plate}
           className="flex items-center"
         >
           <Plate id={acts.contact.plate} />
@@ -1182,6 +1215,8 @@ export default async function Home() {
                 LinkedIn
               </BracketLink>
             </div>
+
+            <ContactForm />
 
             <Provenance
               className="mt-10"
