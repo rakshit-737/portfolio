@@ -105,9 +105,9 @@ export function fxSnapshot(): string {
  * wrong state. Plain ES5 in a string: it cannot import anything. `BASE`
  * is replaced with the build's basePath (GitHub Pages sub-path).
  *
- * Ignition modes: `full` on a first visit ever to the index, `brief` on a
- * later visit or a first page that is not the index, none within a
- * session, under reduced motion / forced colours / reduced effects, and
+ * Ignition modes: `full` on every load of the index, `brief` on every
+ * load of any other page (owner request 2026-09-25: the loader plays every
+ * time, not only on a first visit); none under reduced motion / forced colours / reduced effects, and
  * under automation (navigator.webdriver) — `?ignite` (or `?ignite=brief`)
  * forces it for a test or a demo. The 7.5s timer is the failsafe: even if
  * the app bundle never runs, the veil and the hero's hold are gone by then.
@@ -116,7 +116,6 @@ export const BOOT_SCRIPT = `(function(){try{
 var d=document.documentElement,w=window,n=navigator,c=n.connection||{};
 function m(q){return w.matchMedia(q).matches}
 function g(s,k){try{return w[s].getItem(k)}catch(e){return null}}
-function p(s,k){try{w[s].setItem(k,'1')}catch(e){}}
 var rm=m('(prefers-reduced-motion: reduce)'),fc=m('(forced-colors: active)');
 var low=(n.deviceMemory&&n.deviceMemory<=4)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4);
 var slow=c.saveData||/2g|3g/.test(c.effectiveType||'');
@@ -131,9 +130,8 @@ var path=location.pathname.replace(/index\\.html$/,'').replace(/\\/$/,'');
 var index=path==='BASE'.replace(/\\/$/,'');
 if(fx!=='off'&&(force||!n.webdriver)){
 if(force)mode=/ignite=brief/.test(q)?'brief':'full';
-else if(!g('sessionStorage','lamplight:lit'))mode=index&&!g('localStorage','lamplight:visited')?'full':'brief';
+else mode=index?'full':'brief';
 }
-p('sessionStorage','lamplight:lit');p('localStorage','lamplight:visited');
 if(mode){d.setAttribute('data-intro',mode);d.setAttribute('data-intro-phase','ember');d.setAttribute('data-intro-hold','');
 w.setTimeout(function(){d.removeAttribute('data-intro-hold');d.setAttribute('data-intro-phase','done')},7500);}
 }catch(e){}})();`;
