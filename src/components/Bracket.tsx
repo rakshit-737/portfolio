@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
  *
  * Two weights — `filled` for the one primary action on a surface, outline
  * for everything else. Hover still resolves by the control swapping its
- * own ground and mark (the established local device — see DESIGN.md's
+ * own ground and mark (the established local device — see docs/DESIGN.md's
  * "Do" list), which is what keeps hover safely at full AA contrast.
  * Press (`:active`) is a transform, never a second colour swap — the
  * audit wave briefly mirrored hover's swap here as an interim cue, and

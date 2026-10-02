@@ -9,7 +9,7 @@
  * down a painting, the instrument's highlights walk with it. The outer
  * ring follows the pointer's yaw, the middle ring its pitch, and the
  * inner ring turns with scroll. Bone metal on ground; ember only at the
- * lens core (the lamp's own core — DESIGN.md, Ember Is Rare).
+ * lens core (the lamp's own core — docs/DESIGN.md, Ember Is Rare).
  *
  * Renders on the lamp's tick (lampBus) — no loop of its own — and reports
  * busy only while its springs are still settling.

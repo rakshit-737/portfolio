@@ -36,7 +36,7 @@ const SUP_RUN = /([⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]+)/g;
  * the DOM, the exact doubled-text regression Ignite.tsx's history exists
  * to forbid: copy yielded "…10−16^−16" and find-in-page matched the
  * exponent twice (reverted 2026-09-07). The exactly-once contract
- * (DESIGN.md, Number tier) outranks the flat announcement; amending that
+ * (docs/DESIGN.md, Number tier) outranks the flat announcement; amending that
  * contract is the owner's call, not a rendering trick's.
  */
 function superscripts(text: string, keyPrefix: string): ReactNode[] {

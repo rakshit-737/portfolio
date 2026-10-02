@@ -9,7 +9,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Concept: "lamplight"
 
 A scroll-driven, candlelit portfolio built on public-domain paintings, where
-a movable light source reveals both the art and the metrics. `DESIGN.md` is
+a movable light source reveals both the art and the metrics. `docs/DESIGN.md` is
 the authority on the visual system; this is the short version.
 
 - **Three values, no fourth.** `--color-ground` `#08070A`, `--color-signal`
@@ -134,7 +134,7 @@ the authority on the visual system; this is the short version.
   `vercel.json` is generated from it (`node scripts/check-vercel-json.mjs
   --write`) and CI fails on drift. A new runtime resource type (a worker,
   an audio file, a third-party origin) needs a policy change there first —
-  `playwright.csp.config.ts` fails on any violation event.
+  `tests/playwright.csp.config.ts` fails on any violation event.
 - **Design captures in `docs/screens/` are WebP**, not PNG
   (`node scripts/webp-screens.mjs` converts in place); 24 PNG captures had
   put 17 MB into every clone.

@@ -211,7 +211,7 @@ export default async function CaseStudyPage({
         >
           {/* The one back device on this surface: the breadcrumb itself,
               persistent. It returns the reader to their own act on the
-              index (`/#<id>`, DESIGN.md's case-file cross-links rule) —
+              index (`/#<id>`, docs/DESIGN.md's case-file cross-links rule) —
               never `/` and the page top, which discards their place. A
               second, standalone breadcrumb nav below this header said the
               same thing and was the duplicate; it's gone. */}

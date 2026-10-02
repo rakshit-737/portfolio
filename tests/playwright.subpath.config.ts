@@ -17,7 +17,8 @@ import { defineConfig } from "@playwright/test";
  * primary config does.
  */
 export default defineConfig({
-  testDir: "./tests",
+  testDir: ".",
+  outputDir: "../test-results",
   testMatch: "smoke.spec.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -36,6 +37,7 @@ export default defineConfig({
   },
   webServer: {
     command: "node scripts/serve-subpath.mjs",
+    cwd: "..",
     url: `http://localhost:4576${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

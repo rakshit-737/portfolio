@@ -16,7 +16,7 @@ import { benchmarkChart, exhibits } from "@/content";
  * 530px gap the lamp's own maximum lit radius, 352px, can never close, at
  * any scroll position on either viewport) — a class that can only ever
  * render bone-with-JS or ember-without is a standing contradiction, not
- * emphasis, so it does not belong on these values. See DESIGN.md's
+ * emphasis, so it does not belong on these values. See docs/DESIGN.md's
  * Benchmark Chart section.
  *
  * P3: wrapped in `Exhibit` (`wide`, since this table already sat safely at

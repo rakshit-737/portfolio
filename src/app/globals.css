@@ -724,7 +724,7 @@ button:focus-visible > .sound-switch {
 }
 /* The lamp's own warmth. Once the light is live, the same top layer also
    carries a faint ember core at the lamp point — the one place besides a
-   lit number that ember is allowed (DESIGN.md, Ember Is Rare: "a lit
+   lit number that ember is allowed (docs/DESIGN.md, Ember Is Rare: "a lit
    number and the lamp's own core"), and one of the two places fractional
    alpha is (rules, and the lamp's own gradients). 12% ember over the
    painting at the centre, gone by six-tenths of the pool's radius, so it
@@ -2411,7 +2411,7 @@ html[data-fx="off"] .specimen {
    box, same shape, zero transparency. Painted midtone never touches text
    in this mode; contrast becomes exactly the palette's own signal/ground
    ratio (>4.5:1, `tests/lamplight.spec.ts`'s "palette clears WCAG AA"),
-   not a screenshot-measured approximation of one. Documented in DESIGN.md
+   not a screenshot-measured approximation of one. Documented in docs/DESIGN.md
    under Colors. `#ledger .scrim::before` is named explicitly: the
    ledger's narrow-viewport veil carries ID specificity, so the two class
    selectors alone would lose to it there — same guarantee, spelled at

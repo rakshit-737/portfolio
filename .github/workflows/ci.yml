@@ -75,7 +75,7 @@ jobs:
       # way Vercel serves it: smoke, lamplight and sound re-run under the
       # CSP, and tests/csp.spec.ts fails on any violation event at all.
       - name: Smoke, lamp and sound under the production headers
-        run: npx playwright test --config=playwright.csp.config.ts
+        run: npx playwright test --config=tests/playwright.csp.config.ts
 
       - name: Lighthouse gate
         run: |
@@ -152,7 +152,7 @@ jobs:
 
       # scripts/serve-subpath.mjs (this config's webServer) mounts `out/`
       # under `/portfolio/` and serves that, rather than at the root the
-      # primary job's playwright.config.ts uses — see that script's own
+      # primary job's tests/playwright.config.ts uses — see that script's own
       # comment for why a root-served copy can't stand in for this.
       - name: Smoke tests against the sub-path shape
-        run: npx playwright test --config=playwright.subpath.config.ts
+        run: npx playwright test --config=tests/playwright.subpath.config.ts

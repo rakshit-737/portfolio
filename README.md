@@ -116,15 +116,15 @@ After a deploy, run `npm run check:headers -- https://rakshit-737.vercel.app`, o
   - `readme/`: this file's images.
   - Briefs, the résumé diff and the design notes.
 - `AGENTS.md`: the working rules every change follows.
-- `DESIGN.md`: the authority on the visual system.
-- `PRODUCT.md`: who the site is for and what it may claim.
+- `docs/DESIGN.md`: the authority on the visual system.
+- `docs/PRODUCT.md`: who the site is for and what it may claim.
 - `.impeccable/design.json`: the design-tool state those documents came from.
 
 The working method is written down, not remembered. [`docs/design-notes.md`](docs/design-notes.md) is the narrative of how the design got here.
 
 ## Credits
 
-- **Paintings:** eight public-domain works from Wikimedia Commons. Each is credited on its plate, and the full table is in [`DESIGN.md`](DESIGN.md) and [`src/lib/art.ts`](src/lib/art.ts).
+- **Paintings:** eight public-domain works from Wikimedia Commons. Each is credited on its plate, and the full table is in [`docs/DESIGN.md`](docs/DESIGN.md) and [`src/lib/art.ts`](src/lib/art.ts).
 - **Fonts:** Newsreader, Manrope, Chivo and Chivo Mono, self-hosted with `next/font`, under the SIL Open Font License.
 - **Interaction references:** the CollectUI set credited commit by commit, collected in [`docs/collectui-improvisation-prompt.md`](docs/collectui-improvisation-prompt.md).
 
@@ -140,7 +140,7 @@ presents:
   `public/favicon.ico`) are © 2026 Rakshit Rameshbabu, all rights reserved,
   and not licensed for reuse;
 - the eight paintings in `public/art/` are public domain, sourced from
-  Wikimedia Commons and credited on every plate and in `DESIGN.md`;
+  Wikimedia Commons and credited on every plate and in `docs/DESIGN.md`;
 - the fonts are under the SIL Open Font License.
 
 ## Known open items

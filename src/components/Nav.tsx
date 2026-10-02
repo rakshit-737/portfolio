@@ -165,7 +165,7 @@ export default function Nav() {
     >
       <nav
         aria-label="Main"
-        className="mx-auto flex h-14 max-w-[110rem] items-center justify-between gap-6 px-5 sm:px-8"
+        className="mx-auto flex h-14 max-w-[110rem] items-center justify-between gap-4 px-5 lg:gap-6 sm:px-8"
       >
         <div className="flex shrink-0 items-center gap-3">
           <a
@@ -371,7 +371,7 @@ export default function Nav() {
           this component — and adds no second observer and no
           scroll-driven animation. Fixed site chrome, like the header
           itself: the Not-Pinned Rule governs an act's own content column,
-          not the chrome the page scrolls under (DESIGN.md says so
+          not the chrome the page scrolls under (docs/DESIGN.md says so
           explicitly now). It is a sibling of the header, not a second
           `nav` inside it. From `lg` up, where the section links are still
           in the menu and this is the only visible reading of position

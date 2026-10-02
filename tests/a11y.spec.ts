@@ -270,7 +270,7 @@ test("prefers-contrast: no-preference keeps the ordinary gradient scrim", async 
  *  back-to-back with nothing between them (the `count` assertion below
  *  guards the "selector itself broke" case; a manual read of a failing
  *  diff would show the gap). None of this site's interactive controls are
- *  hover-gated (DESIGN.md's Lamp-Dramatizes-Never-Gates Rule) — verified
+ *  hover-gated (docs/DESIGN.md's Lamp-Dramatizes-Never-Gates Rule) — verified
  *  directly in the "no pointer hover at all" test in section 4 below. */
 const TAB_STOP_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';

@@ -14,7 +14,8 @@ import { defineConfig } from "@playwright/test";
  * meta policy would silently ignore frame-ancestors.
  */
 export default defineConfig({
-  testDir: "./tests",
+  testDir: ".",
+  outputDir: "../test-results",
   testMatch: ["smoke.spec.ts", "lamplight.spec.ts", "sound.spec.ts", "csp.spec.ts"],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -25,6 +26,7 @@ export default defineConfig({
   },
   webServer: {
     command: "node scripts/serve-with-headers.mjs",
+    cwd: "..",
     url: "http://localhost:4577/",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
