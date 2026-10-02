@@ -11,21 +11,12 @@ import {
 import {
   ArrowDown,
   ArrowUp,
-  ArrowUpRight,
   CornerDownLeft,
   Search,
 } from "lucide-react";
 import {
-  acts,
-  caseSections,
   experience,
-  heroStats,
-  caseStudies,
-  featuredProjects,
-  links,
-  moreProjects,
   navSections,
-  soundscape,
 } from "@/content";
 import { withBase } from "@/lib/base";
 import {
@@ -38,31 +29,16 @@ import {
   setReducedEffects,
   subscribeFx,
 } from "@/lib/fx";
-import {
-  getSoundStatus,
-  isSoundEnabled,
-  playUi,
-  setSoundEnabled,
-  subscribeSound,
-} from "@/lib/sound";
+import { playUi } from "@/lib/sound";
 
 /** Nav (or anything else) can open the palette by dispatching this event. */
 export const OPEN_PALETTE_EVENT = "evidence-index:open";
 
-const RECENTS_KEY = "evidence-index:recents";
-const RECENTS_MAX = 4;
-
 interface Command {
   id: string;
   group:
-    | "recent"
     | "instrument"
-    | "sections"
-    | "metrics"
-    | "case-files"
-    | "archive"
-    | "repositories"
-    | "actions";
+    | "sections";
   /** A secret: never listed, only matched when typed exactly. */
   secret?: string;
   label: string;
@@ -99,59 +75,10 @@ function fuzzyScore(query: string, target: string): number | null {
   return score;
 }
 
-type CopyOutcome = "idle" | "copied" | "failed";
-
-/**
- * Success is only ever reported from the resolved path of a real
- * clipboard write — the rule CopyEmailButton.tsx already holds. An
- * absent clipboard (insecure context) or a refused write reports
- * failure instead, so a "Copied" line can never outrun the clipboard.
- */
-function copyText(text: string, onOk: () => void, onFail: () => void) {
-  if (!navigator.clipboard) {
-    onFail();
-    return;
-  }
-  navigator.clipboard.writeText(text).then(onOk, onFail);
-}
-
-function readRecents(): string[] {
-  try {
-    const raw = window.localStorage.getItem(RECENTS_KEY);
-    const arr: unknown = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-function pushRecent(id: string) {
-  try {
-    const next = [id, ...readRecents().filter((r) => r !== id)].slice(
-      0,
-      RECENTS_MAX,
-    );
-    window.localStorage.setItem(RECENTS_KEY, JSON.stringify(next));
-  } catch {
-    // localStorage unavailable — recents simply don't persist.
-  }
-}
-
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
-  // A copy command's outcome, narrated in place of its own row (run()
-  // deliberately keeps the palette open for these): "copied" is set
-  // only from the resolved path of a real clipboard write (copyText
-  // above), and "failed" makes the row show the value itself — never a
-  // success the clipboard didn't confirm.
-  const [emailCopy, setEmailCopy] = useState<CopyOutcome>("idle");
-  const [urlCopy, setUrlCopy] = useState<CopyOutcome>("idle");
-  // The section link resolved at copy time — shown on the row when the
-  // clipboard couldn't take it.
-  const [sectionUrl, setSectionUrl] = useState("");
-  const [recents, setRecents] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   // The list's one glide marker (CollectUI brief, item 6) — an extra
@@ -169,14 +96,6 @@ export default function CommandPalette() {
   // Whether the current mouse press began on the scrim itself — see the
   // overlay's onMouseDown/onClick pair below.
   const scrimPressRef = useRef(false);
-  // The soundscape action's label names the transition ("turn off"), so
-  // the commands memo below must recompute when the engine's status
-  // changes — this subscription is that dependency.
-  const soundStatus = useSyncExternalStore(
-    subscribeSound,
-    getSoundStatus,
-    () => "off" as const,
-  );
   // The instrument layer's switches (src/lib/fx.ts) — a snapshot string so
   // the command labels follow the state they toggle.
   const fxState = useSyncExternalStore(subscribeFx, fxSnapshot, () => "off||");
@@ -188,8 +107,6 @@ export default function CommandPalette() {
     setOpen(false);
     setQuery("");
     setSelected(0);
-    setEmailCopy("idle");
-    setUrlCopy("idle");
     restoreFocusRef.current?.focus();
     if (!silent)
       playUi("tap"); // the panel closing — wood, one of the four sanctioned sounds
@@ -199,7 +116,6 @@ export default function CommandPalette() {
   // here — one place for the focus bookkeeping and the one wood tap.
   const openNow = useCallback(() => {
     restoreFocusRef.current = document.activeElement as HTMLElement;
-    setRecents(readRecents());
     setOpen(true);
     playUi("tap");
   }, []);
@@ -224,76 +140,16 @@ export default function CommandPalette() {
       });
       history.replaceState(null, "", `#${id}`);
     };
-    const external = (url: string) => () => {
-      window.open(url, "_blank", "noopener,noreferrer");
-    };
-    // A case-file section is a different route, not an in-page anchor —
-    // navigate the tab itself rather than opening a second one.
+    // Navigate the tab itself rather than opening a second one.
     const navigate = (url: string) => () => {
       window.location.href = url;
     };
-
-    const repos = [
-      ...featuredProjects
-        .filter((p) => p.repoUrl)
-        .map((p) => ({ name: p.name.split("—")[0].trim(), url: p.repoUrl! })),
-      ...moreProjects
-        .filter((p) => p.repoUrl)
-        .map((p) => ({ name: p.name.split("—")[0].trim(), url: p.repoUrl! })),
-    ];
 
     const sections = [
       { id: "top", label: "Hero / Top of page" },
       ...navSections.map((s) => ({ id: s.id, label: s.label })),
     ];
 
-    const caseFileSections = featuredProjects
-      .filter((p) => caseStudies[p.id])
-      .flatMap((p) => {
-        const name = p.name.split("—")[0].trim();
-        // "act 03 — warden" → "act 03"; the act's own number, not a new
-        // fact. The stack's first entry is the project's own `tech[0]`.
-        const chips = [acts[p.id].label.split("—")[0].trim(), p.tech[0]].filter(
-          Boolean,
-        );
-        return caseSections.map((sec) => ({
-          id: `case-${p.id}-${sec.slug}`,
-          group: "case-files" as const,
-          label: `${name} — ${sec.title}`,
-          hint: `#${sec.slug}`,
-          chips,
-          keywords: `case file study ${p.id} ${sec.title}`,
-          run: navigate(withBase(`/projects/${p.id}/#${sec.slug}`)),
-        }));
-      });
-
-    // Scroll a record into view and hold its reading lit for a moment.
-    const seek = (find: () => HTMLElement | null) => () => {
-      const el = find();
-      if (!el) return;
-      el.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "auto"
-          : "smooth",
-        block: "center",
-      });
-      el.classList.add("is-sought");
-      window.setTimeout(() => el.classList.remove("is-sought"), 2600);
-    };
-    const findIgnite = (actId: string, value: string) => () =>
-      Array.from(document.querySelectorAll<HTMLElement>(`#${actId} .ignite`)).find(
-        (e) => e.textContent?.replace(/\s+/g, " ").trim() === value,
-      ) ?? null;
-    const metrics = [
-      ...heroStats.map((n) => ({ act: "hero", owner: "Record", n })),
-      ...featuredProjects.flatMap((p) =>
-        (p.headlineNumbers ?? []).map((n) => ({
-          act: p.id,
-          owner: p.name.split("—")[0].trim(),
-          n,
-        })),
-      ),
-    ];
     const tier = fxState.split("|")[0];
     const instrument: Command[] = [
       ...(tier !== "off"
@@ -377,53 +233,10 @@ export default function CommandPalette() {
         run: () => window.dispatchEvent(new Event("lamplight:explode")),
       },
     ];
-    const onIndex = typeof document !== "undefined" && !!document.getElementById("hero");
 
     return [
       ...instrument,
       ...secrets,
-      ...(onIndex
-        ? metrics.map(({ act, owner, n }) => ({
-            id: `metric-${act}-${n.value}`,
-            group: "metrics" as const,
-            label: `${n.value} — ${n.label}`,
-            hint: owner,
-            keywords: `${experience.palette.metric} measurement number ${owner}`,
-            run: seek(findIgnite(act, n.value)),
-          }))
-        : []),
-      ...(onIndex
-        ? [
-            ...moreProjects.map((p) => ({
-              id: `archive-${p.name}`,
-              group: "archive" as const,
-              label: p.name.split("—")[0].trim(),
-              hint: p.timeframe,
-              keywords: `${experience.palette.archive} project ${p.tech.join(" ")}`,
-              run: seek(() =>
-                Array.from(document.querySelectorAll<HTMLElement>("#ledger h4")).find(
-                  (h) => h.textContent === p.name,
-                ) ?? null,
-              ),
-            })),
-            {
-              id: "archive-skills",
-              group: "archive" as const,
-              label: experience.palette.skills,
-              hint: experience.palette.ledger,
-              keywords: "skills stack languages constellation",
-              run: seek(() => document.getElementById("ledger-skills-heading")),
-            },
-            {
-              id: "archive-certifications",
-              group: "archive" as const,
-              label: experience.palette.certifications,
-              hint: experience.palette.ledger,
-              keywords: "certificates credentials azure",
-              run: seek(() => document.getElementById("ledger-certifications-heading")),
-            },
-          ]
-        : []),
       ...sections.map((s) => ({
         id: `section-${s.id}`,
         group: "sections" as const,
@@ -431,107 +244,8 @@ export default function CommandPalette() {
         hint: `#${s.id}`,
         run: jump(s.id),
       })),
-      ...caseFileSections,
-      ...repos.map((r) => ({
-        id: `repo-${r.name}`,
-        group: "repositories" as const,
-        label: r.name,
-        hint: "open repo",
-        keywords: "github source code",
-        run: external(r.url),
-      })),
-      {
-        id: "copy-email",
-        group: "actions" as const,
-        label: `Copy email — ${links.email}`,
-        keywords: "contact mail",
-        run: () => {
-          copyText(
-            links.email,
-            () => {
-              playUi("seal"); // the copy landing — wax, on success only
-              setEmailCopy("copied");
-            },
-            () => setEmailCopy("failed"),
-          );
-        },
-      },
-      {
-        id: "copy-url",
-        group: "actions" as const,
-        label: "Copy link to current section",
-        keywords: "share url link location",
-        run: () => {
-          // Resolved at copy time: location.hash only records the last
-          // explicit jump — free scrolling never touches it. The band
-          // is Nav.tsx's scroll-spy geometry (rootMargin -30%/-60%:
-          // the strip from 30% to 40% of the viewport), so the copied
-          // link and the rail's active section agree. The deepest act
-          // whose top has reached the band's lower edge wins — for the
-          // contiguous acts that is the one spanning the band, and it
-          // still resolves at the footer, where the last act's bottom
-          // has left the band upward. A page with none of the observed
-          // sections (a case file) copies its plain pathname link, no
-          // hash — location.href could still carry a stale arrival
-          // anchor the reader has long since scrolled away from.
-          const bandBottom = window.innerHeight * 0.4;
-          let current: string | null = null;
-          for (const id of ["hero", ...navSections.map((s) => s.id)]) {
-            const el = document.getElementById(id);
-            if (el && el.getBoundingClientRect().top <= bandBottom)
-              current = id;
-          }
-          const url = current
-            ? `${location.origin}${location.pathname}#${current}`
-            : `${location.origin}${location.pathname}`;
-          setSectionUrl(url);
-          copyText(
-            url,
-            () => setUrlCopy("copied"),
-            () => setUrlCopy("failed"),
-          );
-        },
-      },
-      {
-        id: "resume",
-        group: "actions" as const,
-        label: "Download résumé",
-        keywords: "cv pdf resume",
-        run: external(withBase(links.resume)),
-      },
-      {
-        id: "github",
-        group: "actions" as const,
-        label: "Open GitHub profile",
-        run: external(links.github.url),
-      },
-      {
-        id: "linkedin",
-        group: "actions" as const,
-        label: "Open LinkedIn",
-        run: external(links.linkedin.url),
-      },
-      // The night archive's switch, reachable from the keyboard surface
-      // too. Hidden entirely when the sound layer is absent (no
-      // AudioContext) — same rule as SoundToggle.
-      ...(soundStatus !== "unavailable"
-        ? [
-            {
-              id: "soundscape",
-              group: "actions" as const,
-              label: `${soundscape.label}: ${soundscape.paletteVerb} ${
-                isSoundEnabled() ? soundscape.off : soundscape.on
-              }`,
-              keywords: "sound audio mute ambient quiet hearth music",
-              run: () => {
-                setSoundEnabled(!isSoundEnabled());
-                playUi("click");
-              },
-            },
-          ]
-        : []),
     ];
-  }, [soundStatus, fxState]);
+  }, [fxState]);
 
   const filtered = useMemo(() => {
     const q = query.trim();
@@ -539,15 +253,7 @@ export default function CommandPalette() {
     const secret = commands.filter((c) => c.secret && c.secret === q.toLowerCase());
     if (secret.length) return secret;
     const commandsPublic = commands.filter((c) => !c.secret);
-    if (!q) {
-      // Empty query: recent commands first (as their own group), then all.
-      const byId = new Map(commandsPublic.map((c) => [c.id, c]));
-      const recentCmds = recents
-        .map((id) => byId.get(id))
-        .filter((c): c is Command => c !== undefined)
-        .map((c) => ({ ...c, group: "recent" as const, id: `recent-${c.id}` }));
-      return [...recentCmds, ...commandsPublic];
-    }
+    if (!q) return commandsPublic;
     return commandsPublic
       .map((c) => ({
         c,
@@ -556,7 +262,7 @@ export default function CommandPalette() {
       .filter((x): x is { c: Command; score: number } => x.score !== null)
       .sort((a, b) => a.score - b.score)
       .map((x) => x.c);
-  }, [commands, query, recents]);
+  }, [commands, query]);
 
   // Global shortcut: Ctrl/⌘+K toggles or '/' opens; external open event.
   useEffect(() => {
@@ -669,12 +375,8 @@ export default function CommandPalette() {
   if (!open) return null;
 
   const run = (c: Command) => {
-    pushRecent(c.id.replace(/^recent-/, ""));
     c.run();
-    if (!c.id.endsWith("copy-email") && !c.id.endsWith("copy-url"))
-      // The soundscape action speaks its own brass click — the close
-      // goes silent for it so one press never plays two sounds.
-      close(c.id.endsWith("soundscape"));
+    close();
   };
 
   // Dialog-level keys: work wherever focus sits inside the dialog, and
@@ -696,22 +398,6 @@ export default function CommandPalette() {
       e.preventDefault();
       run(filtered[selected]);
     }
-  };
-
-  // A copy row narrates its own outcome in place — and on failure
-  // shows the value itself (the address, the resolved link), so the
-  // reader still leaves with what the clipboard refused to take.
-  const optionText = (c: Command) => {
-    if (c.id.endsWith("copy-email")) {
-      if (emailCopy === "copied") return "Copied email to clipboard";
-      if (emailCopy === "failed")
-        return `Clipboard unavailable — ${links.email}`;
-    }
-    if (c.id.endsWith("copy-url")) {
-      if (urlCopy === "copied") return "Copied section link to clipboard";
-      if (urlCopy === "failed") return sectionUrl;
-    }
-    return c.label;
   };
 
   // Group commands preserving order for role="group" list semantics.
@@ -824,7 +510,7 @@ export default function CommandPalette() {
                     i === selected ? "bg-signal text-ground" : ""
                   }`}
                 >
-                  <span className="truncate">{optionText(c)}</span>
+                  <span className="truncate">{c.label}</span>
                   <span className="label flex shrink-0 items-center gap-1.5 normal-case">
                     {/* Metadata chips (CollectUI Phase 2, ref @ilyamiskov):
                         hairline `.label` chips carrying data content.ts
@@ -847,9 +533,7 @@ export default function CommandPalette() {
                       </span>
                     ) : null}
                     {c.hint}
-                    {c.group === "repositories" ? (
-                      <ArrowUpRight size={11} aria-hidden="true" />
-                    ) : i === selected ? (
+                    {i === selected ? (
                       <CornerDownLeft size={11} aria-hidden="true" />
                     ) : null}
                   </span>
@@ -858,20 +542,6 @@ export default function CommandPalette() {
             </div>
           ))}
         </div>
-
-        {/* Announce a copy's outcome — success or the fallback value —
-            to screen readers. */}
-        <span aria-live="polite" className="sr-only">
-          {emailCopy === "copied"
-            ? `Email address ${links.email} copied to clipboard`
-            : emailCopy === "failed"
-            ? `Clipboard unavailable — email address is ${links.email}`
-            : urlCopy === "copied"
-            ? "Link to current section copied to clipboard"
-            : urlCopy === "failed"
-            ? `Clipboard unavailable — the section link is ${sectionUrl}`
-            : ""}
-        </span>
 
         <div className="label flex items-center gap-4 border-t border-rule px-4 py-2.5">
           <span className="flex items-center gap-1.5">
