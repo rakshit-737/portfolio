@@ -10,7 +10,7 @@ metrics.
   <a href="https://rakshit-737.vercel.app"><img src="docs/readme/hero-390.webp" width="22%" alt="The same first act on a phone"></a>
 </p>
 
-**Live:** https://rakshit-737.vercel.app · **mirror:** https://rakshit-737.github.io/portfolio/
+**Live:** rakshit-737.vercel.app · **mirror:** rakshit-737.is-a.dev (or) rakshit-737.github.io/portfolio
 
 [![CI quality gate](https://github.com/rakshit-737/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/rakshit-737/portfolio/actions/workflows/ci.yml)
 [![Deploy to GitHub Pages](https://github.com/rakshit-737/portfolio/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/rakshit-737/portfolio/actions/workflows/deploy-pages.yml)
