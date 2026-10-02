@@ -347,7 +347,7 @@ export default function CommandPalette() {
       marker.getBoundingClientRect();
       marker.setAttribute("data-on", "");
     }
-  }, [selected, filtered]);
+  }, [open, selected, filtered]);
 
   // The list's clipped edges fade (CollectUI Phase 2, ref @pacovitiello
   // — "fade effect on scroll overflow w/ CSS masking"). The mask is

@@ -36,7 +36,7 @@ shots:
   landing page's media weight over its ceiling. If a shot doesn't fit
   under budget, the fix is dropping that act's motion clip before
   shrinking or dropping the exhibit — see the Museum-Plate Rule in
-  `DESIGN.md`.
+  `docs/DESIGN.md`.
 
 ## Filenames
 

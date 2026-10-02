@@ -2,7 +2,7 @@
 //
 // `vercel.json` must carry exactly these (scripts/check-vercel-json.mjs
 // fails CI otherwise, and regenerates it with --write); the CSP test run
-// (playwright.csp.config.ts, via scripts/serve-with-headers.mjs) serves
+// (tests/playwright.csp.config.ts, via scripts/serve-with-headers.mjs) serves
 // ./out with the committed vercel.json applied; and
 // scripts/check-headers.mjs asserts them against a live deploy.
 //

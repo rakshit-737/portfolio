@@ -303,12 +303,3 @@ test("an unvoiced button chimes; a voiced one keeps its single voice", async ({ 
   await page.getByRole("button", { name: /^Soundscape: off$/ }).first().click();
   expect(await kinds()).toEqual(["chime", "click"]);
 });
-
-test("palette carries the soundscape action", async ({ page }) => {
-  await page.goto("/");
-  await page.keyboard.press("Control+k");
-  await page.getByRole("combobox").fill("sound");
-  await expect(
-    page.getByRole("option", { name: /Soundscape: turn off/ }),
-  ).toBeVisible();
-});

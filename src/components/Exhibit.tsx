@@ -17,7 +17,7 @@ import type { ReactNode } from "react";
  * stack. Never insert this into `Plate.tsx`'s own three-layer stack
  * (`.plate-dark` → `.plate-lit` → `.plate::after`) — an exhibit must stay
  * ambiently visible on first paint and never masked by the lamp: the lamp
- * dramatizes the record, it does not gate it (see DESIGN.md's
+ * dramatizes the record, it does not gate it (see docs/DESIGN.md's
  * Lamp-Dramatizes-Never-Gates Rule).
  */
 export default function Exhibit({

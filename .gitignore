@@ -44,13 +44,6 @@ next-env.d.ts
 .opencode
 .claude/
 
-# design-tool scratch (decision-page logs, live-mode session state).
-# design.json is the DESIGN.md sidecar and belongs in the repo.
-# (must ignore the contents, not the directory — git cannot re-include a
-# file inside an excluded directory)
-.impeccable/*
-!.impeccable/design.json
-
 # playwright artifacts
 /test-results/
 /playwright-report/
@@ -60,8 +53,11 @@ next-env.d.ts
 /scroll-trace.log
 
 # scripts/serve-subpath.mjs's local mount point for the GitHub Pages
-# sub-path smoke run (playwright.subpath.config.ts) — rebuilt every run
+# sub-path smoke run (tests/playwright.subpath.config.ts) — rebuilt every run
 /.subpath-root/
 
 # subagent-driven-development scratch (ledger, briefs, review packages)
 /.superpowers/
+
+# design-tool scratch
+.impeccable/

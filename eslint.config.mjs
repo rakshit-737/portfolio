@@ -23,7 +23,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     // scripts/serve-subpath.mjs mounts a copy of out/ here for the GitHub
-    // Pages sub-path smoke run (playwright.subpath.config.ts) and leaves it
+    // Pages sub-path smoke run (tests/playwright.subpath.config.ts) and leaves it
     // in place — gitignored, but ESLint walked its minified bundles and
     // reported ~2000 problems after any local sub-path run.
     ".subpath-root/**",

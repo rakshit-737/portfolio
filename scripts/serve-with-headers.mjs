@@ -3,7 +3,7 @@
 // and the plain `serve out` the main Playwright config uses send none of
 // them, so without this nothing would ever prove the CSP leaves hydration,
 // the lamp, the cursor and the sound engine working. Used only by
-// playwright.csp.config.ts's webServer.
+// tests/playwright.csp.config.ts's webServer.
 //
 // A deliberately small static server (node:http, no dependency): the
 // export is plain files, `trailingSlash: true` means every route is a

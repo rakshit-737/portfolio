@@ -417,7 +417,7 @@ export default async function Home() {
             {/* Positioning line — a plain-English sentence a stranger can
                 parse before reaching a single number. Not `.prose-field`:
                 the hero stays in the site's mono default voice (the
-                Monospace Default Rule, DESIGN.md) — the reading-passage
+                Monospace Default Rule, docs/DESIGN.md) — the reading-passage
                 face is reserved for the acts that actually carry body
                 copy, an invariant `tests/lamplight.spec.ts` locks down
                 per act. */}
@@ -428,7 +428,7 @@ export default async function Home() {
             {/* Mobile: the strip collapses to one link at the Actions
                 receipt, so the 390px hero still fits without a second
                 markup branch for the tokens themselves. Ember-on-hover
-                here was a D1 (final fix wave) violation of DESIGN.md's
+                here was a D1 (final fix wave) violation of docs/DESIGN.md's
                 Ember-Is-Rare rule — the Bracket seal is the one sanctioned
                 control exception, not a plain text link — so this uses
                 the site's standard link treatment instead, the same one

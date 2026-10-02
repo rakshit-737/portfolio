@@ -5,7 +5,8 @@ import { defineConfig } from "@playwright/test";
  * both deploys serve. `npm run build` must run first.
  */
 export default defineConfig({
-  testDir: "./tests",
+  testDir: ".",
+  outputDir: "../test-results",
   // csp.spec.ts asserts production response headers, which only the
   // headers-applying server in playwright.csp.config.ts sends.
   testIgnore: "csp.spec.ts",
@@ -23,6 +24,7 @@ export default defineConfig({
     // this always runs the exact pinned version rather than `npx` silently
     // fetching whatever "serve" happens to publish next.
     command: "serve out -l 4573",
+    cwd: "..",
     url: "http://localhost:4573",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

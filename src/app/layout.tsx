@@ -93,7 +93,7 @@ const CONTRACT = `
   acts, none scroll-jacked; only the ledger's plate wrapper is sticky, inside
   an act taller than the viewport. case files stay dense and unhurried.
   FINISH: unreviewed and undocumented is unfinished; this build ends with the
-  finish review, the verdict, and DESIGN.md
+  finish review, the verdict, and docs/DESIGN.md
 `;
 
 export const metadata: Metadata = {
