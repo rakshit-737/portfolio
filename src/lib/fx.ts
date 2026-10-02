@@ -53,18 +53,16 @@ export function getTier(): FxTier {
 /** The visitor's own "Reduce effects" switch. Never raises the tier past
  *  what the device earned (reduced motion stays off). */
 export function setReducedEffects(on: boolean) {
-  store(FX_KEY, on ? "off" : null);
+  // Per-visit only: never persisted, so every load starts at the device's tier.
+  store(FX_KEY, null);
   const auto = (root().getAttribute("data-fx-auto") as FxTier) || "off";
   root().setAttribute("data-fx", on ? "off" : auto);
   if (on) setDeep(false);
   emit();
 }
 export function isReducedByUser(): boolean {
-  try {
-    return localStorage.getItem(FX_KEY) === "off";
-  } catch {
-    return false;
-  }
+  if (typeof document === "undefined") return false;
+  return getTier() === "off" && root().getAttribute("data-fx-auto") !== "off";
 }
 
 export function isDeep(): boolean {
@@ -122,7 +120,8 @@ var low=(n.deviceMemory&&n.deviceMemory<=4)||(n.hardwareConcurrency&&n.hardwareC
 var slow=c.saveData||/2g|3g/.test(c.effectiveType||'');
 var auto=(rm||fc)?'off':(slow||(m('(pointer: coarse)')&&low))?'lite':'full';
 d.setAttribute('data-fx-auto',auto);
-var fx=g('localStorage','${FX_KEY}')==='off'?'off':auto;
+try{w.localStorage.removeItem('${FX_KEY}')}catch(e){}
+var fx=auto;
 d.setAttribute('data-fx',fx);
 if(fx!=='off'&&g('localStorage','${DEEP_KEY}')==='on')d.setAttribute('data-deep','');
 if(g('localStorage','${LIGHT_KEY}')==='open')d.setAttribute('data-light','open');
