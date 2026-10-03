@@ -376,14 +376,25 @@ test("typing light and holding L in the prompt never snuffs the lamp", async ({ 
 test("axe: no violations with the terminal open and help, projects and contact on screen", async ({
   page,
 }) => {
-  // Output on screen is the point: the links must clear the 24px target
-  // floor and the live region and rows must be valid markup, none of which
-  // an empty terminal exercises.
+  // Output on screen is the point: the live region and the rows must be
+  // valid markup, and the links must exist to be measured — none of which an
+  // empty terminal exercises.
   await openTerminal(page);
   for (const line of ["help", "projects", "contact"]) await runLine(page, line);
   await expect(output(page)).toContainText(contact.headline);
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
+
+  // axe ships its target-size rule disabled, so the WCAG 2.2 24px floor for
+  // the output links is asserted directly rather than assumed from the scan.
+  const links = output(page).getByRole("link");
+  const count = await links.count();
+  expect(count).toBeGreaterThan(0);
+  for (let i = 0; i < count; i++) {
+    const box = await links.nth(i).boundingBox();
+    expect(box?.height ?? 0, `link ${i} is shorter than 24px`).toBeGreaterThanOrEqual(24);
+    expect(box?.width ?? 0, `link ${i} is narrower than 24px`).toBeGreaterThanOrEqual(24);
+  }
 });
 
 test("on a phone the palette reaches the terminal and the panel never scrolls sideways", async ({
