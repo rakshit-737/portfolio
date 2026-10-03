@@ -28,7 +28,7 @@ best-practices 100 / 100 · SEO 100 / 100.
 - **One lamp.** A single light follows scroll and pointer and reveals the painting; a measured number turns ember only when the light actually reaches it.
 - **The night archive.** A synthesized candlelit soundscape, on by default after your first interaction, with one visible switch. There is no audio file in the repo.
 - **The key and the lock.** On a fine pointer the cursor is a medieval key, and anything clickable shows the padlock it opens.
-- **⌘K.** A command palette jumps to any section, opens any repo, or copies the email.
+- **⌘K.** A command palette jumps to any section and holds the lighting and effects switches.
 
 Every claim on the page carries its proof: a date, a status, the repo, and live CI data fetched at build time.
 
