@@ -54,7 +54,10 @@ export default function Terminal() {
   // palette's open event) funnels through here — one place for the focus
   // bookkeeping and the one wood tap.
   const openNow = useCallback(() => {
-    if (openRef.current) return;
+    // A native <dialog> opened with showModal() (the certificate lightbox)
+    // sits in the top layer and makes the page behind it inert — the
+    // terminal must not open underneath it.
+    if (openRef.current || document.querySelector("dialog[open]")) return;
     openRef.current = true;
     restoreFocusRef.current = document.activeElement as HTMLElement;
     setOpen(true);
