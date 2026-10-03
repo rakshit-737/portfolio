@@ -189,6 +189,15 @@ test.describe("complete (pure)", () => {
     expect(complete("goto a")).toBe("goto about");
   });
 
+  test("completes an argument exactly as run resolves it — never an ambiguous prefix", () => {
+    // "p" is plantpal (id) and Proactive Feasibility Scheduler (name): run
+    // says not found, so Tab must not pick one.
+    expect(complete("open p")).toBe("open p");
+    expect(run("open p").effect).toBeUndefined();
+    // "pr" is the scheduler's name alone, and run opens it.
+    expect(complete("open pr")).toBe("open scheduler");
+  });
+
   test("leaves other commands' arguments and empty arguments alone", () => {
     expect(complete("open ")).toBe("open ");
     expect(complete("help me")).toBe("help me");

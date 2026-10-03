@@ -224,15 +224,17 @@ export function complete(input: string): string {
     if (hits.length !== 1) return input;
     return hits[0].arg ? `${hits[0].name} ` : hits[0].name;
   }
+  // The argument resolves exactly as `run` resolves it, so Tab never
+  // completes a prefix that Enter would then call ambiguous.
   const cmd = line.slice(0, gap).toLowerCase();
-  const arg = norm(line.slice(gap));
-  const pool =
-    cmd === "open"
-      ? openable.map((p) => p.id)
-      : cmd === "goto"
-        ? SECTIONS.map((s) => s.id)
-        : null;
-  if (!pool || !arg) return input;
-  const hits = pool.filter((id) => id.startsWith(arg));
-  return hits.length === 1 ? `${cmd} ${hits[0]}` : input;
+  const arg = line.slice(gap).trim();
+  if (cmd === "open") {
+    const p = resolve(openable, arg, (x) => [x.id, x.name]);
+    return p ? `open ${p.id}` : input;
+  }
+  if (cmd === "goto") {
+    const s = resolve(SECTIONS, arg, (x) => [x.id, x.label]);
+    return s ? `goto ${s.id}` : input;
+  }
+  return input;
 }
