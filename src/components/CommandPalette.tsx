@@ -50,6 +50,9 @@ interface Command {
    *  announced option stays the label and its hint. */
   chips?: string[];
   keywords?: string;
+  /** The command has a sound of its own (the terminal taps wood on open),
+   *  so the palette closes without its tap: one press, one sound. */
+  silent?: boolean;
   run: () => void;
 }
 
@@ -362,7 +365,7 @@ export default function CommandPalette() {
 
   const run = (c: Command) => {
     c.run();
-    close();
+    close(c.silent);
   };
 
   // Dialog-level keys: work wherever focus sits inside the dialog, and
