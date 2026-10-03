@@ -1420,3 +1420,55 @@ export const contactForm = {
   mailFallback: "Opens your mail app with this message addressed to me.",
   subject: "Portfolio contact",
 } as const;
+
+/**
+ * The terminal's closed-state words (docs/superpowers/specs/
+ * 2026-10-03-the-terminal-design.md): the rail button, the palette action
+ * and the dialog's name. Split from `terminal` below so the eager bundle —
+ * which needs only these — does not carry the rest of the copy (an object
+ * literal is not tree-shaken property by property).
+ */
+export const terminalEntry = {
+  label: "Terminal",
+  open: "Open the terminal",
+  /** Ctrl and the backtick key, written the way the ctrl K hint is. */
+  hint: "ctrl `",
+} as const;
+
+/**
+ * The terminal's own words — interface language only; no claim about the
+ * owner lives here. Command output is composed from the records above by
+ * `src/lib/terminal.ts`, which also fills the `{name}` and `{ids}` slots.
+ */
+export const terminal = {
+  prompt: ">",
+  input: "Terminal command",
+  output: "Terminal output",
+  welcome: "help lists the commands.",
+  helpHeading: "Commands",
+  commands: {
+    help: "list the commands",
+    about: "read the about section",
+    projects: "list the projects",
+    open: "open a project's case file",
+    skills: "list the skills by group",
+    contact: "email, GitHub, LinkedIn",
+    resume: "download the résumé",
+    goto: "jump to a section of the page",
+    palette: "open the search palette",
+    clear: "clear the screen",
+    exit: "close the terminal",
+  },
+  usage: { open: "open <project>", goto: "goto <section>" },
+  projectsFeatured: "Case files — open <project> reads one",
+  projectsMore: "Also on GitHub",
+  opening: "opening {name}…",
+  resume: "résumé download started — if nothing happens, use the link:",
+  resumeLink: "Résumé",
+  unknown: "command not found: {name} — type help",
+  openUsage: "open: name a project — try projects",
+  openMissing: "open: no project named {name} — try projects",
+  gotoUsage: "goto: name a section — {ids}",
+  gotoMissing: "goto: no section named {name} — {ids}",
+  footer: { complete: "tab complete", history: "history", close: "esc close" },
+} as const;
