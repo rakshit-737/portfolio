@@ -1393,6 +1393,8 @@ export const experience = {
     archive: "Archive",
     ledger: "Ledger",
     top: "Hero / Top of page",
+    placeholder: "Query the field…",
+    searchLabel: "Search the field",
     certifications: "View certifications",
     skills: "View skills",
     complete: "Archive complete — every act visited",
