@@ -166,8 +166,10 @@ export default function TerminalPanel({
   };
 
   const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Enter that confirms an IME candidate is not a command.
-    if (e.nativeEvent.isComposing) return;
+    // Enter that confirms an IME candidate is not a command. Safari fires
+    // compositionend before that keydown, so `isComposing` is already false
+    // there; its keyCode 229 still says the IME owns the key.
+    if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
     const history = historyRef.current;
     if (e.key === "Enter") {
       e.preventDefault();
@@ -255,7 +257,12 @@ export default function TerminalPanel({
         aria-modal="true"
         aria-label={terminalEntry.label}
         data-terminal
-        className="w-full max-w-2xl border border-signal bg-ground"
+        // Focusable, so a press on dead space (the header, the footer, the
+        // padding, a drag-select that skips the prompt) lands focus on the
+        // dialog instead of the body — and Esc, Tab and Ctrl+K keep flowing
+        // through onKeyDown from wherever the visitor clicked.
+        tabIndex={-1}
+        className="w-full max-w-2xl border border-signal bg-ground focus:outline-none"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onDialogKeyDown}
       >
