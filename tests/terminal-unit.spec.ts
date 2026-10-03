@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   about,
+  caseStudies,
   contact,
   featuredProjects,
   links,
@@ -75,6 +76,13 @@ test.describe("run (pure)", () => {
       kind: "open",
       href: withBase("/projects/scheduler/"),
     });
+  });
+
+  test("every featured project has a case file, so open can reach all of them", () => {
+    // terminal.ts lists featuredProjects as openable without importing
+    // caseStudies (it would pull that prose into the eager bundle); this is
+    // the guard that keeps the shortcut honest.
+    for (const p of featuredProjects) expect(caseStudies[p.id]).toBeDefined();
   });
 
   test("open reports usage, a missing project, and an ambiguous prefix as not found", () => {

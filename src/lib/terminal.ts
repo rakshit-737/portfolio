@@ -8,7 +8,6 @@
  */
 import {
   about,
-  caseStudies,
   contact,
   featuredProjects,
   links,
@@ -66,9 +65,12 @@ const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 const text = (t: string): Line => ({ kind: "text", text: t });
 
-/** Only featured projects with a case file can be opened — the same rule
- *  the index and the case-file routes use. */
-const openable = featuredProjects.filter((p) => caseStudies[p.id]);
+/** The featured projects `open` can reach: each has a case file
+ *  (tests/terminal-unit.spec.ts pins that). `caseStudies` is deliberately not
+ *  imported to check it here — content.ts is one shared module, so a static
+ *  import from this lazy chunk keeps its ~9 kB gzipped of prose in the eager
+ *  bundle of every page. */
+const openable = featuredProjects;
 
 /** `top` plus the rail's sections — what the palette's jump list offers. */
 const SECTIONS: { id: string; label: string }[] = [
