@@ -1392,6 +1392,7 @@ export const experience = {
     metric: "Jump to metric",
     archive: "Archive",
     ledger: "Ledger",
+    top: "Hero / Top of page",
     certifications: "View certifications",
     skills: "View skills",
     complete: "Archive complete — every act visited",

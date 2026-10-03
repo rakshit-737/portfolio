@@ -137,7 +137,7 @@ export default function CommandPalette() {
     };
 
     const sections = [
-      { id: "top", label: "Hero / Top of page" },
+      { id: "top", label: experience.palette.top },
       ...navSections.map((s) => ({ id: s.id, label: s.label })),
     ];
 
