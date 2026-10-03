@@ -247,7 +247,7 @@ export const terminal = {
   },
   usage: { open: "open <project>", goto: "goto <section>" },
   projectsFeatured: "Case files — open <project> reads one",
-  projectsMore: "Also on GitHub",
+  projectsMore: "More projects",
   opening: "opening {name}…",
   resume: "résumé download started — if nothing happens, use the link:",
   resumeLink: "Résumé",
