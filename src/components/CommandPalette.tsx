@@ -17,6 +17,7 @@ import {
 import {
   experience,
   navSections,
+  terminalEntry,
 } from "@/content";
 import { withBase } from "@/lib/base";
 import { jumpToSection } from "@/lib/jump";
@@ -31,6 +32,7 @@ import {
   subscribeFx,
 } from "@/lib/fx";
 import { playUi } from "@/lib/sound";
+import { OPEN_TERMINAL_EVENT } from "@/lib/terminalKeys";
 
 /** Nav (or anything else) can open the palette by dispatching this event. */
 export const OPEN_PALETTE_EVENT = "evidence-index:open";
@@ -198,6 +200,22 @@ export default function CommandPalette() {
             },
           ]
         : []),
+      {
+        id: "terminal",
+        group: "instrument" as const,
+        label: terminalEntry.open,
+        hint: terminalEntry.hint,
+        keywords: "command line cli shell console prompt",
+        silent: true,
+        // Next tick: by then the palette has closed and given focus back,
+        // so the terminal's own focus-restore target is whatever was
+        // focused before either overlay.
+        run: () =>
+          window.setTimeout(
+            () => window.dispatchEvent(new Event(OPEN_TERMINAL_EVENT)),
+            0,
+          ),
+      },
     ];
     const secrets: Command[] = [
       {
