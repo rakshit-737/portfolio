@@ -122,6 +122,9 @@ test("the clock beside the name shows Chennai time and ticks", async ({ browser 
 // and the soundscape toggle's 144px then overflowed the 1280px rail by
 // 47px, which pushed the links out again, to `min-[90rem]` (1440) —
 // this sweep's 1280/1366 rows are the widths that catch exactly that.
+// The terminal's button (Nav.tsx) joins the rail from `lg` (1024), so every
+// row from there up asserts it is shown and the rail STILL fits with it;
+// the 768 row asserts it stays off a rail that has no room to spare.
 for (const width of [768, 1024, 1263, 1280, 1366, 1440]) {
   test(`at ${width}px the rail fits its content and carries the clock`, async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width, height: 700 } });
@@ -135,6 +138,12 @@ for (const width of [768, 1024, 1263, 1280, 1366, 1440]) {
       scrollWidth,
       `rail content ${scrollWidth}px overflows its ${clientWidth}px width`,
     ).toBeLessThanOrEqual(clientWidth);
+    const terminalButton = page.getByRole("button", { name: "Open the terminal (Ctrl+`)" });
+    if (width >= 1024) {
+      await expect(terminalButton, `no terminal button on the ${width}px rail`).toBeVisible();
+    } else {
+      await expect(terminalButton, `terminal button shown on the ${width}px rail`).toBeHidden();
+    }
     // A way to reach a section exists at every width: links or the menu.
     const links = await page.locator("header nav a[href='#about']:visible").count();
     const menu = await page.getByRole("button", { name: "Open menu" }).count();
