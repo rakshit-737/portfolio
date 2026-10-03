@@ -32,7 +32,7 @@ import {
   subscribeFx,
 } from "@/lib/fx";
 import { playUi } from "@/lib/sound";
-import { OPEN_TERMINAL_EVENT } from "@/lib/terminalKeys";
+import { OPEN_TERMINAL_EVENT, isTerminalChord } from "@/lib/terminalKeys";
 
 /** Nav (or anything else) can open the palette by dispatching this event. */
 export const OPEN_PALETTE_EVENT = "evidence-index:open";
@@ -401,6 +401,18 @@ export default function CommandPalette() {
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelected((s) => Math.max(s - 1, 0));
+    } else if (isTerminalChord(e.nativeEvent)) {
+      // Hand off to the terminal: close silently (the terminal taps on
+      // open), open next tick so its focus-restore target is the element
+      // focused before either overlay. Stopped here so the shell's own
+      // window listener does not also toggle it.
+      e.preventDefault();
+      e.stopPropagation();
+      close(true);
+      window.setTimeout(
+        () => window.dispatchEvent(new Event(OPEN_TERMINAL_EVENT)),
+        0,
+      );
     } else if (e.key === "Enter" && filtered[selected]) {
       e.preventDefault();
       run(filtered[selected]);
