@@ -1461,7 +1461,10 @@ export const terminal = {
   },
   usage: { open: "open <project>", goto: "goto <section>" },
   projectsFeatured: "Case files — open <project> reads one",
-  projectsMore: "Also on GitHub",
+  /** Claim-free on purpose: two of these projects carry no repository link,
+   *  so a heading saying where they live would assert something this file
+   *  does not hold. The site's own list is labelled the same way (llms.txt). */
+  projectsMore: "More projects",
   opening: "opening {name}…",
   resume: "résumé download started — if nothing happens, use the link:",
   resumeLink: "Résumé",
