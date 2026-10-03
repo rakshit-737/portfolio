@@ -2,15 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { Menu, Search, X } from "lucide-react";
-import { acts, links, navSections, type ActId } from "@/content";
+import { Menu, Search, Terminal, X } from "lucide-react";
+import { acts, links, navSections, terminalEntry, type ActId } from "@/content";
 import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
 import LiveClock from "@/components/LiveClock";
 import Mark from "@/components/Mark";
 import Odometer from "@/components/Odometer";
 import SoundToggle from "@/components/SoundToggle";
+import { preloadTerminal } from "@/components/Terminal";
 import { withBase } from "@/lib/base";
 import { playUi } from "@/lib/sound";
+import { OPEN_TERMINAL_EVENT } from "@/lib/terminalKeys";
 
 // The eight acts, in their declared order — `acts` is a `Record<ActId,
 // …>` object literal, so `Object.keys` walks it in that same insertion
@@ -143,6 +145,7 @@ export default function Nav() {
   const actNumber = ACT_IDS.indexOf((active || "hero") as ActId) + 1;
 
   const openPalette = () => window.dispatchEvent(new Event(OPEN_PALETTE_EVENT));
+  const openTerminal = () => window.dispatchEvent(new Event(OPEN_TERMINAL_EVENT));
 
   // scroll-behavior: smooth was dropped from <html> so it can't fight the
   // lamp's own scroll mapping — restored per-call here instead.
@@ -264,7 +267,35 @@ export default function Nav() {
             className="label flex items-center gap-2 border border-rule px-2.5 py-2 transition-colors hover:border-signal active:border-signal"
           >
             <Search size={12} aria-hidden="true" />
-            <kbd className="font-mono text-[10px] tracking-normal">ctrl K</kbd>
+            {/* The key hints step aside from `min-[90rem]` to just under
+                100rem: the section links take the rail's room there, and
+                the pair of hints measured 3px past it (47px with both
+                buttons' hints, October). Two bare icons keep the same ~40px
+                spare the rail had before the terminal button. */}
+            <kbd className="font-mono text-[10px] tracking-normal min-[90rem]:max-[99.99rem]:hidden">
+              ctrl K
+            </kbd>
+          </button>
+          {/* The terminal's door (Terminal.tsx) — beside ctrl K because it
+              is the same kind of control, a way in by click or keyboard.
+              From `lg` only: the `md` rail has ~3px of slack and the
+              clock's month label makes its width date-dependent (October
+              pushed it 4px over), so there is no room for it below. Below
+              `lg` the palette's "Open the terminal" action and the keys
+              reach it. Hover and focus warm the lazy panel. */}
+          <button
+            type="button"
+            data-voice // the terminal taps wood on open — no chime on top
+            onClick={openTerminal}
+            onPointerEnter={preloadTerminal}
+            onFocus={preloadTerminal}
+            aria-label={`${terminalEntry.open} (Ctrl+\`)`}
+            className="label hidden items-center gap-2 border border-rule px-2.5 py-2 transition-colors hover:border-signal active:border-signal lg:flex"
+          >
+            <Terminal size={12} aria-hidden="true" />
+            <kbd className="font-mono text-[10px] tracking-normal min-[90rem]:max-[99.99rem]:hidden">
+              {terminalEntry.hint}
+            </kbd>
           </button>
           <a
             href={withBase(links.resume)}
