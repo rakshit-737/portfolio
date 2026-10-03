@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { SECURITY_HEADERS } from "../scripts/csp.mjs";
-import { featuredProjects } from "../src/content";
+import { contact, featuredProjects, terminal, terminalEntry } from "../src/content";
 
 /**
  * Runs only under playwright.csp.config.ts, which serves ./out with the
@@ -59,6 +59,19 @@ test("the index hydrates, lights, and plays under the policy with zero violation
   await page.keyboard.press("Control+k");
   await expect(page.getByRole("combobox", { name: "Search the field" })).toBeFocused();
   await page.keyboard.press("Escape");
+  // The terminal's lazy chunk loads, a few commands run and it closes — all
+  // under the same policy: no eval, no worker, no new origin. Ctrl+backtick
+  // is the key that works from anywhere, the prompt included.
+  await page.keyboard.press("Control+Backquote");
+  const prompt = page.getByRole("textbox", { name: terminal.input });
+  await expect(prompt).toBeFocused();
+  for (const line of ["help", "projects", "contact"]) {
+    await prompt.fill(line);
+    await prompt.press("Enter");
+  }
+  await expect(page.getByRole("log", { name: terminal.output })).toContainText(contact.headline);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: terminalEntry.label })).toHaveCount(0);
   // Every act, so every plate, every lazy image and every ignition runs.
   for (let y = 0; y < 12; y++) {
     await page.mouse.wheel(0, 900);

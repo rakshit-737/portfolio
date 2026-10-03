@@ -17,8 +17,10 @@ import {
 import {
   experience,
   navSections,
+  terminalEntry,
 } from "@/content";
 import { withBase } from "@/lib/base";
+import { jumpToSection } from "@/lib/jump";
 import {
   fxSnapshot,
   isDeep,
@@ -30,6 +32,7 @@ import {
   subscribeFx,
 } from "@/lib/fx";
 import { playUi } from "@/lib/sound";
+import { OPEN_TERMINAL_EVENT, isTerminalChord } from "@/lib/terminalKeys";
 
 /** Nav (or anything else) can open the palette by dispatching this event. */
 export const OPEN_PALETTE_EVENT = "evidence-index:open";
@@ -49,6 +52,9 @@ interface Command {
    *  announced option stays the label and its hint. */
   chips?: string[];
   keywords?: string;
+  /** The command has a sound of its own (the terminal taps wood on open),
+   *  so the palette closes without its tap: one press, one sound. */
+  silent?: boolean;
   run: () => void;
 }
 
@@ -121,25 +127,10 @@ export default function CommandPalette() {
   }, []);
 
   const commands = useMemo<Command[]>(() => {
-    const jump = (id: string) => () => {
-      const el = document.getElementById(id);
-      // The palette mounts on the case files too, where the index's act
-      // sections don't exist in this document — navigate the tab to the
-      // index anchor instead, the same device the case-file section
-      // commands below already use. Never replaceState onto a hash with
-      // nothing behind it.
-      if (!el) {
-        window.location.href = withBase(`/#${id}`);
-        return;
-      }
-      el.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "auto"
-          : "smooth",
-        block: "start",
-      });
-      history.replaceState(null, "", `#${id}`);
-    };
+    // Shared with the terminal's `goto` (src/lib/jump.ts) — which also says
+    // why the case files, where the index's sections don't exist, navigate
+    // the tab to the index anchor instead.
+    const jump = (id: string) => () => jumpToSection(id);
     // Navigate the tab itself rather than opening a second one.
     const navigate = (url: string) => () => {
       window.location.href = url;
@@ -209,6 +200,22 @@ export default function CommandPalette() {
             },
           ]
         : []),
+      {
+        id: "terminal",
+        group: "instrument" as const,
+        label: terminalEntry.open,
+        hint: terminalEntry.hint,
+        keywords: "command line cli shell console prompt",
+        silent: true,
+        // Next tick: by then the palette has closed and given focus back,
+        // so the terminal's own focus-restore target is whatever was
+        // focused before either overlay.
+        run: () =>
+          window.setTimeout(
+            () => window.dispatchEvent(new Event(OPEN_TERMINAL_EVENT)),
+            0,
+          ),
+      },
     ];
     const secrets: Command[] = [
       {
@@ -376,7 +383,7 @@ export default function CommandPalette() {
 
   const run = (c: Command) => {
     c.run();
-    close();
+    close(c.silent);
   };
 
   // Dialog-level keys: work wherever focus sits inside the dialog, and
@@ -394,6 +401,18 @@ export default function CommandPalette() {
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelected((s) => Math.max(s - 1, 0));
+    } else if (isTerminalChord(e.nativeEvent)) {
+      // Hand off to the terminal: close silently (the terminal taps on
+      // open), open next tick so its focus-restore target is the element
+      // focused before either overlay. Stopped here so the shell's own
+      // window listener does not also toggle it.
+      e.preventDefault();
+      e.stopPropagation();
+      close(true);
+      window.setTimeout(
+        () => window.dispatchEvent(new Event(OPEN_TERMINAL_EVENT)),
+        0,
+      );
     } else if (e.key === "Enter" && filtered[selected]) {
       e.preventDefault();
       run(filtered[selected]);

@@ -23,6 +23,7 @@ import Rail, { type RailItem } from "@/components/Rail";
 import RowMarker from "@/components/RowMarker";
 import SineLattice from "@/components/SineLattice";
 import Statement from "@/components/Statement";
+import Terminal from "@/components/Terminal";
 import {
   about,
   achievements,
@@ -391,6 +392,7 @@ export default async function Home() {
       />
       <Nav />
       <CommandPalette />
+      <Terminal />
       <ProofTooltips />
 
       <main id="top">

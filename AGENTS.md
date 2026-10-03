@@ -110,6 +110,32 @@ the authority on the visual system; this is the short version.
   forced-colors; `Cursor.tsx` lays an animated rendering over them on a
   fine pointer without reduced motion. Source and build:
   `docs/design/cursors/` (`build.mjs` regenerates both).
+- **The terminal** (`Terminal.tsx`, the always-mounted shell;
+  `TerminalPanel.tsx`, the panel it loads lazily on first open;
+  `src/lib/terminal.ts`, the interpreter) is a command line in the
+  lamplight's own voice — bone on ground, hairline rules (owner request,
+  2026-10-03: "like a terminal with the same aesthetic") — and a second way
+  through the record, never the only one. `layout.tsx`'s contract refuses the
+  dark-terminal skin, not this. The interpreter is **pure** (no React, no
+  DOM): `run()` returns lines and an effect as data (`goto`, `open`,
+  `download`, `palette`, `clear`, `exit`) for the panel to perform, so the
+  whole command set is unit-tested in Node. **Every word lives in
+  `content.ts`** — `terminalEntry` (the closed-state strings the eager bundle
+  needs) and `terminal` (the rest, lazy); output is composed from existing
+  exports, nothing inline, no new claim. Keys: a bare backtick when focus is
+  not in an editable field, Ctrl+backtick anywhere; Ctrl+J was rejected
+  because it is the browser's Downloads shortcut and the résumé is a
+  download. **One overlay at a time**: the terminal and the palette hand off
+  by closing silently and opening on the next tick, so one press plays one
+  wood tap and focus returns to whatever held it before either. **No ember**
+  (ember marks a number the lamp has lit, and this overlay sits above the
+  lamp's pool), **no grey, no animation** — echo and output are told apart by
+  the `>` glyph and a rule, never by dimming; output lands at once and the
+  log jumps. The rail button shows from `lg` up, not `md`: the `md` rail has
+  about 3px of slack, and the clock's month label makes its width
+  date-dependent — October already overflowed it by 4px (`b6b1e3c`) — so
+  below `lg` the terminal is reached from the palette or the keys. Spec:
+  `docs/superpowers/specs/2026-10-03-the-terminal-design.md`.
 - **Document order is paint order** in the three-layer plate stack
   (`.plate-dark` → `.plate-lit` → `.plate::after`, all `position: absolute`
   with no `z-index`). Reordering these layers makes the lamp invisible —

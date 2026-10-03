@@ -11,6 +11,7 @@ import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
 import SineLattice from "@/components/SineLattice";
 import Statement from "@/components/Statement";
+import Terminal from "@/components/Terminal";
 import { acts, caseSections, caseStudies, featuredProjects, links, site } from "@/content";
 import CaseIndex from "@/components/CaseIndex";
 import { withBase } from "@/lib/base";
@@ -243,6 +244,7 @@ export default async function CaseStudyPage({
       </header>
 
       <CommandPalette />
+      <Terminal />
 
       <main id="top">
         {/* `data-case-plate` names this header plate `case-plate` for the
