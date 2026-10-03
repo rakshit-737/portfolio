@@ -19,6 +19,7 @@ import {
   navSections,
 } from "@/content";
 import { withBase } from "@/lib/base";
+import { jumpToSection } from "@/lib/jump";
 import {
   fxSnapshot,
   isDeep,
@@ -121,25 +122,10 @@ export default function CommandPalette() {
   }, []);
 
   const commands = useMemo<Command[]>(() => {
-    const jump = (id: string) => () => {
-      const el = document.getElementById(id);
-      // The palette mounts on the case files too, where the index's act
-      // sections don't exist in this document — navigate the tab to the
-      // index anchor instead, the same device the case-file section
-      // commands below already use. Never replaceState onto a hash with
-      // nothing behind it.
-      if (!el) {
-        window.location.href = withBase(`/#${id}`);
-        return;
-      }
-      el.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "auto"
-          : "smooth",
-        block: "start",
-      });
-      history.replaceState(null, "", `#${id}`);
-    };
+    // Shared with the terminal's `goto` (src/lib/jump.ts) — which also says
+    // why the case files, where the index's sections don't exist, navigate
+    // the tab to the index anchor instead.
+    const jump = (id: string) => () => jumpToSection(id);
     // Navigate the tab itself rather than opening a second one.
     const navigate = (url: string) => () => {
       window.location.href = url;
