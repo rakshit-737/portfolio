@@ -129,7 +129,10 @@ cursor on desktop. Nothing on the page is asserted outright;
 only what the light reaches is proven. The world refuses both of the
 defaults available to a developer portfolio — the dark terminal with its
 green-on-black nostalgia, and the airy white résumé page — by refusing to be
-either lit uniformly or dark uniformly.
+either lit uniformly or dark uniformly. It is the terminal's *skin* the world
+refuses — the green-on-black nostalgia — not a command line built in the
+lamplight's own voice, of which Warden's typed exhibit is the precedent (see
+Terminal).
 
 The palette is three values: `#08070A` ground, `#F2EDE3` bone signal, and
 `#E8A33D` ember. There is no grey and no other hue. Ember is the rarest mark
@@ -463,9 +466,10 @@ of the radius) at the same point, so the light reads as warm. A second
 rendering of the light, the torch — a page-wide cursor dimmer over nav,
 copy and chart — was removed 2026-09-05 at the owner's request: one lamp.
 
-The only stacked surface is the command palette: an 85%-opacity `ground`
-scrim over the page and a solid dialog bordered in full-strength `signal`.
-As before, the separation is a border, never a shadow.
+The only stacked surfaces are the command palette and the terminal, which
+share one grammar: an 85%-opacity `ground` scrim over the page and a solid
+dialog bordered in full-strength `signal`. As before, the separation is a
+border, never a shadow.
 
 ### Named Rules
 
@@ -956,6 +960,36 @@ unclipped list would be dimming text to decorate, which this palette has
 no contrast headroom for. The rows themselves are never dimmed; the
 `bg-signal` swap stays the one selection state, the marker stays the one
 extra beat, and the wood tap on open and close is untouched.
+
+### Terminal (`Terminal.tsx`, `TerminalPanel.tsx`)
+A command line in the lamplight's own voice (the owner asked for a terminal
+"with the same aesthetic", 2026-10-03), opened from a bordered button beside
+ctrl K in the rail or by key: a second way to read and move through the
+record, never the only one. It borrows the palette's grammar — the 85%
+`ground` scrim, a `max-w-2xl` panel bordered in full-strength `signal`,
+`.label` chrome — and sets everything typed or printed in Chivo Mono. A
+command's echo (the `>` glyph, `aria-hidden`) and its output are told apart
+by structure, the glyph and a `rule-soft` hairline between blocks, never by
+dimming; link rows take the control swap on hover and focus, and the
+prompt's focus is its rule going from `rule` to `signal`. No ember (ember
+marks a number the lamp has lit, and this overlay sits above the lamp's
+pool), no grey, no `$` or `user@host`, no glow, scanlines or CRT, no motion:
+output appears at once and the log jumps to the bottom. It is not a light
+source.
+
+Every word is `content.ts` (`terminalEntry` for the closed-state strings the
+eager bundle needs, `terminal` for the rest) and every printed line is
+composed from existing exports, as Warden's exhibit is built from real
+rows — no new claim. The interpreter, `src/lib/terminal.ts`, is pure and
+returns its side effects as data for the panel to perform; the panel is a
+lazy chunk, so a closed terminal costs the page only its shell and a button.
+One overlay at a time: the terminal and the palette hand off by closing
+silently and opening on the next tick, so a press plays one wood tap. The
+button shows from `lg` up — the `md` rail has about 3px of slack, and the
+clock's month label makes its width date-dependent (October already
+overflowed it by 4px) — and below `lg` the terminal is reached from the
+palette or the keys. No rule is narrowed: no ember, no light, no motion, no
+new dependency.
 
 ### Plate
 The three-layer painting (`Plate.tsx`): a dimmed still (`.plate-dark`) and
