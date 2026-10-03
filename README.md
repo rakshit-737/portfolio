@@ -29,6 +29,7 @@ best-practices 100 / 100 · SEO 100 / 100.
 - **The night archive.** A synthesized candlelit soundscape, on by default after your first interaction, with one visible switch. There is no audio file in the repo.
 - **The key and the lock.** On a fine pointer the cursor is a medieval key, and anything clickable shows the padlock it opens.
 - **⌘K.** A command palette jumps to any section and holds the lighting and effects switches.
+- **The terminal.** A command line in the same lamplight, from the button beside ctrl K or the backtick key: `about`, `projects`, `open warden`, `skills`, `contact`, `resume`, `goto`. Everything it prints is read from `content.ts`.
 
 Every claim on the page carries its proof: a date, a status, the repo, and live CI data fetched at build time.
 
@@ -38,6 +39,7 @@ Every claim on the page carries its proof: a date, a status, the repo, and live 
 - The sound engine: [`src/lib/sound.ts`](src/lib/sound.ts), a Karplus–Strong string, drone and room tone, all Web Audio.
 - The cursor: static SVG cursors in [`src/app/globals.css`](src/app/globals.css), the animated layer in [`public/cursors/`](public/cursors/), and the source and build in [`docs/design/cursors/`](docs/design/cursors/).
 - The palette: [`src/components/CommandPalette.tsx`](src/components/CommandPalette.tsx).
+- The terminal: [`src/components/Terminal.tsx`](src/components/Terminal.tsx) (shell), [`TerminalPanel.tsx`](src/components/TerminalPanel.tsx) (lazy panel), and [`src/lib/terminal.ts`](src/lib/terminal.ts), a pure interpreter unit-tested in Node.
 - Build-time provenance: [`src/lib/github.ts`](src/lib/github.ts) fetches stars, head commit and CI status for every cited repo; any failure degrades to static text.
 - For machines: an [`llms.txt`](src/app/llms.txt/route.ts) route, JSON-LD (`Person`, `WebSite`, `SoftwareSourceCode` per case study), sitemap, robots, and OG cards rendered at build time ([`src/app/og.png/`](src/app/og.png/)).
 - Print: a stylesheet that drops the paintings, forces every act visible, and prints link targets.
