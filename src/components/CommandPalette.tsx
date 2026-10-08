@@ -137,7 +137,7 @@ export default function CommandPalette() {
     };
 
     const sections = [
-      { id: "top", label: "Hero / Top of page" },
+      { id: "top", label: experience.palette.top },
       ...navSections.map((s) => ({ id: s.id, label: s.label })),
     ];
 
@@ -461,8 +461,8 @@ export default function CommandPalette() {
               setQuery(e.target.value);
               setSelected(0); // reset selection as the list refilters
             }}
-            placeholder="Query the field…"
-            aria-label="Search the field"
+            placeholder={experience.palette.placeholder}
+            aria-label={experience.palette.searchLabel}
             role="combobox"
             aria-expanded="true"
             aria-controls="palette-list"
