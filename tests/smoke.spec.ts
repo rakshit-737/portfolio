@@ -33,6 +33,47 @@ test("the canonical is the primary URL; the basePath only moves files", async ({
   expect(new URL(plateSrc, page.url()).pathname.startsWith(`${BASE}/art/`)).toBe(true);
 });
 
+test("hero preload candidates use the same basePath as the picture", async ({ page }) => {
+  await page.goto(`${BASE}/`);
+  const preloads = await page
+    .locator('link[rel="preload"][imagesrcset]')
+    .evaluateAll((links) =>
+      links.map((link) => ({
+        href: link.getAttribute("href") ?? "",
+        media: link.getAttribute("media") ?? "",
+        candidates: (link.getAttribute("imagesrcset") ?? "")
+          .split(",")
+          .map((candidate) => candidate.trim().split(/\s+/)[0])
+          .filter(Boolean),
+      })),
+    );
+  expect(preloads).toHaveLength(2);
+  expect(preloads.map((preload) => preload.media).sort()).toEqual([
+    "(max-width: 48rem)",
+    "not all and (max-width: 48rem)",
+  ]);
+  const candidates = preloads.flatMap((preload) => [
+    ...(preload.href ? [preload.href] : []),
+    ...preload.candidates,
+  ]);
+  for (const candidate of candidates) {
+    expect(new URL(candidate, page.url()).pathname.startsWith(`${BASE}/art/`)).toBe(true);
+    if (BASE) expect(candidate).not.toContain(`${BASE}${BASE}`);
+  }
+
+  const sourceCandidates = await page.locator("#hero picture source").evaluateAll((sources) =>
+    sources.flatMap((source) =>
+      (source.getAttribute("srcset") ?? "")
+        .split(",")
+        .map((candidate) => candidate.trim().split(/\s+/)[0])
+        .filter(Boolean),
+    ),
+  );
+  for (const candidate of sourceCandidates) {
+    expect(new URL(candidate, page.url()).pathname.startsWith(`${BASE}/art/`)).toBe(true);
+  }
+});
+
 test("index renders with hero and evidence", async ({ page }) => {
   await page.goto(`${BASE}/`);
   await expect(

@@ -22,6 +22,10 @@ export const FX_KEY = "lamplight:fx";
 export const DEEP_KEY = "lamplight:deep";
 export const LIGHT_KEY = "lamplight:light";
 
+/** The inline boot path hands input to Ignition only after it has listeners. */
+export const INTRO_CLAIM_EVENT = "lamplight:intro-claimed";
+export const INTRO_OPEN_EVENT = "lamplight:intro-opened";
+
 const subs = new Set<() => void>();
 function emit() {
   for (const s of subs) s();
@@ -108,7 +112,11 @@ export function fxSnapshot(): string {
  * time, not only on a first visit); none under reduced motion / forced colours / reduced effects, and
  * under automation (navigator.webdriver) — `?ignite` (or `?ignite=brief`)
  * forces it for a test or a demo. The 7.5s timer is the failsafe: even if
- * the app bundle never runs, the veil and the hero's hold are gone by then.
+ * the app bundle never runs, the veil and the hero's hold are gone by then,
+ * marked `timed-out` rather than reported as a successful asset gate. The
+ * same tiny script also owns the pre-hydration skip: input cannot be replayed
+ * after hydration, so it is handled here and leaves the client a terminal
+ * `done` state to adopt.
  */
 export const BOOT_SCRIPT = `(function(){try{
 var d=document.documentElement,w=window,n=navigator,c=n.connection||{};
@@ -132,5 +140,13 @@ if(force)mode=/ignite=brief/.test(q)?'brief':'full';
 else mode=index?'full':'brief';
 }
 if(mode){d.setAttribute('data-intro',mode);d.setAttribute('data-intro-phase','ember');d.setAttribute('data-intro-hold','');
-w.setTimeout(function(){d.removeAttribute('data-intro-hold');d.setAttribute('data-intro-phase','done')},7500);}
+var ev=['wheel','pointerdown','keydown','touchstart'],finished=false,timer;
+function clean(){for(var i=0;i<ev.length;i++)w.removeEventListener(ev[i],skip,true)}
+function release(){clean();w.clearTimeout(timer);w.removeEventListener('${INTRO_CLAIM_EVENT}',claim);w.removeEventListener('${INTRO_OPEN_EVENT}',release)}
+function claim(){clean();w.removeEventListener('${INTRO_CLAIM_EVENT}',claim)}
+function finish(reason){if(finished)return;finished=true;if(d.getAttribute('data-intro-phase')==='done'){release();return}if(!d.getAttribute('data-intro-readiness'))d.setAttribute('data-intro-readiness',reason);d.removeAttribute('data-intro-hold');d.removeAttribute('data-intro-fast');d.setAttribute('data-intro-phase','done');release()}
+function skip(){finish('skipped')}
+for(var i=0;i<ev.length;i++)w.addEventListener(ev[i],skip,true);
+w.addEventListener('${INTRO_CLAIM_EVENT}',claim);w.addEventListener('${INTRO_OPEN_EVENT}',release);
+timer=w.setTimeout(function(){finish('timed-out')},7500);}
 }catch(e){}})();`;

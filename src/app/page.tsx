@@ -16,7 +16,14 @@ import Ignite from "@/components/Ignite";
 import Ignition from "@/components/Ignition";
 import Metric from "@/components/Metric";
 import Nav from "@/components/Nav";
-import Plate, { narrowSrcset, narrowTiers, srcset } from "@/components/Plate";
+import Plate, {
+  NARROW_MEDIA,
+  WIDE_MEDIA,
+  narrowSrcset,
+  narrowTiers,
+  srcset,
+  widestTier,
+} from "@/components/Plate";
 import ProofTooltips from "@/components/ProofTooltips";
 import Provenance from "@/components/Provenance";
 import Rail, { type RailItem } from "@/components/Rail";
@@ -304,11 +311,12 @@ export default async function Home() {
   // fetches the wide crop and vice versa. AVIF only — matches the format
   // `Plate.tsx` lists first, which every Lighthouse-class Chrome decodes.
   if (narrowTiers(acts.hero.plate, "avif").length > 0) {
-    preload(withBase(`/art/${acts.hero.plate}-narrow-960.avif`), {
+    const narrow = Math.max(...narrowTiers(acts.hero.plate, "avif"));
+    preload(withBase(`/art/${acts.hero.plate}-narrow-${narrow}.avif`), {
       as: "image",
       imageSrcSet: narrowSrcset(acts.hero.plate, "avif"),
       imageSizes: "100vw",
-      media: "(max-width: 48rem)",
+      media: NARROW_MEDIA,
       type: "image/avif",
       // Matches the `<img>` itself, which already carries
       // fetchpriority="high" — Lighthouse's LCP-discovery check flags a
@@ -317,11 +325,11 @@ export default async function Home() {
       fetchPriority: "high",
     });
   }
-  preload(withBase(`/art/${acts.hero.plate}-1920.avif`), {
+  preload(withBase(`/art/${acts.hero.plate}-${widestTier(acts.hero.plate, "avif")}.avif`), {
     as: "image",
     imageSrcSet: srcset(acts.hero.plate, "avif"),
     imageSizes: "100vw",
-    media: "(min-width: 48.0625rem)",
+    media: WIDE_MEDIA,
     type: "image/avif",
     fetchPriority: "high",
   });

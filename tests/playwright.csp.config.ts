@@ -9,14 +9,15 @@ import { defineConfig } from "@playwright/test";
  * production. scripts/serve-with-headers.mjs serves ./out with the
  * committed vercel.json applied, and this config re-runs the three suites
  * that exercise hydration, the lamp and the sound engine under it, plus
- * tests/csp.spec.ts, which fails on any CSP violation event at all.
+ * browser ignition readiness and tests/csp.spec.ts, which fails on any CSP
+ * violation event at all.
  * A real response header, not a <meta>: that is what Vercel sends, and a
  * meta policy would silently ignore frame-ancestors.
  */
 export default defineConfig({
   testDir: ".",
   outputDir: "../test-results",
-  testMatch: ["smoke.spec.ts", "lamplight.spec.ts", "sound.spec.ts", "csp.spec.ts"],
+  testMatch: ["smoke.spec.ts", "lamplight.spec.ts", "sound.spec.ts", "csp.spec.ts", "readiness.spec.ts"],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

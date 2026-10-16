@@ -36,6 +36,7 @@ Every claim on the page carries its proof: a date, a status, the repo, and live 
 ## Inside
 
 - The lamp: [`src/components/Lamp.tsx`](src/components/Lamp.tsx), one rAF loop writing CSS custom properties; everything visual is CSS.
+- Opening readiness: [`src/lib/asset-readiness.ts`](src/lib/asset-readiness.ts) checks the actual rendered painting layers and opening font faces before [`Ignition.tsx`](src/components/Ignition.tsx) reveals them. Skips and timeouts remain usable without claiming the assets are ready; the other seven plates warm one low-priority pair at a time.
 - The sound engine: [`src/lib/sound.ts`](src/lib/sound.ts), a Karplus–Strong string, drone and room tone, all Web Audio.
 - The cursor: static SVG cursors in [`src/app/globals.css`](src/app/globals.css), the animated layer in [`public/cursors/`](public/cursors/), and the source and build in [`docs/design/cursors/`](docs/design/cursors/).
 - The palette: [`src/components/CommandPalette.tsx`](src/components/CommandPalette.tsx).
@@ -56,8 +57,8 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) blocks every push an
 - `check:content`: the stranger test. An insider term (`dispatch instants`, `SDSC SP2`, `TOST`) may not appear on the index outside the act that explains it.
 - `check:vercel`: `vercel.json`'s headers match `scripts/csp.mjs` exactly.
 - `npm test`: Playwright smoke tests plus an axe scan at zero violations. The suite covers metadata and OG cards, JSON-LD, sitemap and robots, `security.txt` (the test fails once it expires, so it is renewed yearly), the recruiter's thirty-second path, the lamp surviving a full scroll, the sound gate, the cursor, and reduced-motion and no-JS fallbacks.
-- The same smoke, lamp and sound suites run again under the production headers, and fail on any Content-Security-Policy violation.
-- A second job builds the GitHub Pages sub-path shape and runs the link crawl and smoke suite against it.
+- The same smoke, lamp, sound and opening-readiness suites run again under the production headers, with a dedicated check for Content-Security-Policy violations.
+- A second job builds the GitHub Pages sub-path shape and runs the link crawl, smoke and opening-readiness suites against it.
 - [`scripts/check-lighthouse.mjs`](scripts/check-lighthouse.mjs): category minimums on mobile and desktop (median of three runs) and a CLS cap. Thresholds only ever move up.
 
 ## Run it

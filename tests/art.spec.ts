@@ -85,3 +85,22 @@ test("no locked variant is wider than its source crop", () => {
     }
   }
 });
+
+test("narrow crop variants stay paired and inside their narrow source crop", () => {
+  for (const p of Object.values(plates)) {
+    const avif = Object.keys(lock)
+      .filter((name) => name.startsWith(`${p.id}-narrow-`) && name.endsWith(".avif"))
+      .map((name) => Number(name.match(/-(\d+)\.avif$/)?.[1]));
+    const webp = Object.keys(lock)
+      .filter((name) => name.startsWith(`${p.id}-narrow-`) && name.endsWith(".webp"))
+      .map((name) => Number(name.match(/-(\d+)\.webp$/)?.[1]));
+    expect(webp, `${p.id} narrow WebP tiers`).toEqual(avif);
+    if (avif.length === 0) {
+      expect(p.cropNarrow, `${p.id} has no narrow crop`).toBeUndefined();
+      continue;
+    }
+    expect(p.cropNarrow, `${p.id} narrow variants need a crop`).toBeDefined();
+    const cropWidth = Math.round(p.native.w * p.cropNarrow!.w);
+    for (const width of avif) expect(width, `${p.id} narrow ${width}`).toBeLessThanOrEqual(cropWidth);
+  }
+});
