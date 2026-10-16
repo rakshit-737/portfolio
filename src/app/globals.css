@@ -1224,8 +1224,9 @@ html[data-intro]:not([data-intro-phase="done"]) .ignition {
   );
   transition: --ig-open 1400ms cubic-bezier(0.2, 0.7, 0.1, 1);
 }
-/* The pinhole widens a step as each real piece lands — progress told by
-   how much of the painting the light has found, never by a number. */
+/* Preserve the original pinhole beats, but authorize them only once the
+   opening font faces and both actual painting elements are decoded. The dial
+   and ember can calibrate during a slow load without exposing a blank plate. */
 html[data-intro-phase="kindle"] .ig-veil {
   --ig-open: 3vmax;
 }
@@ -1245,6 +1246,17 @@ html[data-intro="brief"][data-intro-phase="open"] .ig-veil {
 }
 html[data-intro-fast][data-intro-phase="open"] .ig-veil {
   transition-duration: 420ms;
+}
+/* Source changes revoke permission immediately, not through a fade back
+   toward darkness. Skip/degraded/capped opening explicitly releases the hold. */
+html[data-intro-hold]:not([data-intro-assets="ready"]) .ig-veil {
+  --ig-open: 0px;
+  -webkit-mask-image: none;
+  mask-image: none;
+  transition: none;
+}
+html[data-intro]:not([data-intro-fonts="ready"]) .ig-caption {
+  visibility: hidden;
 }
 
 /* The ember: a point of warm light that becomes the lamp's core. Ember
@@ -1505,7 +1517,7 @@ html[data-intro-phase="open"] :is(.ig-caption, .ig-cross, .ig-corner) {
 /* The hero holds its one authored beat until the veil opens, so the name
    lands in the light rather than behind the dark. `data-lamp` is part of
    the selector: without the app bundle there is no reveal to hold, and
-   the boot script's own timer drops `data-intro-hold` at 4s regardless. */
+   the boot script's own failsafe drops `data-intro-hold` at 7.5s. */
 html[data-lamp="on"][data-intro-hold] #hero .scrim > *,
 html[data-lamp="on"][data-intro-hold] #hero .statement .word {
   opacity: 0;
@@ -2151,7 +2163,7 @@ html[data-lamp="on"]:not([data-fx="off"]) #contact::after {
     opacity: 1 !important;
   }
 }
-html[data-fx="off"] :is(.inst-gl, .atmosphere, .reticle, .spec-scan) {
+html[data-fx="off"] :is(.inst-gl, .atmosphere, .reticle, .spec-scan, .ignition) {
   display: none !important;
 }
 html[data-fx="off"] .specimen {
@@ -2526,4 +2538,3 @@ html[data-fx="off"] .specimen {
   a, button, [role="button"], [role="option"], summary, select, label[for], input[type="checkbox"], input[type="radio"], input[type="range"], [data-lock] { cursor: auto; }
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, [contenteditable="true"], p, li, blockquote, dd, .statement, .prose-field, [data-text] { cursor: auto; }
 }
-

@@ -9,7 +9,7 @@ import { defineConfig } from "@playwright/test";
  * internal link, asset reference, and `withBase()` call could regress
  * under a sub-path and no gate would notice.
  *
- * Only `tests/smoke.spec.ts` runs against this config — see the CI job
+ * Smoke and browser readiness tests run against this config — see the CI job
  * ("sub-path shape") that builds with `NEXT_PUBLIC_BASE_PATH` set before
  * this config's webServer ever starts; `scripts/serve-subpath.mjs` mounts
  * that build under the same sub-path locally so the served URLs match
@@ -19,7 +19,7 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: ".",
   outputDir: "../test-results",
-  testMatch: "smoke.spec.ts",
+  testMatch: ["smoke.spec.ts", "readiness.spec.ts"],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -30,7 +30,7 @@ export default defineConfig({
     // `request.get("/llms.txt")`) against a `baseURL` by REPLACING its
     // entire path (WHATWG URL semantics) — a `baseURL` that already
     // carried `/portfolio` would be silently discarded by every such call.
-    // `tests/smoke.spec.ts` prefixes its own literal paths with `BASE`
+    // Both suites prefix their own literal paths with `BASE`
     // (`NEXT_PUBLIC_BASE_PATH`) instead, so the full absolute path — origin
     // AND sub-path — comes from the call site every time.
     baseURL: "http://localhost:4576",

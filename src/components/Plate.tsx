@@ -8,10 +8,21 @@ import { withBase } from "@/lib/base";
  *  needs more (see scripts/fetch-art.mjs). */
 const NARROW_WIDTHS = [640, 960] as const;
 
+/** Keep picture media and the server-rendered preload media in lockstep. */
+export const NARROW_MEDIA = "(max-width: 48rem)";
+export const WIDE_MEDIA = "not all and (max-width: 48rem)";
+
 /** Widths actually emitted for this plate — a tier is skipped when it
  *  would have upscaled the crop, so the srcset is built from the lock. */
 function tiers(id: PlateId, ext: "avif" | "webp"): number[] {
   return PLATE_WIDTHS.filter((w) => `${id}-${w}.${ext}` in lock);
+}
+
+/** The largest committed tier for a plate/format pair. */
+export function widestTier(id: PlateId, ext: "avif" | "webp"): number {
+  const values = tiers(id, ext);
+  if (values.length === 0) throw new Error(`No ${ext} tier is locked for plate ${id}`);
+  return Math.max(...values);
 }
 
 export function srcset(id: PlateId, ext: "avif" | "webp"): string {
@@ -44,7 +55,7 @@ export default function Plate({
   priority?: boolean;
 }) {
   const plate = plates[id];
-  const widest = Math.max(...tiers(id, "avif"));
+  const widest = widestTier(id, "avif");
   const fallback = withBase(`/art/${id}-${widest}.webp`);
   const common = {
     sizes: "100vw",
@@ -59,6 +70,7 @@ export default function Plate({
   return (
     <div
       className="plate print-drop"
+      data-plate={id}
       style={
         {
           backgroundImage: `url("${lqip(id)}")`,
@@ -95,7 +107,7 @@ export default function Plate({
       <picture>
         {hasNarrow && (
           <source
-            media="(max-width: 48rem)"
+            media={NARROW_MEDIA}
             srcSet={narrowSrcset(id, "avif")}
             sizes="100vw"
             type="image/avif"
@@ -103,7 +115,7 @@ export default function Plate({
         )}
         {hasNarrow && (
           <source
-            media="(max-width: 48rem)"
+            media={NARROW_MEDIA}
             srcSet={narrowSrcset(id, "webp")}
             sizes="100vw"
             type="image/webp"
@@ -116,7 +128,7 @@ export default function Plate({
       <picture>
         {hasNarrow && (
           <source
-            media="(max-width: 48rem)"
+            media={NARROW_MEDIA}
             srcSet={narrowSrcset(id, "avif")}
             sizes="100vw"
             type="image/avif"
@@ -124,7 +136,7 @@ export default function Plate({
         )}
         {hasNarrow && (
           <source
-            media="(max-width: 48rem)"
+            media={NARROW_MEDIA}
             srcSet={narrowSrcset(id, "webp")}
             sizes="100vw"
             type="image/webp"

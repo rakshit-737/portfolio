@@ -473,10 +473,15 @@ test("Tab to a hero proof token opens its tooltip under the token; Escape hides 
     .poll(() => tip.evaluate((el) => parseFloat(getComputedStyle(el).opacity)))
     .toBe(1);
 
-  // It sits under the token and never covers it (WCAG 1.4.13).
-  const tokenBox = await token.boundingBox();
-  const tipBox = await tip.boundingBox();
-  expect(tipBox!.y).toBeGreaterThanOrEqual(tokenBox!.y + tokenBox!.height - 1);
+  // It sits under the token and never covers it (WCAG 1.4.13). Read both
+  // boxes in one frame: the hero's entrance can still be moving their shared
+  // parent, so separate protocol calls compare two different positions.
+  const placement = await token.evaluate((element) => {
+    const tokenBox = element.getBoundingClientRect();
+    const tipBox = document.getElementById("hero-proof-0")!.getBoundingClientRect();
+    return { tokenBottom: tokenBox.bottom, tipTop: tipBox.top };
+  });
+  expect(placement.tipTop).toBeGreaterThanOrEqual(placement.tokenBottom - 1);
 
   // Escape closes it — back to the clipped sr-only box, still in the
   // accessibility tree — and focus never moves off the token.
